@@ -30,8 +30,8 @@ defmodule Jsonpatch.MapEntry do
   end
 
   defp flat([{subpath, values} | tail], accumulator, path) when is_list(values) do
-    values = Enum.with_index(values) |> Enum.map(fn {v, p} -> {p, v} end)
-    accumulator = flat(values, accumulator, "#{path}/#{subpath}")
+    accumulator = Enum.with_index(values) |> Enum.map(fn {v, p} -> {p, v} end)
+                  |> flat(accumulator, "#{path}/#{subpath}")
     flat(tail, accumulator, path)
   end
 
