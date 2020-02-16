@@ -3,7 +3,7 @@ defmodule Jsonpatch.MapEntryTest do
 
   alias Jsonpatch.MapEntry
 
-  test "convert a one level map to map entries" do
+  test "convert a one dimensional map to map entries" do
     source = %{"name" => "Bob", "age" => 27}
     map_entries = MapEntry.to_map_entries(source)
 
@@ -13,7 +13,7 @@ defmodule Jsonpatch.MapEntryTest do
     ] = map_entries
   end
 
-  test "convert a two level map to map entries" do
+  test "convert a two dimensional map to map entries" do
     address = %{"city" => "Somewhere", "street" => "Somestreet"}
     source = %{"name" => "Bob", "age" => 27, "address" => address}
     map_entries = MapEntry.to_map_entries(source)
@@ -21,8 +21,17 @@ defmodule Jsonpatch.MapEntryTest do
     assert [
       %MapEntry{path: "/name", value: "Bob"},
       %MapEntry{path: "/age", value: 27},
-      %MapEntry{path: "/address/city", value: "Somewhere"},
-      %MapEntry{path: "/address/street", value: "Somestreet"}
+      %MapEntry{path: "/address/street", value: "Somestreet"},
+      %MapEntry{path: "/address/city", value: "Somewhere"}
+    ] = map_entries
+  end
+
+  test "convert a four dimensional map to map entries" do
+    source = %{"a" => %{"b" => %{"c" => %{"d" => "e"}}}}
+    map_entries = MapEntry.to_map_entries(source)
+
+    assert [
+      %MapEntry{path: "/a/b/c/d", value: "e"}
     ] = map_entries
   end
 

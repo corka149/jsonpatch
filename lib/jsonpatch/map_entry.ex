@@ -18,14 +18,19 @@ defmodule Jsonpatch.MapEntry do
   # ===== ===== PRIVATE ===== =====
 
   @spec flat(list, [MapEntry.t()], binary) :: [MapEntry.t()]
-  defp flat(source, accumulator \\ [], path \\ "/")
+  defp flat(source, accumulator \\ [], path \\ "")
 
   defp flat([], accumulator, _path) do
     accumulator
   end
 
+  defp flat([{subpath, %{} = value} | tail], accumulator, path) do
+    accumulator = flat(Map.to_list(value), accumulator, "#{path}/#{subpath}")
+    flat(tail, accumulator, path)
+  end
+
   defp flat([{subpath, value} | tail], accumulator, path) do
-    accumulator = [%MapEntry{path: path <> subpath, value: value} | accumulator]
+    accumulator = [%MapEntry{path: "#{path}/#{subpath}", value: value} | accumulator]
     flat(tail, accumulator, path)
   end
 end
