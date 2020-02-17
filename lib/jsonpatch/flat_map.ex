@@ -1,4 +1,4 @@
-defmodule Jsonpatch.MapEntry do
+defmodule Jsonpatch.FlatMap do
   @moduledoc """
   Forms structs in a flat format with paths instead of nested maps/structs.
   """
@@ -9,14 +9,14 @@ defmodule Jsonpatch.MapEntry do
   ## Examples
 
       iex> source = %{"a" => "b", "c" => ["d", "f"], "g" => %{"h" => "i"}}
-      iex> Jsonpatch.MapEntry.to_map_entries(source)
+      iex> Jsonpatch.FlatMap.parse(source)
       %{"/a" => "b", "/c/0" => "d", "/c/1" => "f", "/g/h" => "i"}
 
   """
-  @spec to_map_entries(map) :: map
-  def to_map_entries(source)
+  @spec parse(map) :: map
+  def parse(source)
 
-  def to_map_entries(%{} = source) do
+  def parse(%{} = source) do
     flat(Map.to_list(source))
   end
 

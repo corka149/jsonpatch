@@ -1,12 +1,12 @@
-defmodule Jsonpatch.MapEntryTest do
+defmodule Jsonpatch.FlatMapTest do
   use ExUnit.Case
-  doctest Jsonpatch.MapEntry
+  doctest Jsonpatch.FlatMap
 
-  alias Jsonpatch.MapEntry
+  alias Jsonpatch.FlatMap
 
   test "convert a one dimensional map to map entries" do
     source = %{"name" => "Bob", "age" => 27}
-    map_entries = MapEntry.to_map_entries(source)
+    map_entries = FlatMap.parse(source)
 
     assert %{"/name" => "Bob", "/age" => 27} = map_entries
   end
@@ -14,7 +14,7 @@ defmodule Jsonpatch.MapEntryTest do
   test "convert a two dimensional map to map entries" do
     address = %{"city" => "Somewhere", "street" => "Somestreet"}
     source = %{"name" => "Bob", "age" => 27, "address" => address}
-    map_entries = MapEntry.to_map_entries(source)
+    map_entries = FlatMap.parse(source)
 
     assert %{
              "/name" => "Bob",
@@ -26,7 +26,7 @@ defmodule Jsonpatch.MapEntryTest do
 
   test "convert a four dimensional map to map entries" do
     source = %{"a" => %{"b" => %{"c" => %{"d" => "e"}}}}
-    map_entries = MapEntry.to_map_entries(source)
+    map_entries = FlatMap.parse(source)
 
     assert %{"/a/b/c/d" => "e"} = map_entries
   end
@@ -34,7 +34,7 @@ defmodule Jsonpatch.MapEntryTest do
   test "convert a two dimensional map with a value array" do
     languages = ["Elixir", "Erlang"]
     source = %{"name" => "Bob", "languages" => languages, "age" => 27}
-    map_entries = MapEntry.to_map_entries(source)
+    map_entries = FlatMap.parse(source)
 
     assert %{
              "/name" => "Bob",
@@ -51,7 +51,7 @@ defmodule Jsonpatch.MapEntryTest do
     ]
 
     source = %{"name" => "Alice", "employers" => employers, "age" => 26}
-    map_entries = MapEntry.to_map_entries(source)
+    map_entries = FlatMap.parse(source)
 
     target = %{
       "/name" => "Alice",
