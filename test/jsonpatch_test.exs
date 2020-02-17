@@ -2,8 +2,25 @@ defmodule JsonpatchTest do
   use ExUnit.Case
   doctest Jsonpatch
 
-  test "A.1. Adding an Object Member" do
+  # ===== ===== kernel functions
 
+  test "create additions" do
+    source = %{"/a" => "b"}
+    destination = %{"/a" => "b", "/c" => "d"}
+
+    addition_patch = Jsonpatch.create_additions([], source, destination)
+
+    assert {:ok, [%{"op" => "add", "path" => "/c", "value" => "d"}]} = addition_patch
+  end
+
+  # Use case tests from RFC
+
+  test "A.1. Adding an Object Member" do
+    source = %{"foo" => "bar"}
+    destination = %{"foo" => "bar", "baz" => "qux"}
+    patch = Jsonpatch.diff(source, destination)
+
+    assert {:ok, [%{ "op" => "add", "path" => "/baz", "value" => "qux" }]} = patch
   end
 
   test "A.2. Adding an Array Element" do
