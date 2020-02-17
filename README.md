@@ -1,4 +1,5 @@
 # Jsonpatch
+![Elixir CI](https://github.com/corka149/jsonpatch/workflows/Elixir%20CI/badge.svg)
 
 A implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elixir.
 
