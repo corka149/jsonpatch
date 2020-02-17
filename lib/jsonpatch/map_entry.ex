@@ -1,14 +1,19 @@
 defmodule Jsonpatch.MapEntry do
-  @doc """
+  @moduledoc """
   Forms structs in a flat format with paths instead of nested maps/structs.
   """
 
-  alias Jsonpatch.MapEntry
+  @doc ~S"""
+  Parses any map with/out arrays to a flat map.
 
-  @enforce_keys [:path, :value]
-  defstruct [:path, :value]
+  ## Examples
 
-  @spec to_map_entries(map) :: [MapEntry.t()]
+      iex> source = %{"a" => "b", "c" => ["d", "f"], "g" => %{"h" => "i"}}
+      iex> Jsonpatch.MapEntry.to_map_entries(source)
+      %{"/a" => "b", "/c/0" => "d", "/c/1" => "f", "/g/h" => "i"}
+
+  """
+  @spec to_map_entries(map) :: map
   def to_map_entries(source)
 
   def to_map_entries(%{} = source) do
@@ -17,8 +22,8 @@ defmodule Jsonpatch.MapEntry do
 
   # ===== ===== PRIVATE ===== =====
 
-  @spec flat(list, [MapEntry.t()], binary) :: [MapEntry.t()]
-  defp flat(source, accumulator \\ [], path \\ "")
+  @spec flat(list, map, binary) :: map
+  defp flat(source, accumulator \\ %{}, path \\ "")
 
   defp flat([], accumulator, _path) do
     accumulator
@@ -36,7 +41,7 @@ defmodule Jsonpatch.MapEntry do
   end
 
   defp flat([{subpath, value} | tail], accumulator, path) do
-    accumulator = [%MapEntry{path: "#{path}/#{subpath}", value: value} | accumulator]
+    accumulator = Map.merge(%{"#{path}/#{subpath}" => value}, accumulator)
     flat(tail, accumulator, path)
   end
 end
