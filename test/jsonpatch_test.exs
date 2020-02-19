@@ -3,6 +3,7 @@ defmodule JsonpatchTest do
 
   alias Jsonpatch.Operation.Add
   alias Jsonpatch.Operation.Remove
+  alias Jsonpatch.Operation.Replace
 
   doctest Jsonpatch
 
@@ -24,6 +25,15 @@ defmodule JsonpatchTest do
     deletion_patch = Jsonpatch.create_removes({:ok, []}, source, destination)
 
     assert {:ok, [%Remove{path: "/a"}]} = deletion_patch
+  end
+
+  test "create replaces" do
+    source = %{"/a" => "b", "/c" => "d"}
+    destination = %{"/a" => "f", "/c" => "d"}
+
+    replace_patch = Jsonpatch.create_replaces({:ok, []}, source, destination)
+
+    assert {:ok, [%Replace{path: "/a", value: "f"}]} = replace_patch
   end
 
   describe "Create diffs" do
@@ -63,19 +73,28 @@ defmodule JsonpatchTest do
       assert {:ok, [%Remove{path: "/a/b/1"}]} = patch
     end
 
-    test "A.5. Replacing a Value" do
+    test "Replacing a Value" do
+      source = %{"a" => %{"b" => %{"c" => "d"}}, "f" => "g"}
+      destination = %{"a" => %{"b" => %{"c" => "h"}}, "f" => "g"}
+
+      patch = Jsonpatch.diff(source, destination)
+
+      assert {:ok, [%Replace{path: "/a/b/c", value: "h"}]} = patch
     end
 
-    test "A.6. Moving a Value" do
+    test "Replacing an Array Element" do
+      source = %{"a" => %{"b" => %{"c" => ["d1", "d2"]}}, "f" => "g"}
+      destination = %{"a" => %{"b" => %{"c" => ["d1", "d3"]}}, "f" => "g"}
+
+      patch = Jsonpatch.diff(source, destination)
+
+      assert {:ok, [%Replace{path: "/a/b/c/1", value: "d3"}]} = patch
     end
 
-    test "A.7. Moving an Array Element" do
+    test "Testing a Value: Success" do
     end
 
-    test "A.8. Testing a Value: Success" do
-    end
-
-    test "A.9. Testing a Value: Error" do
+    test "Testing a Value: Error" do
     end
 
     test "A.10. Adding a Nested Member Object" do
