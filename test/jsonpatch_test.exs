@@ -55,6 +55,12 @@ defmodule JsonpatchTest do
     end
 
     test "A.4. Removing an Array Element" do
+      source = %{"a" => %{"b" => ["c", "d"]}}
+      destination = %{"a" => %{"b" => ["c"]}}
+
+      patch = Jsonpatch.diff(source, destination)
+
+      assert {:ok, [%Remove{path: "/a/b/1"}]} = patch
     end
 
     test "A.5. Replacing a Value" do
