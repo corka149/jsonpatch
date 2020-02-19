@@ -25,9 +25,9 @@ defmodule Jsonpatch do
     destination = FlatMap.parse(destination)
 
     {:ok, []}
-    |> create_additions(source, destination)
-    |> create_removes(source, destination)
-    |> create_replaces(source, destination)
+    |> additions(source, destination)
+    |> removes(source, destination)
+    |> replaces(source, destination)
   end
 
   def diff(_source, _target) do
@@ -38,10 +38,10 @@ defmodule Jsonpatch do
   Creates "add"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_additions({:error, nil} | {:ok, list(operation())}, map, map) :: {:error, nil} | {:ok, list(operation())}
-  def create_additions(accumulator, source, destination)
+  @spec create_additions(list(operation()), map, map) :: {:error, nil} | {:ok, list(operation())}
+  def create_additions(accumulator \\ [], source, destination)
 
-  def create_additions({:ok, accumulator}, %{} = source, %{} = destination) do
+  def create_additions(accumulator, %{} = source, %{} = destination) do
     additions = Map.keys(destination)
     |> Enum.filter(fn key -> not Map.has_key?(source, key) end)
     |> Enum.map(fn key -> %Add{path: key, value: Map.get(destination, key)} end)
@@ -49,18 +49,14 @@ defmodule Jsonpatch do
     {:ok, accumulator ++ additions}
   end
 
-  def create_additions(_accumulator, _source, _target) do
-    {:error, nil}
-  end
-
   @doc """
   Creates "remove"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_removes({:error, nil} | {:ok, list(operation())}, map, map) :: {:error, nil} | {:ok, list(operation())}
-  def create_removes(accumulator, source, destination)
+  @spec create_removes(list(operation()), map, map) :: {:error, nil} | {:ok, list(operation())}
+  def create_removes(accumulator \\ [], source, destination)
 
-  def create_removes({:ok, accumulator}, %{} = source, %{} = destination) do
+  def create_removes(accumulator, %{} = source, %{} = destination) do
     removes = Map.keys(source)
     |> Enum.filter(fn key -> not Map.has_key?(destination, key) end)
     |> Enum.map(fn key -> %Remove{path: key} end)
@@ -68,18 +64,14 @@ defmodule Jsonpatch do
     {:ok, accumulator ++ removes}
   end
 
-  def create_removes(_accumulator, _source, _target) do
-    {:error, nil}
-  end
-
   @doc """
   Creates "replace"-operations by comparing keys and values of source and destination. The source and
   destination map have to be flat maps.
   """
-  @spec create_replaces({:error, nil} | {:ok, list(operation())}, map, map) :: {:error, nil} | {:ok, list(operation())}
-  def create_replaces(accumulator, source, destination)
+  @spec create_replaces(list(operation()), map, map) :: {:error, nil} | {:ok, list(operation())}
+  def create_replaces(accumulator \\ [], source, destination)
 
-  def create_replaces({:ok, accumulator}, source, destination) do
+  def create_replaces(accumulator, source, destination) do
     replaces = Map.keys(destination)
     |> Enum.filter(fn key -> Map.has_key?(source, key) end)
     |> Enum.filter(fn key -> Map.get(source, key) != Map.get(destination, key) end)
@@ -88,8 +80,17 @@ defmodule Jsonpatch do
     {:ok, accumulator ++ replaces}
   end
 
-  def create_replaces(_accumulator, _source, _destination) do
-    {:error, nil}
+  # ===== ===== PRIVATE ===== =====
+
+  defp additions({:ok, accumulator}, source, destination) when is_list(accumulator) do
+    create_additions(accumulator, source, destination)
   end
 
+  defp removes({:ok, accumulator}, source, destination) when is_list(accumulator) do
+    create_removes(accumulator, source, destination)
+  end
+
+  defp replaces({:ok, accumulator}, source, destination) when is_list(accumulator) do
+    create_replaces(accumulator, source, destination)
+  end
 end
