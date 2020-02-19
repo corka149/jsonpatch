@@ -15,6 +15,19 @@ defmodule Jsonpatch do
 
   @doc """
   Creates a patch from the difference of a source map to a target map.
+
+  ## Examples
+
+      iex> source = %{"name" => "Bob", "married" => false, "hobbies" => ["Elixir", "Sport", "Football"]}
+      iex> destination = %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
+      iex> Jsonpatch.diff(source, destination)
+      {:ok, [
+        %Jsonpatch.Operation.Add{path: "/age", value: 33},
+        %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
+        %Jsonpatch.Operation.Replace{path: "/married", value: true},
+        %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
+        %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
+      ]}
   """
   @spec diff(map, map) :: {:error, nil} | {:ok, list(operation())}
   def diff(source, destination)
@@ -26,8 +39,8 @@ defmodule Jsonpatch do
 
     {:ok, []}
     |> additions(source, destination)
-    |> removes(source, destination)
     |> replaces(source, destination)
+    |> removes(source, destination)
   end
 
   def diff(_source, _target) do
