@@ -6,7 +6,7 @@ A implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elix
 
 Milestones:
 
-- [ ] (primary) Creating a patch
+- [x] (primary) Creating a patch
 - [ ] (secondary) Apply a patch
 - [ ] (maybe) Create manuelly a patch and apply it
 - [ ] (maybe) Create patch from Atom and String key mixed structs
@@ -25,6 +25,23 @@ iex> Jsonpatch.diff(source, destination)
   %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
 ]}
 ```
+
+## Operations
+
+Some operations are supported, some not.
+
+### Supported
+
+Available for objects and arrays
+- Add
+- Remove
+- Replace
+
+### Unsupported
+
+- Test: Not yet - will be part of the next milestone 
+- Move: Makes no sense because of missing pointers in BEAM
+- Copy: Same as `move`
 
 ## Installation
 
