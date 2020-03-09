@@ -91,12 +91,6 @@ defmodule JsonpatchTest do
       assert {:ok, [%Replace{path: "/a/b/c/1", value: "d3"}]} = patch
     end
 
-    test "Testing a Value: Success" do
-    end
-
-    test "Testing a Value: Error" do
-    end
-
     test "A.10. Adding a Nested Member Object" do
     end
 
@@ -116,6 +110,42 @@ defmodule JsonpatchTest do
     end
 
     test "A.16. Adding an Array Value" do
+    end
+
+    test "Create diff for a Kubernetes deployment" do
+      source = File.read!("test/jsonpatch/res/deploy_source.json")
+                |> Poison.Parser.parse!()
+
+      destination = File.read!("test/jsonpatch/res/deploy_destination.json")
+                    |> Poison.Parser.parse!()
+
+      patch = Jsonpatch.diff(source,  destination)
+
+      assert {:ok,
+      [
+        %Jsonpatch.Operation.Add{
+          path: "/items/0/spec/template/spec/containers/0/env/1/value",
+          value: "Hey there!"
+        },
+        %Jsonpatch.Operation.Add{
+          path: "/items/0/spec/template/spec/containers/0/env/1/name",
+          value: "ANOTHER_MESSAGE"
+        },
+        %Jsonpatch.Operation.Replace{
+          path: "/items/0/spec/template/spec/containers/0/env/0/name",
+          value: "ENVIRONMENT_MESSAGE"
+        },
+        %Jsonpatch.Operation.Replace{
+          path: "/items/0/spec/template/spec/containers/0/image",
+          value: "whoami:1.1.2"
+        },
+        %Jsonpatch.Operation.Remove{
+          path: "/items/0/spec/template/spec/containers/0/ports/0/protocol"
+        },
+        %Jsonpatch.Operation.Remove{
+          path: "/items/0/spec/template/spec/containers/0/ports/0/containerPort"
+        }
+      ]} = patch
     end
   end
 end
