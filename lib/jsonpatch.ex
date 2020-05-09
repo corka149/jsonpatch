@@ -32,7 +32,6 @@ defmodule Jsonpatch do
   @spec diff(map, map) :: {:error, nil} | {:ok, list(operation())}
   def diff(source, destination)
 
-
   def diff(%{} = source, %{} = destination) do
     source = FlatMap.parse(source)
     destination = FlatMap.parse(destination)
@@ -55,9 +54,10 @@ defmodule Jsonpatch do
   def create_additions(accumulator \\ [], source, destination)
 
   def create_additions(accumulator, %{} = source, %{} = destination) do
-    additions = Map.keys(destination)
-    |> Enum.filter(fn key -> not Map.has_key?(source, key) end)
-    |> Enum.map(fn key -> %Add{path: key, value: Map.get(destination, key)} end)
+    additions =
+      Map.keys(destination)
+      |> Enum.filter(fn key -> not Map.has_key?(source, key) end)
+      |> Enum.map(fn key -> %Add{path: key, value: Map.get(destination, key)} end)
 
     {:ok, accumulator ++ additions}
   end
@@ -70,9 +70,10 @@ defmodule Jsonpatch do
   def create_removes(accumulator \\ [], source, destination)
 
   def create_removes(accumulator, %{} = source, %{} = destination) do
-    removes = Map.keys(source)
-    |> Enum.filter(fn key -> not Map.has_key?(destination, key) end)
-    |> Enum.map(fn key -> %Remove{path: key} end)
+    removes =
+      Map.keys(source)
+      |> Enum.filter(fn key -> not Map.has_key?(destination, key) end)
+      |> Enum.map(fn key -> %Remove{path: key} end)
 
     {:ok, accumulator ++ removes}
   end
@@ -85,10 +86,11 @@ defmodule Jsonpatch do
   def create_replaces(accumulator \\ [], source, destination)
 
   def create_replaces(accumulator, source, destination) do
-    replaces = Map.keys(destination)
-    |> Enum.filter(fn key -> Map.has_key?(source, key) end)
-    |> Enum.filter(fn key -> Map.get(source, key) != Map.get(destination, key) end)
-    |> Enum.map(fn key -> %Replace{path: key, value: Map.get(destination, key)} end)
+    replaces =
+      Map.keys(destination)
+      |> Enum.filter(fn key -> Map.has_key?(source, key) end)
+      |> Enum.filter(fn key -> Map.get(source, key) != Map.get(destination, key) end)
+      |> Enum.map(fn key -> %Replace{path: key, value: Map.get(destination, key)} end)
 
     {:ok, accumulator ++ replaces}
   end

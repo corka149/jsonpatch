@@ -35,8 +35,11 @@ defmodule Jsonpatch.FlatMap do
   end
 
   defp flat([{subpath, values} | tail], accumulator, path) when is_list(values) do
-    accumulator = Enum.with_index(values) |> Enum.map(fn {v, p} -> {p, v} end)
-                  |> flat(accumulator, "#{path}/#{subpath}")
+    accumulator =
+      Enum.with_index(values)
+      |> Enum.map(fn {v, p} -> {p, v} end)
+      |> flat(accumulator, "#{path}/#{subpath}")
+
     flat(tail, accumulator, path)
   end
 

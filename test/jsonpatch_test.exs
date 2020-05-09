@@ -57,11 +57,11 @@ defmodule JsonpatchTest do
 
     test "Removing an Object Member" do
       source = %{"baz" => "qux", "foo" => "bar"}
-      destination = %{ "foo" => "bar" }
+      destination = %{"foo" => "bar"}
 
       patch = Jsonpatch.diff(source, destination)
 
-      assert {:ok, [%Remove{ path: "/baz" }]} = patch
+      assert {:ok, [%Remove{path: "/baz"}]} = patch
     end
 
     test "A.4. Removing an Array Element" do
@@ -113,39 +113,41 @@ defmodule JsonpatchTest do
     end
 
     test "Create diff for a Kubernetes deployment" do
-      source = File.read!("test/jsonpatch/res/deploy_source.json")
-                |> Poison.Parser.parse!()
+      source =
+        File.read!("test/jsonpatch/res/deploy_source.json")
+        |> Poison.Parser.parse!()
 
-      destination = File.read!("test/jsonpatch/res/deploy_destination.json")
-                    |> Poison.Parser.parse!()
+      destination =
+        File.read!("test/jsonpatch/res/deploy_destination.json")
+        |> Poison.Parser.parse!()
 
-      patch = Jsonpatch.diff(source,  destination)
+      patch = Jsonpatch.diff(source, destination)
 
       assert {:ok,
-      [
-        %Jsonpatch.Operation.Add{
-          path: "/items/0/spec/template/spec/containers/0/env/1/value",
-          value: "Hey there!"
-        },
-        %Jsonpatch.Operation.Add{
-          path: "/items/0/spec/template/spec/containers/0/env/1/name",
-          value: "ANOTHER_MESSAGE"
-        },
-        %Jsonpatch.Operation.Replace{
-          path: "/items/0/spec/template/spec/containers/0/env/0/name",
-          value: "ENVIRONMENT_MESSAGE"
-        },
-        %Jsonpatch.Operation.Replace{
-          path: "/items/0/spec/template/spec/containers/0/image",
-          value: "whoami:1.1.2"
-        },
-        %Jsonpatch.Operation.Remove{
-          path: "/items/0/spec/template/spec/containers/0/ports/0/protocol"
-        },
-        %Jsonpatch.Operation.Remove{
-          path: "/items/0/spec/template/spec/containers/0/ports/0/containerPort"
-        }
-      ]} = patch
+              [
+                %Jsonpatch.Operation.Add{
+                  path: "/items/0/spec/template/spec/containers/0/env/1/value",
+                  value: "Hey there!"
+                },
+                %Jsonpatch.Operation.Add{
+                  path: "/items/0/spec/template/spec/containers/0/env/1/name",
+                  value: "ANOTHER_MESSAGE"
+                },
+                %Jsonpatch.Operation.Replace{
+                  path: "/items/0/spec/template/spec/containers/0/env/0/name",
+                  value: "ENVIRONMENT_MESSAGE"
+                },
+                %Jsonpatch.Operation.Replace{
+                  path: "/items/0/spec/template/spec/containers/0/image",
+                  value: "whoami:1.1.2"
+                },
+                %Jsonpatch.Operation.Remove{
+                  path: "/items/0/spec/template/spec/containers/0/ports/0/protocol"
+                },
+                %Jsonpatch.Operation.Remove{
+                  path: "/items/0/spec/template/spec/containers/0/ports/0/containerPort"
+                }
+              ]} = patch
     end
   end
 end

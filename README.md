@@ -11,7 +11,9 @@ Milestones:
 - [ ] (maybe) Create manuelly a patch and apply it
 - [ ] (maybe) Create patch from Atom and String key mixed structs
 
-## Example
+## Usage
+
+### Create a diff
 
 ```elixir
 iex> source = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"]}
@@ -25,6 +27,8 @@ iex> Jsonpatch.diff(source, destination)
   %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
 ]}
 ```
+
+### Encode and decode
 
 ## Operations
 
