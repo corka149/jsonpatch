@@ -3,13 +3,13 @@ defmodule Jsonpatch.Coder do
   Cares of de- and encoding of json patches.
   """
 
-  @doc """
+  @doc ~S"""
   Encodes a patch into a JSON string.
 
   ## Examples
 
       iex> Jsonpatch.Coder.encode(%Jsonpatch.Operation.Add{path: "/age", value: 1})
-      {:ok, "{'op': 'add','value': '1','path': '/age'}"}
+      {:ok, "{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}"}
   """
   @spec encode(list(Jsonpatch.operation()) | Jsonpatch.operation()) ::
           {:ok, iodata} | {:ok, String.t()} | {:error, {:invalid, any}} | {:error, bitstring()}
