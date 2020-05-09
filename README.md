@@ -30,6 +30,20 @@ iex> Jsonpatch.diff(source, destination)
 
 ### Encode and decode
 
+Encode a JSON patch struct to JSON string.
+
+```elixir
+iex> Jsonpatch.Coder.decode("{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}")
+{:ok, %Jsonpatch.Operation.Add{path: "/age", value: 1}}
+```
+
+Decode a JSON patch struct from a JSON string.
+
+```elixir
+iex> Jsonpatch.Coder.encode(%Jsonpatch.Operation.Add{path: "/age", value: 1})
+{:ok, "{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}"}
+```
+
 ## Operations
 
 Some operations are supported, some not.
