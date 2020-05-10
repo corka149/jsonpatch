@@ -12,5 +12,5 @@ defmodule Jsonpatch.Operation do
   """
   @type t :: Add.t() | Remove.t() | Replace.t()
 
-  @callback apply(Jsonpatch.operation()) :: map()
+  @callback apply(Jsonpatch.Operation.t) :: map()
 end

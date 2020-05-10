@@ -8,10 +8,15 @@ defmodule Jsonpatch do
   alias Jsonpatch.Operation.Remove
   alias Jsonpatch.Operation.Replace
 
-  @typedoc """
-  A valid Jsonpatch operation by RFC 6902
-  """
-  @type operation :: Add.t() | Remove.t() | Replace.t()
+  @spec apply(Jsonpatch.Operation.t | list(Jsonpatch.Operation.t), map()) :: {map(), Jsonpatch.Operation.t | list(Jsonpatch.Operation.t)}
+
+  def apply(json_patch, %{} = target) when is_list(json_patch)  do
+
+  end
+
+  def apply(%Jsonpatch.Operation.Add{path: path, value: value} = json_patch, %{} = target)  do
+
+  end
 
   @doc """
   Creates a patch from the difference of a source map to a target map.
@@ -29,7 +34,7 @@ defmodule Jsonpatch do
         %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
       ]}
   """
-  @spec diff(map, map) :: {:error, nil} | {:ok, list(operation())}
+  @spec diff(map, map) :: {:error, nil} | {:ok, list(Jsonpatch.Operation.t)}
   def diff(source, destination)
 
   def diff(%{} = source, %{} = destination) do
@@ -50,7 +55,7 @@ defmodule Jsonpatch do
   Creates "add"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_additions(list(operation()), map, map) :: {:error, nil} | {:ok, list(operation())}
+  @spec create_additions(list(Jsonpatch.Operation.t), map, map) :: {:error, nil} | {:ok, list(Jsonpatch.Operation.t)}
   def create_additions(accumulator \\ [], source, destination)
 
   def create_additions(accumulator, %{} = source, %{} = destination) do
@@ -66,7 +71,7 @@ defmodule Jsonpatch do
   Creates "remove"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_removes(list(operation()), map, map) :: {:error, nil} | {:ok, list(operation())}
+  @spec create_removes(list(Jsonpatch.Operation.t), map, map) :: {:error, nil} | {:ok, list(Jsonpatch.Operation.t)}
   def create_removes(accumulator \\ [], source, destination)
 
   def create_removes(accumulator, %{} = source, %{} = destination) do
@@ -82,7 +87,7 @@ defmodule Jsonpatch do
   Creates "replace"-operations by comparing keys and values of source and destination. The source and
   destination map have to be flat maps.
   """
-  @spec create_replaces(list(operation()), map, map) :: {:error, nil} | {:ok, list(operation())}
+  @spec create_replaces(list(Jsonpatch.Operation.t), map, map) :: {:error, nil} | {:ok, list(Jsonpatch.Operation.t)}
   def create_replaces(accumulator \\ [], source, destination)
 
   def create_replaces(accumulator, source, destination) do
