@@ -7,7 +7,9 @@ A implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elix
 Milestones:
 
 - [x] (primary) Creating a patch
+- [x] De/serialize patches
 - [ ] (secondary) Apply a patch
+- [ ] Create a plug
 - [ ] (maybe) Create manuelly a patch and apply it
 - [ ] (maybe) Create patch from Atom and String key mixed structs
 
