@@ -22,6 +22,10 @@ defmodule Jsonpatch do
     Jsonpatch.Operation.Add.apply_op(json_patch, target)
   end
 
+  def apply_patch(%Jsonpatch.Operation.Replace{} = json_patch, %{} = target)  do
+    Jsonpatch.Operation.Replace.apply_op(json_patch, target)
+  end
+
   @doc """
   Creates a patch from the difference of a source map to a target map.
 

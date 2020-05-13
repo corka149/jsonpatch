@@ -5,7 +5,7 @@ defmodule Jsonpatch.Operation.Add do
   defstruct [:path, :value]
 
   @doc """
-  Applies an ADD operation a map.
+  Applies an add operation a struct/map.
 
   ## Examples
 
@@ -18,7 +18,7 @@ defmodule Jsonpatch.Operation.Add do
   @spec apply_op(Jsonpatch.Operation.Add.t(), map) :: map
   def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target) do
     {final_destination, last_fragment} = Jsonpatch.Operation.get_final_destination!(target, path)
-    updated_final_destination = Map.put(final_destination, last_fragment, value)
+    updated_final_destination = Map.put_new(final_destination, last_fragment, value)
     Jsonpatch.Operation.update_final_destination!(target, updated_final_destination, path)
   end
 end
