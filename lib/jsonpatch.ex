@@ -8,14 +8,18 @@ defmodule Jsonpatch do
   alias Jsonpatch.Operation.Remove
   alias Jsonpatch.Operation.Replace
 
-  @spec apply(Jsonpatch.Operation.t | list(Jsonpatch.Operation.t), map()) :: {map(), Jsonpatch.Operation.t | list(Jsonpatch.Operation.t)}
+  @doc """
+  Apply a Jsonpatch to a map.
+  """
+  @spec apply_patch(Jsonpatch.Operation.t | list(Jsonpatch.Operation.t), map()) :: {map(), Jsonpatch.Operation.t | list(Jsonpatch.Operation.t)}
+  def apply_patch(json_patch, target)
 
-  def apply(json_patch, %{} = target) when is_list(json_patch)  do
-
+  def apply_patch(json_patch, %{} = target) when is_list(json_patch)  do
+    Enum.reduce(json_patch, target, &apply_patch/2)
   end
 
-  def apply(%Jsonpatch.Operation.Add{path: path, value: value} = json_patch, %{} = target)  do
-
+  def apply_patch(%Jsonpatch.Operation.Add{} = json_patch, %{} = target)  do
+    Jsonpatch.Operation.Add.apply_op(json_patch, target)
   end
 
   @doc """
