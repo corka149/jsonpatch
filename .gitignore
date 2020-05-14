@@ -23,3 +23,5 @@ erl_crash.dump
 jsonpatch-*.tar
 
 .elixir_ls/
+
+.vscode

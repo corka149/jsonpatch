@@ -24,12 +24,24 @@ defmodule Jsonpatch.Operation.Remove do
 
   # ===== ===== PRIVATE ===== =====
 
-  defp do_remove(target, [fragment | []]) do
+  defp do_remove(%{} = target, [fragment | []]) do
     {_, purged_map} = Map.pop(target, fragment)
     purged_map
   end
 
-  defp do_remove(target, [fragment | tail]) do
+  defp do_remove(target, [fragment | []]) when is_list(target) do
+    {index, _} = Integer.parse(fragment)
+    {_, purged_list} = List.pop_at(target, index)
+    purged_list
+  end
+
+  defp do_remove(%{} = target, [fragment | tail]) do
     Map.update!(target, fragment, &do_remove(&1, tail))
+  end
+
+  defp do_remove(target, [fragment | tail]) when is_list(target) do
+    {index, _} = Integer.parse(fragment)
+
+    List.update_at(target, index, &do_remove(&1, tail))
   end
 end

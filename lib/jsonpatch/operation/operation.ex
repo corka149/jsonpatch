@@ -23,6 +23,10 @@ defmodule Jsonpatch.Operation do
       iex> target = %{"a" => %{"b" => %{"c" => %{"d" => 1}}}}
       iex> Jsonpatch.Operation.get_final_destination!(target, path)
       {%{"d" => 1}, "d"}
+      iex> path = "/a/b/1/d"
+      iex> target = %{"a" => %{"b" => [true, %{"d" => 1}]}}
+      iex> Jsonpatch.Operation.get_final_destination!(target, path)
+      {%{"d" => 1}, "d"}
   """
   @spec get_final_destination!(map, binary) :: {map, binary}
   def get_final_destination!(target, path) when is_bitstring(path) do
@@ -59,12 +63,34 @@ defmodule Jsonpatch.Operation do
     |> find_final_destination(tail)
   end
 
+  defp find_final_destination(target, [fragment | tail]) when is_list(target) do
+    {index, _} = Integer.parse(fragment)
+
+    {val, _} = Enum.with_index(target)
+    |> Enum.find(fn {_val, i} -> i == index end)
+
+    find_final_destination(val, tail)
+  end
+
   # " [final_dest | [_last_ele |[]]] " means: We want to stop, when there are only two elements left.
   defp do_update_final_destination(%{} = target, new_final_dest, [final_dest | [_last_ele |[]]]) do
     Map.replace!(target, final_dest, new_final_dest)
   end
 
+  # " [final_dest | [_last_ele |[]]] " means: We want to stop, when there are only two elements left.
+  defp do_update_final_destination(target, new_final_dest, [final_dest | [_last_ele |[]]]) when is_list(target) do
+    {index, _} = Integer.parse(final_dest)
+
+    List.replace_at(target, index, new_final_dest)
+  end
+
   defp do_update_final_destination(%{} = target, new_final_dest, [fragment | tail]) do
     Map.update!(target, fragment, &do_update_final_destination(&1 , new_final_dest, tail))
+  end
+
+  defp do_update_final_destination(target, new_final_dest, [fragment | tail]) when is_list(target) do
+    {index, _} = Integer.parse(fragment)
+
+    List.update_at(target, index, &do_update_final_destination(&1, new_final_dest, tail))
   end
 end
