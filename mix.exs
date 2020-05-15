@@ -21,7 +21,15 @@ defmodule Jsonpatch.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:poison, "~> 3.1"}
+      {:poison, "~> 3.1"},
+
+      # DEV
+      ## code test coverage
+      {:excoveralls, "~> 0.12.3", only: [:test]},
+      ## linting
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      ## type checking
+      {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false}
     ]
   end
 end

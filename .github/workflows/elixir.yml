@@ -3,18 +3,45 @@ name: Elixir CI
 on: push
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Setup elixir
       uses: actions/setup-elixir@v1
       with:
-        elixir-version: 1.9.4 # Define the elixir version [required]
-        otp-version: 22.2 # Define the OTP version [required]
+        otp-version: 22.x
+        elixir-version: 1.9.x
     - name: Install Dependencies
       run: mix deps.get
     - name: Run Tests
       run: mix test
+
+  dialyzer:
+    runs-on: ubuntu-latest
+    name: Dialyzer - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    steps:
+      - uses: actions/checkout@v1.0.0
+      - name: Setup elixir
+        uses: actions/setup-elixir@v1.0.0
+        with:
+          otp-version: 22.x
+          elixir-version: 1.9.x
+      - run: mix deps.get
+      - run: mix dialyzer
+      
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v1.0.0
+      - name: Setup elixir
+        uses: actions/setup-elixir@v1.0.0
+        with:
+          otp-version: 22.x
+          elixir-version: 1.9.x
+      - run: mix deps.get
+      - run: mix coveralls.github
