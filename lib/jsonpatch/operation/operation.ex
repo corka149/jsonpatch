@@ -28,7 +28,7 @@ defmodule Jsonpatch.Operation do
       iex> Jsonpatch.Operation.get_final_destination!(target, path)
       {%{"d" => 1}, "d"}
   """
-  @spec get_final_destination!(map, binary) :: {map, binary}
+  @spec get_final_destination!(map, binary) :: {map, binary} | {list, binary}
   def get_final_destination!(target, path) when is_bitstring(path) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/")
@@ -52,9 +52,26 @@ defmodule Jsonpatch.Operation do
     do_update_final_destination(target, new_destination, fragments)
   end
 
+  @doc """
+  Determines the sort value for the operation of a patch. This value
+  assure in which order patches are applied. (Example: shall remove
+  patches be applied before add patches?)
+  """
+  @spec operation_sort_value?(Jsonpatch.Operation.t()) :: integer()
+  def operation_sort_value?(patch)
+
+  def operation_sort_value?(%Jsonpatch.Operation.Add{}), do: 500
+  def operation_sort_value?(%Jsonpatch.Operation.Replace{}), do: 400
+  def operation_sort_value?(%Jsonpatch.Operation.Remove{}), do: 300
+
   # ===== ===== PRIVATE ===== =====
 
+
   defp find_final_destination(%{} = target, [fragment | []]) do
+    {target, fragment}
+  end
+
+  defp find_final_destination(target, [fragment | []]) when is_list(target) do
     {target, fragment}
   end
 
@@ -72,16 +89,20 @@ defmodule Jsonpatch.Operation do
     find_final_destination(val, tail)
   end
 
+
   # " [final_dest | [_last_ele |[]]] " means: We want to stop, when there are only two elements left.
   defp do_update_final_destination(%{} = target, new_final_dest, [final_dest | [_last_ele |[]]]) do
     Map.replace!(target, final_dest, new_final_dest)
   end
 
-  # " [final_dest | [_last_ele |[]]] " means: We want to stop, when there are only two elements left.
   defp do_update_final_destination(target, new_final_dest, [final_dest | [_last_ele |[]]]) when is_list(target) do
     {index, _} = Integer.parse(final_dest)
 
     List.replace_at(target, index, new_final_dest)
+  end
+
+  defp do_update_final_destination(_target, new_final_dest, [_fragment | []]) do
+    new_final_dest
   end
 
   defp do_update_final_destination(%{} = target, new_final_dest, [fragment | tail]) do

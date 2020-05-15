@@ -9,13 +9,32 @@ defmodule Jsonpatch do
   alias Jsonpatch.Operation.Replace
 
   @doc """
-  Apply a Jsonpatch to a map.
+  Apply a Jsonpatch to a map/struct.
+
+  ## Examples
+      iex> patch = [
+      ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
+      ...> %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
+      ...> %Jsonpatch.Operation.Replace{path: "/married", value: true},
+      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
+      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
+      ...> ]
+      iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"]}
+      iex> Jsonpatch.apply_patch(patch, target)
+      %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
   """
   @spec apply_patch(Jsonpatch.Operation.t | list(Jsonpatch.Operation.t), map()) :: {map(), Jsonpatch.Operation.t | list(Jsonpatch.Operation.t)}
   def apply_patch(json_patch, target)
 
   def apply_patch(json_patch, %{} = target) when is_list(json_patch)  do
-    Enum.reduce(json_patch, target, &apply_patch/2)
+    # Operatons MUST be sorted before applying because a remove operation for path "/foo/2" must be done
+    # before the remove operation for path "/foo/1". Without order it could be possible that the wrong
+    # value will be removed or only one value instead of two.
+    json_patch
+    |> Enum.map(&create_sort_value/1)
+    |> Enum.sort(fn {sort_value_1, _}, {sort_value_2, _} -> sort_value_1 >= sort_value_2 end)
+    |> Enum.map(fn {_, patch} -> patch end)
+    |> Enum.reduce(target, &apply_patch/2)
   end
 
   def apply_patch(%Jsonpatch.Operation.Add{} = json_patch, %{} = target)  do
@@ -24,6 +43,10 @@ defmodule Jsonpatch do
 
   def apply_patch(%Jsonpatch.Operation.Replace{} = json_patch, %{} = target)  do
     Jsonpatch.Operation.Replace.apply_op(json_patch, target)
+  end
+
+  def apply_patch(%Jsonpatch.Operation.Remove{} = json_patch, %{} = target)  do
+    Jsonpatch.Operation.Remove.apply_op(json_patch, target)
   end
 
   @doc """
@@ -120,5 +143,25 @@ defmodule Jsonpatch do
 
   defp replaces({:ok, accumulator}, source, destination) when is_list(accumulator) do
     create_replaces(accumulator, source, destination)
+  end
+
+
+  # Create once a easy sortable value for a operation
+  defp create_sort_value(%{path: path} = operation) do
+    fragments = String.split(path, "/")
+
+    x = Jsonpatch.Operation.operation_sort_value?(operation) * 1_000_000  * 1_0000_0000
+    y = length(fragments) * 1_0000_0000
+    z = case List.last(fragments) |> Integer.parse() do
+      :error -> 0
+      {int, _} -> int
+    end
+
+    # Structure of recorde sort value
+    # x = Kind of Operation
+    # y = Amount of fragments (how deep goes the path?)
+    # z = At which position in a list?
+    # xxxxyyyyyyzzzzzzzz
+    {x + y + z, operation}
   end
 end

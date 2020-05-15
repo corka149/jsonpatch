@@ -8,10 +8,8 @@ Milestones:
 
 - [x] (primary) Creating a patch
 - [x] De/serialize patches
-- [ ] (secondary) Apply a patch
+- [x] (secondary) Apply a patch
 - [ ] Create a plug
-- [ ] (maybe) Create manuelly a patch and apply it
-- [ ] (maybe) Create patch from Atom and String key mixed structs
 
 ## Usage
 
@@ -46,6 +44,21 @@ iex> Jsonpatch.Coder.encode(%Jsonpatch.Operation.Add{path: "/age", value: 1})
 {:ok, "{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}"}
 ```
 
+### Apply patches
+
+```elixir
+iex> patch = [
+  %Jsonpatch.Operation.Add{path: "/age", value: 33},
+  %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
+  %Jsonpatch.Operation.Replace{path: "/married", value: true},
+  %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
+  %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
+]
+iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"]}
+iex> Jsonpatch.apply_patch(patch, target)
+%{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
+```
+
 ## Operations
 
 Some operations are supported, some not.
@@ -59,9 +72,9 @@ Available for objects and arrays
 
 ### Unsupported
 
-- Test: Not yet - will be part of the next milestone 
-- Move: Makes no sense because of missing pointers in BEAM
-- Copy: Same as `move`
+- Test: Soon
+- Move: Soon
+- Copy: Soon
 
 ## Installation
 
@@ -71,7 +84,7 @@ by adding `jsonpatch` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:jsonpatch, "~> 0.1.0"}
+    {:jsonpatch, "~> 0.3.0"}
   ]
 end
 ```
@@ -83,4 +96,3 @@ be found at [https://hexdocs.pm/jsonpatch](https://hexdocs.pm/jsonpatch).
 ## Important sources
 - [Official RFC 6902](https://tools.ietf.org/html/rfc6902)
 - [Inspiration: python-json-patch](https://github.com/stefankoegl/python-json-patch) 
-
