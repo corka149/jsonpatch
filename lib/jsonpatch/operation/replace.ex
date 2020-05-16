@@ -3,6 +3,7 @@ defmodule Jsonpatch.Operation.Replace do
 
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
+  @type t :: %__MODULE__{path: String.t(), value: any}
 
   @doc """
   Applies an replace operation to a struct/map.
