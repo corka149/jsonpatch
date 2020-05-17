@@ -21,7 +21,9 @@ defmodule Jsonpatch.Operation.Copy do
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
 
     # %{"c" => "Bob"}
-    copied_value = Jsonpatch.Operation.get_final_destination!(target, from) |> extract_copy_value()
+    copied_value = target
+      |> Jsonpatch.Operation.get_final_destination!(from)
+      |> extract_copy_value()
     # "e"
     copy_path_end = String.split(path, "/") |> List.last()
 
@@ -45,10 +47,11 @@ defmodule Jsonpatch.Operation.Copy do
     case Integer.parse(fragment) do
       :error -> :error
       {index, _} ->
-        final_destination
+        {val, _} = final_destination
         |> Enum.with_index()
         |> Enum.find(fn {_, other_index} -> index == other_index end)
-        |> Enum.map(fn {val, _} -> val end)
+
+        val
     end
   end
 

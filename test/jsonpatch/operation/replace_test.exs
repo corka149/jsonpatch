@@ -19,9 +19,9 @@ defmodule Jsonpatch.Operation.ReplaceTest do
       }
     }
 
-    add_op = %Jsonpatch.Operation.Replace{path: path, value: true}
+    replace_op = %Jsonpatch.Operation.Replace{path: path, value: true}
 
-    patched_target = Jsonpatch.Operation.Replace.apply_op(add_op, target)
+    patched_target = Jsonpatch.Operation.Replace.apply_op(replace_op, target)
 
     excpected_target = %{
       "a" => %{

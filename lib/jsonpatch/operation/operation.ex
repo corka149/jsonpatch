@@ -64,6 +64,7 @@ defmodule Jsonpatch.Operation do
   def operation_sort_value?(%Jsonpatch.Operation.Add{}), do: 500
   def operation_sort_value?(%Jsonpatch.Operation.Replace{}), do: 400
   def operation_sort_value?(%Jsonpatch.Operation.Remove{}), do: 300
+  def operation_sort_value?(_), do: 0
 
   # ===== ===== PRIVATE ===== =====
 
