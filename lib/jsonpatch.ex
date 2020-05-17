@@ -4,9 +4,6 @@ defmodule Jsonpatch do
   """
 
   alias Jsonpatch.FlatMap
-  alias Jsonpatch.Operation.Add
-  alias Jsonpatch.Operation.Remove
-  alias Jsonpatch.Operation.Replace
 
   @doc """
   Apply a Jsonpatch to a map/struct.
@@ -47,6 +44,10 @@ defmodule Jsonpatch do
 
   def apply_patch(%Jsonpatch.Operation.Remove{} = json_patch, %{} = target)  do
     Jsonpatch.Operation.Remove.apply_op(json_patch, target)
+  end
+
+  def apply_patch(%Jsonpatch.Operation.Copy{} = json_patch, %{} = target)  do
+    Jsonpatch.Operation.Copy.apply_op(json_patch, target)
   end
 
   @doc """
@@ -93,7 +94,7 @@ defmodule Jsonpatch do
     additions =
       Map.keys(destination)
       |> Enum.filter(fn key -> not Map.has_key?(source, key) end)
-      |> Enum.map(fn key -> %Add{path: key, value: Map.get(destination, key)} end)
+      |> Enum.map(fn key -> %Jsonpatch.Operation.Add{path: key, value: Map.get(destination, key)} end)
 
     {:ok, accumulator ++ additions}
   end
@@ -109,7 +110,7 @@ defmodule Jsonpatch do
     removes =
       Map.keys(source)
       |> Enum.filter(fn key -> not Map.has_key?(destination, key) end)
-      |> Enum.map(fn key -> %Remove{path: key} end)
+      |> Enum.map(fn key -> %Jsonpatch.Operation.Remove{path: key} end)
 
     {:ok, accumulator ++ removes}
   end
@@ -126,7 +127,7 @@ defmodule Jsonpatch do
       Map.keys(destination)
       |> Enum.filter(fn key -> Map.has_key?(source, key) end)
       |> Enum.filter(fn key -> Map.get(source, key) != Map.get(destination, key) end)
-      |> Enum.map(fn key -> %Replace{path: key, value: Map.get(destination, key)} end)
+      |> Enum.map(fn key -> %Jsonpatch.Operation.Replace{path: key, value: Map.get(destination, key)} end)
 
     {:ok, accumulator ++ replaces}
   end

@@ -10,6 +10,7 @@ Milestones:
 - [x] (primary) Creating a patch
 - [x] De/serialize patches
 - [x] (secondary) Apply a patch
+- [ ] Add patch operations test, copy, move
 - [ ] Create a plug
 
 ## Usage

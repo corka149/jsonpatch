@@ -6,11 +6,12 @@ defmodule Jsonpatch.Operation do
   alias Jsonpatch.Operation.Add
   alias Jsonpatch.Operation.Remove
   alias Jsonpatch.Operation.Replace
+  alias Jsonpatch.Operation.Copy
 
   @typedoc """
   A valid Jsonpatch operation by RFC 6902
   """
-  @type t :: Add.t() | Remove.t() | Replace.t()
+  @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t()
 
   @callback apply_op(Jsonpatch.Operation.t, map()) :: map()
 
