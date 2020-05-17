@@ -91,6 +91,14 @@ defmodule Jsonpatch.Coder do
     %Jsonpatch.Operation.Replace{path: path, value: value}
   end
 
+  defp convert_to({:ok, %{"op" => "copy", "from" => from, "path" => path}}) do
+    %Jsonpatch.Operation.Copy{from: from, path: path}
+  end
+
+  defp convert_to({:ok, %{"op" => "move", "from" => from, "path" => path}}) do
+    %Jsonpatch.Operation.Move{from: from, path: path}
+  end
+
   defp convert_to(_) do
     {:error, :invalid}
   end

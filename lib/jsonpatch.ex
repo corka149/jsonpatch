@@ -19,11 +19,12 @@ defmodule Jsonpatch do
       ...> %Jsonpatch.Operation.Replace{path: "/married", value: true},
       ...> %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
       ...> %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
-      ...> %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"}
+      ...> %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"},
+      ...> %Jsonpatch.Operation.Move{from: "/home", path: "/work"}
       ...> ]
-      iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"]}
+      iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
-      %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob"}
+      %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob", "work" => "Berlin"}
   """
   @spec apply_patch(Jsonpatch.Operation.t | list(Jsonpatch.Operation.t), map()) :: {map(), Jsonpatch.Operation.t | list(Jsonpatch.Operation.t)}
   def apply_patch(json_patch, target)
