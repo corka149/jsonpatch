@@ -26,10 +26,11 @@ defmodule Jsonpatch do
       iex> Jsonpatch.apply_patch(patch, target)
       %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob", "work" => "Berlin"}
   """
-  @spec apply_patch(Jsonpatch.Operation.t | list(Jsonpatch.Operation.t), map()) :: {map(), Jsonpatch.Operation.t | list(Jsonpatch.Operation.t)}
+  @spec apply_patch(Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t()), map()) ::
+          {map(), Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())}
   def apply_patch(json_patch, target)
 
-  def apply_patch(json_patch, %{} = target) when is_list(json_patch)  do
+  def apply_patch(json_patch, %{} = target) when is_list(json_patch) do
     # Operatons MUST be sorted before applying because a remove operation for path "/foo/2" must be done
     # before the remove operation for path "/foo/1". Without order it could be possible that the wrong
     # value will be removed or only one value instead of two.
@@ -40,23 +41,23 @@ defmodule Jsonpatch do
     |> Enum.reduce(target, &apply_patch/2)
   end
 
-  def apply_patch(%Jsonpatch.Operation.Add{} = json_patch, %{} = target)  do
+  def apply_patch(%Jsonpatch.Operation.Add{} = json_patch, %{} = target) do
     Jsonpatch.Operation.Add.apply_op(json_patch, target)
   end
 
-  def apply_patch(%Jsonpatch.Operation.Replace{} = json_patch, %{} = target)  do
+  def apply_patch(%Jsonpatch.Operation.Replace{} = json_patch, %{} = target) do
     Jsonpatch.Operation.Replace.apply_op(json_patch, target)
   end
 
-  def apply_patch(%Jsonpatch.Operation.Remove{} = json_patch, %{} = target)  do
+  def apply_patch(%Jsonpatch.Operation.Remove{} = json_patch, %{} = target) do
     Jsonpatch.Operation.Remove.apply_op(json_patch, target)
   end
 
-  def apply_patch(%Jsonpatch.Operation.Copy{} = json_patch, %{} = target)  do
+  def apply_patch(%Jsonpatch.Operation.Copy{} = json_patch, %{} = target) do
     Jsonpatch.Operation.Copy.apply_op(json_patch, target)
   end
 
-  def apply_patch(%Jsonpatch.Operation.Move{} = json_patch, %{} = target)  do
+  def apply_patch(%Jsonpatch.Operation.Move{} = json_patch, %{} = target) do
     Jsonpatch.Operation.Move.apply_op(json_patch, target)
   end
 
@@ -76,7 +77,7 @@ defmodule Jsonpatch do
         %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
       ]}
   """
-  @spec diff(map, map) :: {:error, nil} | {:ok, list(Jsonpatch.Operation.t)}
+  @spec diff(map, map) :: {:error, nil} | {:ok, list(Jsonpatch.Operation.t())}
   def diff(source, destination)
 
   def diff(%{} = source, %{} = destination) do
@@ -97,14 +98,17 @@ defmodule Jsonpatch do
   Creates "add"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_additions(list(Jsonpatch.Operation.t), map, map) :: {:error, nil} | {:ok, list(Jsonpatch.Operation.t)}
+  @spec create_additions(list(Jsonpatch.Operation.t()), map, map) ::
+          {:error, nil} | {:ok, list(Jsonpatch.Operation.t())}
   def create_additions(accumulator \\ [], source, destination)
 
   def create_additions(accumulator, %{} = source, %{} = destination) do
     additions =
       Map.keys(destination)
       |> Enum.filter(fn key -> not Map.has_key?(source, key) end)
-      |> Enum.map(fn key -> %Jsonpatch.Operation.Add{path: key, value: Map.get(destination, key)} end)
+      |> Enum.map(fn key ->
+        %Jsonpatch.Operation.Add{path: key, value: Map.get(destination, key)}
+      end)
 
     {:ok, accumulator ++ additions}
   end
@@ -113,7 +117,8 @@ defmodule Jsonpatch do
   Creates "remove"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_removes(list(Jsonpatch.Operation.t), map, map) :: {:error, nil} | {:ok, list(Jsonpatch.Operation.t)}
+  @spec create_removes(list(Jsonpatch.Operation.t()), map, map) ::
+          {:error, nil} | {:ok, list(Jsonpatch.Operation.t())}
   def create_removes(accumulator \\ [], source, destination)
 
   def create_removes(accumulator, %{} = source, %{} = destination) do
@@ -129,7 +134,8 @@ defmodule Jsonpatch do
   Creates "replace"-operations by comparing keys and values of source and destination. The source and
   destination map have to be flat maps.
   """
-  @spec create_replaces(list(Jsonpatch.Operation.t), map, map) :: {:error, nil} | {:ok, list(Jsonpatch.Operation.t)}
+  @spec create_replaces(list(Jsonpatch.Operation.t()), map, map) ::
+          {:error, nil} | {:ok, list(Jsonpatch.Operation.t())}
   def create_replaces(accumulator \\ [], source, destination)
 
   def create_replaces(accumulator, source, destination) do
@@ -137,7 +143,9 @@ defmodule Jsonpatch do
       Map.keys(destination)
       |> Enum.filter(fn key -> Map.has_key?(source, key) end)
       |> Enum.filter(fn key -> Map.get(source, key) != Map.get(destination, key) end)
-      |> Enum.map(fn key -> %Jsonpatch.Operation.Replace{path: key, value: Map.get(destination, key)} end)
+      |> Enum.map(fn key ->
+        %Jsonpatch.Operation.Replace{path: key, value: Map.get(destination, key)}
+      end)
 
     {:ok, accumulator ++ replaces}
   end
@@ -156,17 +164,18 @@ defmodule Jsonpatch do
     create_replaces(accumulator, source, destination)
   end
 
-
   # Create once a easy sortable value for a operation
   defp create_sort_value(%{path: path} = operation) do
     fragments = String.split(path, "/")
 
-    x = Jsonpatch.Operation.operation_sort_value?(operation) * 1_000_000  * 1_0000_0000
+    x = Jsonpatch.Operation.operation_sort_value?(operation) * 1_000_000 * 1_0000_0000
     y = length(fragments) * 1_0000_0000
-    z = case List.last(fragments) |> Integer.parse() do
-      :error -> 0
-      {int, _} -> int
-    end
+
+    z =
+      case List.last(fragments) |> Integer.parse() do
+        :error -> 0
+        {int, _} -> int
+      end
 
     # Structure of recorde sort value
     # x = Kind of Operation

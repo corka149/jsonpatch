@@ -40,6 +40,7 @@ defmodule Jsonpatch.Operation.CopyTest do
         ]
       }
     }
+
     assert ^excpected_target = patched_target
   end
 end

@@ -19,16 +19,18 @@ defmodule Jsonpatch.Operation.Copy do
   @impl true
   @spec apply_op(Jsonpatch.Operation.Copy.t(), map) :: map
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
-
     # %{"c" => "Bob"}
-    copied_value = target
+    copied_value =
+      target
       |> Jsonpatch.Operation.get_final_destination!(from)
       |> extract_copy_value()
+
     # "e"
     copy_path_end = String.split(path, "/") |> List.last()
 
     # %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}
-    updated_value = target
+    updated_value =
+      target
       # %{"b" => %{"c" => "Bob"}} is the "copy target"
       |> Jsonpatch.Operation.get_final_destination!(path)
       # Add copied_value to "copy target"
@@ -45,24 +47,29 @@ defmodule Jsonpatch.Operation.Copy do
 
   defp extract_copy_value({final_destination, fragment}) when is_list(final_destination) do
     case Integer.parse(fragment) do
-      :error -> :error
+      :error ->
+        :error
+
       {index, _} ->
-        {val, _} = final_destination
-        |> Enum.with_index()
-        |> Enum.find(fn {_, other_index} -> index == other_index end)
+        {val, _} =
+          final_destination
+          |> Enum.with_index()
+          |> Enum.find(fn {_, other_index} -> index == other_index end)
 
         val
     end
   end
 
-
   defp do_add({%{} = copy_target, _last_fragment}, copied_value, copy_path_end) do
     Map.put(copy_target, copy_path_end, copied_value)
   end
 
-  defp do_add({copy_target, _last_fragment}, copied_value, copy_path_end) when is_list(copy_target) do
+  defp do_add({copy_target, _last_fragment}, copied_value, copy_path_end)
+       when is_list(copy_target) do
     case Integer.parse(copy_path_end) do
-      :error -> :error
+      :error ->
+        :error
+
       {index, _} ->
         List.insert_at(copy_target, index, copied_value)
     end

@@ -3,7 +3,6 @@ defmodule Jsonpatch.Coder do
   Cares of de- and encoding of json patches.
   """
 
-
   @doc ~S"""
   Encodes a patch into a JSON string.
 
@@ -12,7 +11,7 @@ defmodule Jsonpatch.Coder do
       iex> Jsonpatch.Coder.encode(%Jsonpatch.Operation.Add{path: "/age", value: 1})
       {:ok, "{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}"}
   """
-  @spec encode(list(Jsonpatch.Operation.t) | Jsonpatch.Operation.t) ::
+  @spec encode(list(Jsonpatch.Operation.t()) | Jsonpatch.Operation.t()) ::
           {:ok, iodata} | {:ok, String.t()} | {:error, {:invalid, any}} | {:error, :invalid}
   def encode(patch)
 
@@ -33,7 +32,6 @@ defmodule Jsonpatch.Coder do
     {:error, :invalid}
   end
 
-
   @doc ~S"""
   Decodes a JSON patch string into patch structs.
 
@@ -42,7 +40,8 @@ defmodule Jsonpatch.Coder do
       iex> Jsonpatch.Coder.decode("{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}")
       {:ok, %Jsonpatch.Operation.Add{path: "/age", value: 1}}
   """
-  @spec decode(iodata()) :: {:error, :invalid} | Jsonpatch.Operation.t | list(Jsonpatch.Operation.t)
+  @spec decode(iodata()) ::
+          {:error, :invalid} | Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())
   def decode(json_patch_str) do
     Poison.decode(json_patch_str)
     |> convert_to()
@@ -74,7 +73,6 @@ defmodule Jsonpatch.Coder do
     {:error, :invalid}
   end
 
-
   defp convert_to({:ok, json_patch}) when is_list(json_patch) do
     Enum.map(json_patch, fn patch_part -> convert_to({:ok, patch_part}) end)
   end
@@ -102,7 +100,6 @@ defmodule Jsonpatch.Coder do
   defp convert_to(_) do
     {:error, :invalid}
   end
-
 
   defp is_valid({:error, _}), do: false
   defp is_valid(_), do: true

@@ -4,6 +4,7 @@ defmodule Jsonpatch.Operation.AddTest do
 
   test "Added element to path with multiple indices" do
     path = "/a/b/1/c/2/e"
+
     target = %{
       "a" => %{
         "b" => [
@@ -37,6 +38,7 @@ defmodule Jsonpatch.Operation.AddTest do
         ]
       }
     }
+
     assert ^excpected_target = patched_target
   end
 end

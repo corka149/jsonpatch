@@ -4,6 +4,7 @@ defmodule Jsonpatch.Operation.ReplaceTest do
 
   test "Replace element to path with multiple indices" do
     path = "/a/b/1/c/2/f"
+
     target = %{
       "a" => %{
         "b" => [
@@ -37,6 +38,7 @@ defmodule Jsonpatch.Operation.ReplaceTest do
         ]
       }
     }
+
     assert ^excpected_target = patched_target
   end
 end

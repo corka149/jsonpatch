@@ -4,6 +4,7 @@ defmodule Jsonpatch.Operation.RemoveTest do
 
   test "Remove element by path with multiple indices" do
     path = "/a/b/1/c/2"
+
     target = %{
       "a" => %{
         "b" => [
@@ -36,6 +37,7 @@ defmodule Jsonpatch.Operation.RemoveTest do
         ]
       }
     }
+
     assert ^excpected_target = patched_target
   end
 end

@@ -14,7 +14,7 @@ defmodule Jsonpatch.Operation do
   """
   @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t() | Move.t()
 
-  @callback apply_op(Jsonpatch.Operation.t, map()) :: map()
+  @callback apply_op(Jsonpatch.Operation.t(), map()) :: map()
 
   @doc """
   Uses a JSON patch path to get the last map that this path references.
@@ -69,7 +69,6 @@ defmodule Jsonpatch.Operation do
 
   # ===== ===== PRIVATE ===== =====
 
-
   defp find_final_destination(%{} = target, [fragment | []]) do
     {target, fragment}
   end
@@ -86,19 +85,20 @@ defmodule Jsonpatch.Operation do
   defp find_final_destination(target, [fragment | tail]) when is_list(target) do
     {index, _} = Integer.parse(fragment)
 
-    {val, _} = Enum.with_index(target)
-    |> Enum.find(fn {_val, i} -> i == index end)
+    {val, _} =
+      Enum.with_index(target)
+      |> Enum.find(fn {_val, i} -> i == index end)
 
     find_final_destination(val, tail)
   end
 
-
   # " [final_dest | [_last_ele |[]]] " means: We want to stop, when there are only two elements left.
-  defp do_update_final_destination(%{} = target, new_final_dest, [final_dest | [_last_ele |[]]]) do
+  defp do_update_final_destination(%{} = target, new_final_dest, [final_dest | [_last_ele | []]]) do
     Map.replace!(target, final_dest, new_final_dest)
   end
 
-  defp do_update_final_destination(target, new_final_dest, [final_dest | [_last_ele |[]]]) when is_list(target) do
+  defp do_update_final_destination(target, new_final_dest, [final_dest | [_last_ele | []]])
+       when is_list(target) do
     {index, _} = Integer.parse(final_dest)
 
     List.replace_at(target, index, new_final_dest)
@@ -109,10 +109,11 @@ defmodule Jsonpatch.Operation do
   end
 
   defp do_update_final_destination(%{} = target, new_final_dest, [fragment | tail]) do
-    Map.update!(target, fragment, &do_update_final_destination(&1 , new_final_dest, tail))
+    Map.update!(target, fragment, &do_update_final_destination(&1, new_final_dest, tail))
   end
 
-  defp do_update_final_destination(target, new_final_dest, [fragment | tail]) when is_list(target) do
+  defp do_update_final_destination(target, new_final_dest, [fragment | tail])
+       when is_list(target) do
     {index, _} = Integer.parse(fragment)
 
     List.update_at(target, index, &do_update_final_destination(&1, new_final_dest, tail))
