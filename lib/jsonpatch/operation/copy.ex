@@ -11,9 +11,9 @@ defmodule Jsonpatch.Operation.Copy do
 
   ## Examples
 
-      iex> remove = %Jsonpatch.Operation.Copy{from: "/a/b", path: "/a/e"}
+      iex> copy = %Jsonpatch.Operation.Copy{from: "/a/b", path: "/a/e"}
       iex> target = %{"a" => %{"b" => %{"c" => "Bob"}}, "d" => false}
-      iex> Jsonpatch.Operation.Copy.apply_op(remove, target)
+      iex> Jsonpatch.Operation.Copy.apply_op(copy, target)
       %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}
   """
   @impl true

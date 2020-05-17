@@ -1,6 +1,10 @@
 defmodule Jsonpatch do
   @moduledoc """
   A implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elixir.
+
+  The patch can be a single change or a list of things that shall be changed. Therefore
+  a list or a single JSON patch can be provided. Every patch belongs to a certain operation
+  which influences the usage.
   """
 
   alias Jsonpatch.FlatMap
@@ -14,11 +18,12 @@ defmodule Jsonpatch do
       ...> %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
       ...> %Jsonpatch.Operation.Replace{path: "/married", value: true},
       ...> %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
-      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
+      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
+      ...> %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"}
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"]}
       iex> Jsonpatch.apply_patch(patch, target)
-      %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
+      %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob"}
   """
   @spec apply_patch(Jsonpatch.Operation.t | list(Jsonpatch.Operation.t), map()) :: {map(), Jsonpatch.Operation.t | list(Jsonpatch.Operation.t)}
   def apply_patch(json_patch, target)
@@ -48,6 +53,10 @@ defmodule Jsonpatch do
 
   def apply_patch(%Jsonpatch.Operation.Copy{} = json_patch, %{} = target)  do
     Jsonpatch.Operation.Copy.apply_op(json_patch, target)
+  end
+
+  def apply_patch(%Jsonpatch.Operation.Move{} = json_patch, %{} = target)  do
+    Jsonpatch.Operation.Move.apply_op(json_patch, target)
   end
 
   @doc """

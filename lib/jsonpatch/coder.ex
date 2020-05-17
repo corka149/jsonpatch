@@ -62,6 +62,14 @@ defmodule Jsonpatch.Coder do
     Map.put(operation, :op, "replace")
   end
 
+  defp prepare(%Jsonpatch.Operation.Copy{} = operation) do
+    Map.put(operation, :op, "copy")
+  end
+
+  defp prepare(%Jsonpatch.Operation.Move{} = operation) do
+    Map.put(operation, :op, "move")
+  end
+
   defp prepare(_) do
     {:error, :invalid}
   end
