@@ -20,25 +20,31 @@ defmodule Jsonpatch do
       ...> %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
       ...> %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
       ...> %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"},
-      ...> %Jsonpatch.Operation.Move{from: "/home", path: "/work"}
+      ...> %Jsonpatch.Operation.Move{from: "/home", path: "/work"},
+      ...> %Jsonpatch.Operation.Test{path: "/name", value: "Bob"}
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
       %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob", "work" => "Berlin"}
   """
   @spec apply_patch(Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t()), map()) ::
-          {map(), Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())}
+          map(), Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())
   def apply_patch(json_patch, target)
 
   def apply_patch(json_patch, %{} = target) when is_list(json_patch) do
     # Operatons MUST be sorted before applying because a remove operation for path "/foo/2" must be done
     # before the remove operation for path "/foo/1". Without order it could be possible that the wrong
     # value will be removed or only one value instead of two.
-    json_patch
+    result = json_patch
     |> Enum.map(&create_sort_value/1)
     |> Enum.sort(fn {sort_value_1, _}, {sort_value_2, _} -> sort_value_1 >= sort_value_2 end)
     |> Enum.map(fn {_, patch} -> patch end)
     |> Enum.reduce(target, &apply_patch/2)
+
+    case result do
+      :error ->  target
+       ok_result -> ok_result
+    end
   end
 
   def apply_patch(%Jsonpatch.Operation.Add{} = json_patch, %{} = target) do
@@ -59,6 +65,17 @@ defmodule Jsonpatch do
 
   def apply_patch(%Jsonpatch.Operation.Move{} = json_patch, %{} = target) do
     Jsonpatch.Operation.Move.apply_op(json_patch, target)
+  end
+
+  def apply_patch(%Jsonpatch.Operation.Test{} = json_patch, %{} = target) do
+    case Jsonpatch.Operation.Test.apply_op(json_patch, target)  do
+      :ok ->  target
+      :error -> :error
+    end
+  end
+
+  def apply_patch(_json_patch, :error) do
+    :error
   end
 
   @doc """
