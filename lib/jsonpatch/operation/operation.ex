@@ -8,13 +8,14 @@ defmodule Jsonpatch.Operation do
   alias Jsonpatch.Operation.Replace
   alias Jsonpatch.Operation.Copy
   alias Jsonpatch.Operation.Move
+  alias Jsonpatch.Operation.Test
 
   @typedoc """
   A valid Jsonpatch operation by RFC 6902
   """
-  @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t() | Move.t()
+  @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t() | Move.t() | Test.t()
 
-  @callback apply_op(Jsonpatch.Operation.t(), map()) :: map()
+  @callback apply_op(Jsonpatch.Operation.t(), map()) :: map() | :ok | :error
 
   @doc """
   Uses a JSON patch path to get the last map that this path references.
@@ -62,6 +63,7 @@ defmodule Jsonpatch.Operation do
   @spec operation_sort_value?(Jsonpatch.Operation.t()) :: integer()
   def operation_sort_value?(patch)
 
+  def operation_sort_value?(%Jsonpatch.Operation.Test{}), do: 600
   def operation_sort_value?(%Jsonpatch.Operation.Add{}), do: 500
   def operation_sort_value?(%Jsonpatch.Operation.Replace{}), do: 400
   def operation_sort_value?(%Jsonpatch.Operation.Remove{}), do: 300
