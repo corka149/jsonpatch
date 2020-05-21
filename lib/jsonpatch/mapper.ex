@@ -18,7 +18,23 @@ defmodule Jsonpatch.Mapper do
     end
   end
 
-  @spec from_map(map() | list(map())) :: list(Jsonpatch.Operation.t()) | Jsonpatch.Operation.t()
+
+  @doc """
+  Creates JSON patch struct/s from a single or list maps which represents JSON patches.
+
+  ## Examples
+
+      iex> add_patch_map = %{"op" => "add", "path" => "/name", "value" => "Alice"}
+      iex> Jsonpatch.Mapper.from_map(add_patch_map)
+      %Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
+
+      iex> unkown_patch_map = %{"op" => "foo", "path" => "/name", "value" => "Alice"}
+      iex> Jsonpatch.Mapper.from_map(unkown_patch_map)
+      {:error, :invalid}
+  """
+  @spec from_map(map() | list(map())) :: list(Jsonpatch.Operation.t()) | Jsonpatch.Operation.t() | {:error, :invalid}
+  def from_map(patch)
+
   def from_map(%{} = patch) do
     convert_to(patch)
   end
