@@ -25,7 +25,16 @@ defmodule Jsonpatch do
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
+      iex>
+      iex> # Patch will not be applied if test fails. The target will not be changed.
       %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob", "work" => "Berlin"}
+      iex> patch = [
+      ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
+      ...> %Jsonpatch.Operation.Test{path: "/name", value: "Alice"}
+      ...> ]
+      iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
+      iex> Jsonpatch.apply_patch(patch, target)
+      %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
   """
   @spec apply_patch(Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t()), map()) ::
           map(), Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())
