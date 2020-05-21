@@ -34,8 +34,9 @@ defmodule Jsonpatch.Operation.Test do
   defp do_test({target, last_fragment}, value) when is_list(target) do
     case Integer.parse(last_fragment) do
       {index, _} ->
-        target_val = Enum.with_index(target)
+        {target_val, _index} = Enum.with_index(target)
         |> Enum.find(fn {_, i} -> i == index end)
+
         target_val == value
       :error -> false
     end

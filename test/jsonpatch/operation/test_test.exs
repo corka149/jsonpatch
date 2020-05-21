@@ -19,12 +19,10 @@ defmodule Jsonpatch.Operation.TestTest do
     }
 
     test_op = %Jsonpatch.Operation.Test{path: "/a/b/1/c/2/f", value: false}
-    patched_target = Jsonpatch.Operation.Test.apply_op(test_op, target)
-    assert :ok = patched_target
+    assert :ok = Jsonpatch.Operation.Test.apply_op(test_op, target)
 
     test_op = %Jsonpatch.Operation.Test{path: "/a/b/1/c/0", value: 1}
-    patched_target = Jsonpatch.Operation.Test.apply_op(test_op, target)
-    assert :ok = patched_target
+    assert :ok = Jsonpatch.Operation.Test.apply_op(test_op, target)
   end
 
   test "Fail to test element with path with multiple indices" do
