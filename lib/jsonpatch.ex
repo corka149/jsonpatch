@@ -36,8 +36,8 @@ defmodule Jsonpatch do
       iex> # Patch will not be applied if test fails. The target will not be changed.
       %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob", "work" => "Berlin"}
       iex> patch = [
-      ...> %Add{path: "/age", value: 33},
-      ...> %Test{path: "/name", value: "Alice"}
+      ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
+      ...> %Jsonpatch.Operation.Test{path: "/name", value: "Alice"}
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
