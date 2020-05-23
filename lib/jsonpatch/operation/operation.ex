@@ -24,15 +24,29 @@ defmodule Jsonpatch.Operation do
 
       iex> path = "/a/b/c/d"
       iex> target = %{"a" => %{"b" => %{"c" => %{"d" => 1}}}}
-      iex> Jsonpatch.Operation.get_final_destination!(target, path)
+      iex> Jsonpatch.Operation.get_final_destination(target, path)
       {%{"d" => 1}, "d"}
+
+      iex> # Invalid path
+      iex> path = "/a/e/c/d"
+      iex> target = %{"a" => %{"b" => %{"c" => %{"d" => 1}}}}
+      iex> Jsonpatch.Operation.get_final_destination(target, path)
+      {:error, :invalid_path}
+
       iex> path = "/a/b/1/d"
       iex> target = %{"a" => %{"b" => [true, %{"d" => 1}]}}
-      iex> Jsonpatch.Operation.get_final_destination!(target, path)
+      iex> Jsonpatch.Operation.get_final_destination(target, path)
       {%{"d" => 1}, "d"}
+
+      iex> # Invalid path
+      iex> path = "/a/b/42/d"
+      iex> target = %{"a" => %{"b" => [true, %{"d" => 1}]}}
+      iex> Jsonpatch.Operation.get_final_destination(target, path)
+      {:error, :invalid_path}
   """
-  @spec get_final_destination!(map, binary) :: {map, binary} | {list, binary}
-  def get_final_destination!(target, path) when is_bitstring(path) do
+  @spec get_final_destination(map, binary) ::
+          {map, binary} | {list, binary} | {:error, :invalid_path}
+  def get_final_destination(target, path) when is_bitstring(path) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/")
     find_final_destination(target, fragments)
@@ -71,6 +85,10 @@ defmodule Jsonpatch.Operation do
 
   # ===== ===== PRIVATE ===== =====
 
+  defp find_final_destination(nil, _) do
+    {:error, :invalid_path}
+  end
+
   defp find_final_destination(%{} = target, [fragment | []]) do
     {target, fragment}
   end
@@ -80,18 +98,19 @@ defmodule Jsonpatch.Operation do
   end
 
   defp find_final_destination(%{} = target, [fragment | tail]) do
-    Map.get(target, fragment)
-    |> find_final_destination(tail)
+    case Map.get(target, fragment) do
+      nil -> {:error, :invalid_path}
+      val -> find_final_destination(val, tail)
+    end
   end
 
   defp find_final_destination(target, [fragment | tail]) when is_list(target) do
     {index, _} = Integer.parse(fragment)
 
-    {val, _} =
-      Enum.with_index(target)
-      |> Enum.find(fn {_val, i} -> i == index end)
-
-    find_final_destination(val, tail)
+    case Enum.with_index(target) |> Enum.find(fn {_val, i} -> i == index end) do
+      nil -> {:error, :invalid_path}
+      {val, _} -> find_final_destination(val, tail)
+    end
   end
 
   # " [final_dest | [_last_ele |[]]] " means: We want to stop, when there are only two elements left.

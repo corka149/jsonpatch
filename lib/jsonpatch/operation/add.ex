@@ -22,8 +22,13 @@ defmodule Jsonpatch.Operation.Add do
   @impl true
   @spec apply_op(Jsonpatch.Operation.Add.t(), map) :: map
   def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target) do
-    {final_destination, last_fragment} = Jsonpatch.Operation.get_final_destination!(target, path)
-    updated_final_destination = Map.put_new(final_destination, last_fragment, value)
-    Jsonpatch.Operation.update_final_destination!(target, updated_final_destination, path)
+    case Jsonpatch.Operation.get_final_destination(target, path) do
+      {:error, _} ->
+        target
+
+      {final_destination, last_fragment} ->
+        updated_final_destination = Map.put_new(final_destination, last_fragment, value)
+        Jsonpatch.Operation.update_final_destination!(target, updated_final_destination, path)
+    end
   end
 end

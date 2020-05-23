@@ -22,7 +22,7 @@ defmodule Jsonpatch.Operation.Replace do
   @impl true
   @spec apply_op(Jsonpatch.Operation.Replace.t(), map) :: map
   def apply_op(%Jsonpatch.Operation.Replace{path: path, value: value}, %{} = target) do
-    {final_destination, last_fragment} = Jsonpatch.Operation.get_final_destination!(target, path)
+    {final_destination, last_fragment} = Jsonpatch.Operation.get_final_destination(target, path)
     updated_final_destination = do_update(final_destination, last_fragment, value)
     Jsonpatch.Operation.update_final_destination!(target, updated_final_destination, path)
   end
@@ -30,7 +30,11 @@ defmodule Jsonpatch.Operation.Replace do
   # ===== ===== PRIVATE ===== =====
 
   defp do_update(%{} = final_destination, last_fragment, value) do
-    Map.replace!(final_destination, last_fragment, value)
+    if Map.has_key?(final_destination, last_fragment) do
+      Map.replace!(final_destination, last_fragment, value)
+    else
+      final_destination
+    end
   end
 
   defp do_update(final_destination, last_fragment, value) when is_list(final_destination) do

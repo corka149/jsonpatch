@@ -24,10 +24,20 @@ defmodule Jsonpatch.Operation.Copy do
   @spec apply_op(Jsonpatch.Operation.Copy.t(), map) :: map
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
-    copied_value =
-      target
-      |> Jsonpatch.Operation.get_final_destination!(from)
-      |> extract_copy_value()
+    target
+    |> Jsonpatch.Operation.get_final_destination(from)
+    |> extract_copy_value()
+    |> do_copy(target, path)
+  end
+
+  # ===== ===== PRIVATE ===== =====
+
+  defp do_copy(nil, target, _path) do
+    target
+  end
+
+  defp do_copy(copied_value, target, path) do
+    # copied_value = %{"c" => "Bob"}
 
     # "e"
     copy_path_end = String.split(path, "/") |> List.last()
@@ -36,14 +46,12 @@ defmodule Jsonpatch.Operation.Copy do
     updated_value =
       target
       # %{"b" => %{"c" => "Bob"}} is the "copy target"
-      |> Jsonpatch.Operation.get_final_destination!(path)
+      |> Jsonpatch.Operation.get_final_destination(path)
       # Add copied_value to "copy target"
       |> do_add(copied_value, copy_path_end)
 
     Jsonpatch.Operation.update_final_destination!(target, updated_value, path)
   end
-
-  # ===== ===== PRIVATE ===== =====
 
   defp extract_copy_value({%{} = final_destination, fragment}) do
     Map.get(final_destination, fragment)

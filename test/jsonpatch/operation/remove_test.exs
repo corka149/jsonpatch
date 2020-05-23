@@ -43,4 +43,16 @@ defmodule Jsonpatch.Operation.RemoveTest do
 
     assert ^excpected_target = patched_target
   end
+
+  test "Test target with invalid path" do
+    target = %{
+      "name" => "Bob",
+      "married" => false,
+      "hobbies" => ["Sport", "Elixir", "Football"],
+      "home" => "Berlin"
+    }
+
+    test_patch = %Jsonpatch.Operation.Test{path: "/nameX", value: "Bob"}
+    assert :error = Jsonpatch.apply_patch(test_patch, target)
+  end
 end

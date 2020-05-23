@@ -148,5 +148,26 @@ defmodule JsonpatchTest do
                }
              ] = patch
     end
+
+    test "Apply patch with invalid source path and expect no target change" do
+      patch = [
+        %Jsonpatch.Operation.Add{path: "/child/0/age", value: 33},
+        %Jsonpatch.Operation.Replace{path: "/age", value: 42},
+        %Jsonpatch.Operation.Remove{path: "/hobby/4"},
+        %Jsonpatch.Operation.Copy{from: "/nameX", path: "/surname"},
+        %Jsonpatch.Operation.Move{from: "/homeX", path: "/work"}
+      ]
+
+      target = %{
+        "name" => "Bob",
+        "married" => false,
+        "hobbies" => ["Sport", "Elixir", "Football"],
+        "home" => "Berlin"
+      }
+
+      for singe_patch <- patch do
+        assert ^target = Jsonpatch.apply_patch(singe_patch, target)
+      end
+    end
   end
 end

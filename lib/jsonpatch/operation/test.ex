@@ -22,7 +22,7 @@ defmodule Jsonpatch.Operation.Test do
   @impl true
   @spec apply_op(Jsonpatch.Operation.Test.t(), map) :: :ok | :error
   def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target) do
-    if Jsonpatch.Operation.get_final_destination!(target, path) |> do_test(value) do
+    if Jsonpatch.Operation.get_final_destination(target, path) |> do_test(value) do
       :ok
     else
       :error

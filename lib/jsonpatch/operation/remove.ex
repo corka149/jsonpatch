@@ -41,7 +41,11 @@ defmodule Jsonpatch.Operation.Remove do
   end
 
   defp do_remove(%{} = target, [fragment | tail]) do
-    Map.update!(target, fragment, &do_remove(&1, tail))
+    if Map.has_key?(target, fragment) do
+      Map.update!(target, fragment, &do_remove(&1, tail))
+    else
+      target
+    end
   end
 
   defp do_remove(target, [fragment | tail]) when is_list(target) do

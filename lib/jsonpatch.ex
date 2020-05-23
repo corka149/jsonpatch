@@ -17,7 +17,8 @@ defmodule Jsonpatch do
   alias Jsonpatch.Operation.Test
 
   @doc """
-  Apply a Jsonpatch to a map/struct.
+  Apply a Jsonpatch to a map or struct. The whole patch will not be applied
+  when any path is invalid or any other error occured.
 
   ## Examples
       iex> patch = [
@@ -32,9 +33,9 @@ defmodule Jsonpatch do
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
-      iex>
-      iex> # Patch will not be applied if test fails. The target will not be changed.
       %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob", "work" => "Berlin"}
+
+      iex> # Patch will not be applied if test fails. The target will not be changed.
       iex> patch = [
       ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
       ...> %Jsonpatch.Operation.Test{path: "/name", value: "Alice"}
