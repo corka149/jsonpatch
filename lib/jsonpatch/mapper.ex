@@ -3,7 +3,8 @@ defmodule Jsonpatch.Mapper do
   Maps JSON patches between regular maps and Jsonpatch.Operations.
   """
 
-  @spec to_map(Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())) :: map() | {:error, :invalid}
+  @spec to_map(Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())) ::
+          map() | {:error, :invalid}
   def to_map(patch)
 
   def to_map(patch_operations) when is_list(patch_operations) do
@@ -31,7 +32,8 @@ defmodule Jsonpatch.Mapper do
       iex> Jsonpatch.Mapper.from_map(unkown_patch_map)
       {:error, :invalid}
   """
-  @spec from_map(map() | list(map())) :: list(Jsonpatch.Operation.t()) | Jsonpatch.Operation.t() | {:error, :invalid}
+  @spec from_map(map() | list(map())) ::
+          list(Jsonpatch.Operation.t()) | Jsonpatch.Operation.t() | {:error, :invalid}
   def from_map(patch)
 
   def from_map(%{} = patch) do

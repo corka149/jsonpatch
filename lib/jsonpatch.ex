@@ -43,23 +43,27 @@ defmodule Jsonpatch do
       iex> Jsonpatch.apply_patch(patch, target)
       %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
   """
-  @spec apply_patch(Operation.t() | list(Operation.t()), map()) ::
-          map(), Operation.t() | list(Operation.t())
+  @spec(
+    apply_patch(Operation.t() | list(Operation.t()), map()) ::
+      map(),
+    Operation.t() | list(Operation.t())
+  )
   def apply_patch(json_patch, target)
 
   def apply_patch(json_patch, %{} = target) when is_list(json_patch) do
     # Operatons MUST be sorted before applying because a remove operation for path "/foo/2" must be done
     # before the remove operation for path "/foo/1". Without order it could be possible that the wrong
     # value will be removed or only one value instead of two.
-    result = json_patch
-    |> Enum.map(&create_sort_value/1)
-    |> Enum.sort(fn {sort_value_1, _}, {sort_value_2, _} -> sort_value_1 >= sort_value_2 end)
-    |> Enum.map(fn {_, patch} -> patch end)
-    |> Enum.reduce(target, &apply_patch/2)
+    result =
+      json_patch
+      |> Enum.map(&create_sort_value/1)
+      |> Enum.sort(fn {sort_value_1, _}, {sort_value_2, _} -> sort_value_1 >= sort_value_2 end)
+      |> Enum.map(fn {_, patch} -> patch end)
+      |> Enum.reduce(target, &apply_patch/2)
 
     case result do
-      :error ->  target
-       ok_result -> ok_result
+      :error -> target
+      ok_result -> ok_result
     end
   end
 
@@ -84,8 +88,8 @@ defmodule Jsonpatch do
   end
 
   def apply_patch(%Test{} = json_patch, %{} = target) do
-    case Test.apply_op(json_patch, target)  do
-      :ok ->  target
+    case Test.apply_op(json_patch, target) do
+      :ok -> target
       :error -> :error
     end
   end
@@ -138,7 +142,7 @@ defmodule Jsonpatch do
         %Add{path: key, value: Map.get(destination, key)}
       end)
 
-      accumulator ++ additions
+    accumulator ++ additions
   end
 
   @doc """
@@ -154,7 +158,7 @@ defmodule Jsonpatch do
       |> Enum.filter(fn key -> not Map.has_key?(destination, key) end)
       |> Enum.map(fn key -> %Remove{path: key} end)
 
-      accumulator ++ removes
+    accumulator ++ removes
   end
 
   @doc """
@@ -173,7 +177,7 @@ defmodule Jsonpatch do
         %Replace{path: key, value: Map.get(destination, key)}
       end)
 
-      accumulator ++ replaces
+    accumulator ++ replaces
   end
 
   # ===== ===== PRIVATE ===== =====

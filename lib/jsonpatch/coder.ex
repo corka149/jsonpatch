@@ -43,9 +43,9 @@ defmodule Jsonpatch.Coder do
           {:error, :invalid} | Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())
   def decode(json_patch_str) do
     case Poison.decode(json_patch_str) do
-      {:ok, parsed} -> Jsonpatch.Mapper.from_map(parsed)
-      # _ -> {:error, :invalid} # dialyzer says, it could never match.
+      {:ok, parsed} ->
+        Jsonpatch.Mapper.from_map(parsed)
+        # _ -> {:error, :invalid} # dialyzer says, it could never match.
     end
   end
-
 end

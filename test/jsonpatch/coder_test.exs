@@ -41,7 +41,9 @@ defmodule Jsonpatch.CoderTest do
              Jsonpatch.Coder.encode(move_patch)
 
     test_patch = %Jsonpatch.Operation.Test{path: "age", value: "1"}
-    assert {:ok, "{\"value\":\"1\",\"path\":\"age\",\"op\":\"test\"}"} = Jsonpatch.Coder.encode(test_patch)
+
+    assert {:ok, "{\"value\":\"1\",\"path\":\"age\",\"op\":\"test\"}"} =
+             Jsonpatch.Coder.encode(test_patch)
   end
 
   test "decode a list of JSON patches" do
@@ -64,6 +66,7 @@ defmodule Jsonpatch.CoderTest do
 
   test "decode single operations" do
     add_patch_str = "{\"value\":1,\"path\":\"/age\",\"op\":\"add\"}"
+
     assert %Jsonpatch.Operation.Add{path: "/age", value: 1} =
              Jsonpatch.Coder.decode(add_patch_str)
 
@@ -71,19 +74,23 @@ defmodule Jsonpatch.CoderTest do
     assert %Jsonpatch.Operation.Remove{path: "/age"} = Jsonpatch.Coder.decode(remove_patch_str)
 
     replace_patch_str = "{\"value\":\"Bob\",\"path\":\"/name\",\"op\":\"replace\"}"
+
     assert %Jsonpatch.Operation.Replace{path: "/name", value: "Bob"} =
              Jsonpatch.Coder.decode(replace_patch_str)
 
     copy_patch_str = "{\"path\":\"/name\",\"from\":\"/surname\",\"op\":\"copy\"}"
+
     assert %Jsonpatch.Operation.Copy{path: "/name", from: "/surname"} =
-            Jsonpatch.Coder.decode(copy_patch_str)
+             Jsonpatch.Coder.decode(copy_patch_str)
 
     move_patch_str = "{\"path\":\"/name\",\"from\":\"/surname\",\"op\":\"move\"}"
+
     assert %Jsonpatch.Operation.Move{path: "/name", from: "/surname"} =
-            Jsonpatch.Coder.decode(move_patch_str)
+             Jsonpatch.Coder.decode(move_patch_str)
 
     test_patch_str = "{\"value\":1,\"path\":\"/age\",\"op\":\"test\"}"
+
     assert %Jsonpatch.Operation.Test{path: "/age", value: 1} =
-            Jsonpatch.Coder.decode(test_patch_str)
+             Jsonpatch.Coder.decode(test_patch_str)
   end
 end
