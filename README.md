@@ -5,13 +5,18 @@
 A implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elixir.
 
 
-Milestones:
+Features:
 
-- [x] (primary) Creating a patch
-- [x] De/serialize patches
-- [x] (secondary) Apply a patch
-- [ ] Add patch operations test, copy, move
-- [ ] Create a plug
+1. Creating a patch by comparing to maps and structs
+2. Apply patches to maps and structs - supports operations:
+    - add
+    - replace
+    - remove
+    - copy
+    - move
+    - test
+3. De/Encoding and mapping 
+
 
 ## Usage
 
@@ -61,22 +66,6 @@ iex> Jsonpatch.apply_patch(patch, target)
 %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
 ```
 
-## Operations
-
-Some operations are supported, some not.
-
-### Supported
-
-Available for objects and arrays
-- Add
-- Remove
-- Replace
-
-### Unsupported
-
-- Test: Soon
-- Move: Soon
-- Copy: Soon
 
 ## Installation
 
@@ -86,7 +75,7 @@ by adding `jsonpatch` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:jsonpatch, "~> 0.3.0"}
+    {:jsonpatch, "~> 0.5.0"}
   ]
 end
 ```

@@ -4,19 +4,21 @@ defmodule Jsonpatch.MixProject do
   def project do
     [
       app: :jsonpatch,
-      version: "0.4.0",
+      name: "Jsonpatch",
+      description: "Implementation of RFC 6902 in pure Elixir",
+      version: "0.5.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      test_coverage: [tool: ExCoveralls]
+      test_coverage: [tool: ExCoveralls],
+      package: package(),
+      source_url: "https://github.com/corka149/jsonpatch"
     ]
   end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
-    [
-      extra_applications: [:logger]
-    ]
+    []
   end
 
   # Run "mix help deps" to learn about dependencies.
@@ -30,7 +32,19 @@ defmodule Jsonpatch.MixProject do
       ## linting
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       ## type checking
-      {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
+      ## Docs
+      {:ex_doc, "~> 0.22.1", only: :dev, runtime: false}
+    ]
+  end
+
+  defp package() do
+    [
+      maintainers: ["Sebastian Ziemann"],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/corka149/jsonpatch"
+      }
     ]
   end
 end
