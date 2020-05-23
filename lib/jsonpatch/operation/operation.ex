@@ -4,10 +4,10 @@ defmodule Jsonpatch.Operation do
   """
 
   alias Jsonpatch.Operation.Add
-  alias Jsonpatch.Operation.Remove
-  alias Jsonpatch.Operation.Replace
   alias Jsonpatch.Operation.Copy
   alias Jsonpatch.Operation.Move
+  alias Jsonpatch.Operation.Remove
+  alias Jsonpatch.Operation.Replace
   alias Jsonpatch.Operation.Test
 
   @typedoc """

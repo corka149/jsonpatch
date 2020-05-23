@@ -1,6 +1,9 @@
 defmodule Jsonpatch.Operation.RemoveTest do
   use ExUnit.Case
-  doctest Jsonpatch.Operation.Remove
+
+  alias Jsonpatch.Operation.Remove
+
+  doctest Remove
 
   test "Remove element by path with multiple indices" do
     path = "/a/b/1/c/2"
@@ -20,9 +23,9 @@ defmodule Jsonpatch.Operation.RemoveTest do
       }
     }
 
-    remove_op = %Jsonpatch.Operation.Remove{path: path}
+    remove_op = %Remove{path: path}
 
-    patched_target = Jsonpatch.Operation.Remove.apply_op(remove_op, target)
+    patched_target = Remove.apply_op(remove_op, target)
 
     excpected_target = %{
       "a" => %{

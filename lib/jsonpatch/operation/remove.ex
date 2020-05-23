@@ -1,4 +1,8 @@
 defmodule Jsonpatch.Operation.Remove do
+  @moduledoc """
+  A JSON patch remove operation is responsible for removing values.
+  """
+
   @behaviour Jsonpatch.Operation
 
   @enforce_keys [:path]

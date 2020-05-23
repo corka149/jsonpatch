@@ -1,4 +1,8 @@
 defmodule Jsonpatch.Operation.Test do
+  @moduledoc """
+  A test operation in a JSON patch prevents the patch application or allows it.
+  """
+
   @behaviour Jsonpatch.Operation
 
   @enforce_keys [:path, :value]

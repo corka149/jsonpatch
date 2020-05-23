@@ -18,7 +18,6 @@ defmodule Jsonpatch.Mapper do
     end
   end
 
-
   @doc """
   Creates JSON patch struct/s from a single or list maps which represents JSON patches.
 

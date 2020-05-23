@@ -1,4 +1,8 @@
 defmodule Jsonpatch.Operation.Replace do
+  @moduledoc """
+  The replace module helps replacing values in maps and structs by paths.
+  """
+
   @behaviour Jsonpatch.Operation
 
   @enforce_keys [:path, :value]

@@ -17,7 +17,7 @@ jobs:
     - name: Run Tests
       run: mix test
 
-  dialyzer:
+  analyze:
     runs-on: ubuntu-latest
     name: Dialyzer - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     steps:
@@ -29,6 +29,7 @@ jobs:
           elixir-version: 1.9.x
       - run: mix deps.get
       - run: mix dialyzer
+      - run: mix credo --strict
       
   coverage:
     name: Coverage

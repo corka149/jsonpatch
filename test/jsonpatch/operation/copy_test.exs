@@ -1,6 +1,9 @@
 defmodule Jsonpatch.Operation.CopyTest do
   use ExUnit.Case
-  doctest Jsonpatch.Operation.Copy
+
+  alias Jsonpatch.Operation.Copy
+
+  doctest Copy
 
   test "Copy element by path with multiple indices" do
     path = "/a/b/1/c/3"
@@ -21,9 +24,9 @@ defmodule Jsonpatch.Operation.CopyTest do
       }
     }
 
-    copy_op = %Jsonpatch.Operation.Copy{path: path, from: from}
+    copy_op = %Copy{path: path, from: from}
 
-    patched_target = Jsonpatch.Operation.Copy.apply_op(copy_op, target)
+    patched_target = Copy.apply_op(copy_op, target)
 
     excpected_target = %{
       "a" => %{

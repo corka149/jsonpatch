@@ -1,9 +1,16 @@
 defmodule Jsonpatch.Operation.Move do
+  @moduledoc """
+  Move operations change the position of values in map or struct.
+  """
+
   @behaviour Jsonpatch.Operation
 
   @enforce_keys [:from, :path]
   defstruct [:from, :path]
   @type t :: %__MODULE__{from: String.t(), path: String.t()}
+
+  alias Jsonpatch.Operation.Copy
+  alias Jsonpatch.Operation.Remove
 
   @doc """
   Move the element referenced by the JSON patch path :from to to the other
@@ -19,8 +26,8 @@ defmodule Jsonpatch.Operation.Move do
   @impl true
   @spec apply_op(Jsonpatch.Operation.Move.t(), map) :: map
   def apply_op(%Jsonpatch.Operation.Move{from: from, path: path}, target) do
-    copy_patch = %Jsonpatch.Operation.Copy{from: from, path: path}
-    updated_target = Jsonpatch.Operation.Copy.apply_op(copy_patch, target)
-    Jsonpatch.Operation.Remove.apply_op(%Jsonpatch.Operation.Remove{path: from}, updated_target)
+    copy_patch = %Copy{from: from, path: path}
+    updated_target = Copy.apply_op(copy_patch, target)
+    Remove.apply_op(%Remove{path: from}, updated_target)
   end
 end

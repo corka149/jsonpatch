@@ -1,4 +1,8 @@
 defmodule Jsonpatch.Operation.Copy do
+  @moduledoc """
+  Represents the handling of JSON patches with a copy operation.
+  """
+
   @behaviour Jsonpatch.Operation
 
   @enforce_keys [:from, :path]

@@ -1,4 +1,8 @@
 defmodule Jsonpatch.Operation.Add do
+  @moduledoc """
+  The add operation is the operation for adding (as you might guess) values to a map or struct.
+  """
+
   @behaviour Jsonpatch.Operation
 
   @enforce_keys [:path, :value]
