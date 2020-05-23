@@ -15,7 +15,7 @@ defmodule JsonpatchTest do
 
     addition_patch = Jsonpatch.create_additions(source, destination)
 
-    assert {:ok, [%Add{path: "/c", value: "d"}]} = addition_patch
+    assert [%Add{path: "/c", value: "d"}] = addition_patch
   end
 
   test "create removes" do
@@ -24,7 +24,7 @@ defmodule JsonpatchTest do
 
     deletion_patch = Jsonpatch.create_removes(source, destination)
 
-    assert {:ok, [%Remove{path: "/a"}]} = deletion_patch
+    assert [%Remove{path: "/a"}] = deletion_patch
   end
 
   test "create replaces" do
@@ -33,7 +33,7 @@ defmodule JsonpatchTest do
 
     replace_patch = Jsonpatch.create_replaces(source, destination)
 
-    assert {:ok, [%Replace{path: "/a", value: "f"}]} = replace_patch
+    assert [%Replace{path: "/a", value: "f"}] = replace_patch
   end
 
   describe "Create diffs" do
@@ -43,7 +43,7 @@ defmodule JsonpatchTest do
 
       patch = Jsonpatch.diff(source, destination)
 
-      assert {:ok, [%Add{path: "/baz", value: "qux"}]} = patch
+      assert [%Add{path: "/baz", value: "qux"}] = patch
     end
 
     test "Adding an Array Element" do
@@ -52,7 +52,7 @@ defmodule JsonpatchTest do
 
       patch = Jsonpatch.diff(source, destination)
 
-      assert {:ok, [%Add{path: "/foo/2", value: "qux"}]} = patch
+      assert [%Add{path: "/foo/2", value: "qux"}] = patch
     end
 
     test "Removing an Object Member" do
@@ -61,7 +61,7 @@ defmodule JsonpatchTest do
 
       patch = Jsonpatch.diff(source, destination)
 
-      assert {:ok, [%Remove{path: "/baz"}]} = patch
+      assert [%Remove{path: "/baz"}] = patch
     end
 
     test "A.4. Removing an Array Element" do
@@ -70,7 +70,7 @@ defmodule JsonpatchTest do
 
       patch = Jsonpatch.diff(source, destination)
 
-      assert {:ok, [%Remove{path: "/a/b/1"}]} = patch
+      assert [%Remove{path: "/a/b/1"}] = patch
     end
 
     test "Replacing a Value" do
@@ -79,7 +79,7 @@ defmodule JsonpatchTest do
 
       patch = Jsonpatch.diff(source, destination)
 
-      assert {:ok, [%Replace{path: "/a/b/c", value: "h"}]} = patch
+      assert [%Replace{path: "/a/b/c", value: "h"}] = patch
     end
 
     test "Replacing an Array Element" do
@@ -88,7 +88,7 @@ defmodule JsonpatchTest do
 
       patch = Jsonpatch.diff(source, destination)
 
-      assert {:ok, [%Replace{path: "/a/b/c/1", value: "d3"}]} = patch
+      assert [%Replace{path: "/a/b/c/1", value: "d3"}] = patch
     end
 
     test "A.10. Adding a Nested Member Object" do
@@ -123,8 +123,7 @@ defmodule JsonpatchTest do
 
       patch = Jsonpatch.diff(source, destination)
 
-      assert {:ok,
-              [
+      assert [
                 %Jsonpatch.Operation.Add{
                   path: "/items/0/spec/template/spec/containers/0/env/1/value",
                   value: "Hey there!"
@@ -147,7 +146,7 @@ defmodule JsonpatchTest do
                 %Jsonpatch.Operation.Remove{
                   path: "/items/0/spec/template/spec/containers/0/ports/0/containerPort"
                 }
-              ]} = patch
+              ] = patch
     end
   end
 end
