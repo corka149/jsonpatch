@@ -50,7 +50,7 @@ defmodule Jsonpatch.Operation.Copy do
       # Add copied_value to "copy target"
       |> do_add(copied_value, copy_path_end)
 
-    Jsonpatch.Operation.update_final_destination!(target, updated_value, path)
+    Jsonpatch.Operation.update_final_destination(target, updated_value, path)
   end
 
   defp extract_copy_value({%{} = final_destination, fragment}) do

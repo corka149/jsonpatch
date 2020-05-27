@@ -24,7 +24,7 @@ defmodule Jsonpatch.Operation.Replace do
   def apply_op(%Jsonpatch.Operation.Replace{path: path, value: value}, %{} = target) do
     {final_destination, last_fragment} = Jsonpatch.Operation.get_final_destination(target, path)
     updated_final_destination = do_update(final_destination, last_fragment, value)
-    Jsonpatch.Operation.update_final_destination!(target, updated_final_destination, path)
+    Jsonpatch.Operation.update_final_destination(target, updated_final_destination, path)
   end
 
   # ===== ===== PRIVATE ===== =====

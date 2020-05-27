@@ -28,7 +28,7 @@ defmodule Jsonpatch.Operation.Add do
 
       {final_destination, last_fragment} ->
         updated_final_destination = Map.put_new(final_destination, last_fragment, value)
-        Jsonpatch.Operation.update_final_destination!(target, updated_final_destination, path)
+        Jsonpatch.Operation.update_final_destination(target, updated_final_destination, path)
     end
   end
 end

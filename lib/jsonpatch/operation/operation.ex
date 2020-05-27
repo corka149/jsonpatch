@@ -59,11 +59,11 @@ defmodule Jsonpatch.Operation do
 
       iex> path = "/a/b/c/d"
       iex> target = %{"a" => %{"b" => %{"c" => %{"d" => 1}}}}
-      iex> Jsonpatch.Operation.update_final_destination!(target, %{"e" => 1}, path)
+      iex> Jsonpatch.Operation.update_final_destination(target, %{"e" => 1}, path)
       %{"a" => %{"b" => %{"c" => %{"e" => 1}}}}
   """
-  @spec update_final_destination!(map, map, binary) :: map
-  def update_final_destination!(target, new_destination, path) do
+  @spec update_final_destination(map, map, binary) :: map | {:error, :invalid_path}
+  def update_final_destination(target, new_destination, path) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/")
     do_update_final_destination(target, new_destination, fragments)
@@ -130,7 +130,14 @@ defmodule Jsonpatch.Operation do
   end
 
   defp do_update_final_destination(%{} = target, new_final_dest, [fragment | tail]) do
-    Map.update!(target, fragment, &do_update_final_destination(&1, new_final_dest, tail))
+    case Map.get(target, fragment) do
+      nil -> {:error, :invalid_path}
+      val ->
+        case do_update_final_destination(val, new_final_dest, tail) do
+          {:error, _} = error -> error
+          updated_val -> %{target | fragment => updated_val}
+        end
+    end
   end
 
   defp do_update_final_destination(target, new_final_dest, [fragment | tail])
