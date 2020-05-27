@@ -27,7 +27,10 @@ defmodule Jsonpatch.Operation.Move do
   @spec apply_op(Jsonpatch.Operation.Move.t(), map) :: map
   def apply_op(%Jsonpatch.Operation.Move{from: from, path: path}, target) do
     copy_patch = %Copy{from: from, path: path}
-    updated_target = Copy.apply_op(copy_patch, target)
-    Remove.apply_op(%Remove{path: from}, updated_target)
+
+    case Copy.apply_op(copy_patch, target) do
+      {:error, _} = error -> error
+      updated_target -> Remove.apply_op(%Remove{path: from}, updated_target)
+    end
   end
 end

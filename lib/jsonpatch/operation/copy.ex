@@ -21,13 +21,20 @@ defmodule Jsonpatch.Operation.Copy do
       %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}
   """
   @impl true
-  @spec apply_op(Jsonpatch.Operation.Copy.t(), map) :: map
+  @spec apply_op(Jsonpatch.Operation.Copy.t(), map()) :: map() | {:error, map()}
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
-    target
-    |> Jsonpatch.Operation.get_final_destination(from)
-    |> extract_copy_value()
-    |> do_copy(target, path)
+
+    updated_val =
+      target
+      |> Jsonpatch.Operation.get_final_destination(from)
+      |> extract_copy_value()
+      |> do_copy(target, path)
+
+    case updated_val do
+      {:error, _} -> {:error, target}
+      updated_val -> updated_val
+    end
   end
 
   # ===== ===== PRIVATE ===== =====
@@ -50,7 +57,10 @@ defmodule Jsonpatch.Operation.Copy do
       # Add copied_value to "copy target"
       |> do_add(copied_value, copy_path_end)
 
-    Jsonpatch.Operation.update_final_destination(target, updated_value, path)
+    case updated_value do
+      {:error, _} = error -> error
+      updated_value -> Jsonpatch.Operation.update_final_destination(target, updated_value, path)
+    end
   end
 
   defp extract_copy_value({%{} = final_destination, fragment}) do
@@ -85,5 +95,9 @@ defmodule Jsonpatch.Operation.Copy do
       {index, _} ->
         List.insert_at(copy_target, index, copied_value)
     end
+  end
+
+  defp do_add({:error, :invalid_path} = error, _, _) do
+    error
   end
 end

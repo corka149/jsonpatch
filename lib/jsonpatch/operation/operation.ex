@@ -15,7 +15,7 @@ defmodule Jsonpatch.Operation do
   """
   @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t() | Move.t() | Test.t()
 
-  @callback apply_op(Jsonpatch.Operation.t(), map()) :: map() | :ok | :error
+  @callback apply_op(Jsonpatch.Operation.t(), map()) :: map() | :ok | :error | {:error, map()}
 
   @doc """
   Uses a JSON patch path to get the last map that this path references.
@@ -131,7 +131,9 @@ defmodule Jsonpatch.Operation do
 
   defp do_update_final_destination(%{} = target, new_final_dest, [fragment | tail]) do
     case Map.get(target, fragment) do
-      nil -> {:error, :invalid_path}
+      nil ->
+        {:error, :invalid_path}
+
       val ->
         case do_update_final_destination(val, new_final_dest, tail) do
           {:error, _} = error -> error

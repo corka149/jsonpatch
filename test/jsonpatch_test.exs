@@ -148,26 +148,47 @@ defmodule JsonpatchTest do
                }
              ] = patch
     end
+  end
 
-    test "Apply patch with invalid source path and expect no target change" do
-      patch = [
-        %Jsonpatch.Operation.Add{path: "/child/0/age", value: 33},
-        %Jsonpatch.Operation.Replace{path: "/age", value: 42},
-        %Jsonpatch.Operation.Remove{path: "/hobby/4"},
-        %Jsonpatch.Operation.Copy{from: "/nameX", path: "/surname"},
-        %Jsonpatch.Operation.Move{from: "/homeX", path: "/work"}
-      ]
+  test "Apply patch with invalid source path and expect no target change" do
+    patch = [
+      %Jsonpatch.Operation.Add{path: "/child/0/age", value: 33},
+      %Jsonpatch.Operation.Replace{path: "/age", value: 42},
+      %Jsonpatch.Operation.Remove{path: "/hobby/4"},
+      %Jsonpatch.Operation.Copy{from: "/nameX", path: "/surname"},
+      %Jsonpatch.Operation.Move{from: "/homeX", path: "/work"}
+    ]
 
-      target = %{
-        "name" => "Bob",
-        "married" => false,
-        "hobbies" => ["Sport", "Elixir", "Football"],
-        "home" => "Berlin"
-      }
+    target = %{
+      "name" => "Bob",
+      "married" => false,
+      "hobbies" => ["Sport", "Elixir", "Football"],
+      "home" => "Berlin"
+    }
 
-      for singe_patch <- patch do
-        assert ^target = Jsonpatch.apply_patch(singe_patch, target)
-      end
+    for singe_patch <- patch do
+      assert ^target = Jsonpatch.apply_patch(singe_patch, target)
     end
+  end
+
+  test "Apply patch with invalid target source path and expect no target change" do
+    target = %{
+      "name" => "Bob",
+      "married" => false,
+      "hobbies" => ["Sport", "Elixir", "Football"],
+      "home" => "Berlin"
+    }
+
+    assert {:error, ^target} =
+             Jsonpatch.apply_patch(
+               %Jsonpatch.Operation.Copy{from: "/name", path: "/xyz/surname"},
+               target
+             )
+
+    assert {:error, ^target} =
+             Jsonpatch.apply_patch(
+               %Jsonpatch.Operation.Move{from: "/home", path: "/xyz/work"},
+               target
+             )
   end
 end
