@@ -20,7 +20,7 @@ defmodule Jsonpatch.Operation.Remove do
       %{"a" => %{}, "d" => false}
   """
   @impl true
-  @spec apply_op(Jsonpatch.Operation.Remove.t(), map) :: map
+  @spec apply_op(Jsonpatch.Operation.Remove.t(), map) :: map | :error
   def apply_op(%Jsonpatch.Operation.Remove{path: path}, target) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/")
@@ -30,27 +30,51 @@ defmodule Jsonpatch.Operation.Remove do
   # ===== ===== PRIVATE ===== =====
 
   defp do_remove(%{} = target, [fragment | []]) do
-    {_, purged_map} = Map.pop(target, fragment)
-    purged_map
+    case Map.pop(target, fragment) do
+      {nil, _} -> :error
+      {_, purged_map} -> purged_map
+    end
   end
 
   defp do_remove(target, [fragment | []]) when is_list(target) do
-    {index, _} = Integer.parse(fragment)
-    {_, purged_list} = List.pop_at(target, index)
-    purged_list
+    case Integer.parse(fragment) do
+      :error ->
+        :error
+
+      {index, _} ->
+        case List.pop_at(target, index) do
+          {nil, _} -> :error
+          {_, purged_list} -> purged_list
+        end
+    end
   end
 
   defp do_remove(%{} = target, [fragment | tail]) do
-    if Map.has_key?(target, fragment) do
-      Map.update!(target, fragment, &do_remove(&1, tail))
-    else
-      target
+    case Map.get(target, fragment) do
+      nil ->
+        :error
+
+      val ->
+        case do_remove(val, tail) do
+          :error -> :error
+          new_val -> %{target | fragment => new_val}
+        end
     end
   end
 
   defp do_remove(target, [fragment | tail]) when is_list(target) do
-    {index, _} = Integer.parse(fragment)
+    case Integer.parse(fragment) do
+      :error ->
+        :error
 
-    List.update_at(target, index, &do_remove(&1, tail))
+      {index, _} ->
+        update_list = List.update_at(target, index, &do_remove(&1, tail))
+
+        case List.pop_at(target, index) do
+          {nil, _} -> :error
+          {:error, _} -> :error
+          _ -> update_list
+        end
+    end
   end
 end

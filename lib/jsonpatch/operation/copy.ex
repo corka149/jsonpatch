@@ -21,7 +21,7 @@ defmodule Jsonpatch.Operation.Copy do
       %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}
   """
   @impl true
-  @spec apply_op(Jsonpatch.Operation.Copy.t(), map()) :: map() | {:error, map()}
+  @spec apply_op(Jsonpatch.Operation.Copy.t(), map()) :: map() | :error
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
 
@@ -32,7 +32,7 @@ defmodule Jsonpatch.Operation.Copy do
       |> do_copy(target, path)
 
     case updated_val do
-      {:error, _} -> {:error, target}
+      {:error, _} -> :error
       updated_val -> updated_val
     end
   end

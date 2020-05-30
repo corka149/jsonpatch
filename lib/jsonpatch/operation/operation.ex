@@ -15,7 +15,7 @@ defmodule Jsonpatch.Operation do
   """
   @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t() | Move.t() | Test.t()
 
-  @callback apply_op(Jsonpatch.Operation.t(), map()) :: map() | :ok | :error | {:error, map()}
+  @callback apply_op(Jsonpatch.Operation.t(), map()) :: map() | :ok | :error
 
   @doc """
   Uses a JSON patch path to get the last map that this path references.

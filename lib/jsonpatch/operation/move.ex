@@ -24,12 +24,12 @@ defmodule Jsonpatch.Operation.Move do
       %{"a" => %{"e" => %{"c" => "Bob"}}, "d" => false}
   """
   @impl true
-  @spec apply_op(Jsonpatch.Operation.Move.t(), map) :: map
+  @spec apply_op(Jsonpatch.Operation.Move.t(), map) :: map | :error
   def apply_op(%Jsonpatch.Operation.Move{from: from, path: path}, target) do
     copy_patch = %Copy{from: from, path: path}
 
     case Copy.apply_op(copy_patch, target) do
-      {:error, _} = error -> error
+      :error -> :error
       updated_target -> Remove.apply_op(%Remove{path: from}, updated_target)
     end
   end
