@@ -8,8 +8,6 @@ defmodule Jsonpatch.PathUtil do
   alias Jsonpatch.Operation.Replace
   alias Jsonpatch.Operation.Test
 
-  @callback apply_op(Jsonpatch.t(), map()) :: map() | :ok | :error
-
   @doc """
   Uses a JSON patch path to get the last map that this path references.
 
@@ -80,6 +78,10 @@ defmodule Jsonpatch.PathUtil do
 
   defp find_final_destination(nil, _) do
     {:error, :invalid_path}
+  end
+
+  defp find_final_destination(:error, _) do
+    {:error, :invalid_parameter}
   end
 
   defp find_final_destination(%{} = target, [fragment | []]) do

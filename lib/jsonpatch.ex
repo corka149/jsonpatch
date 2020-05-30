@@ -8,6 +8,7 @@ defmodule Jsonpatch do
   """
 
   alias Jsonpatch.FlatMap
+  alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Add
   alias Jsonpatch.Operation.Copy
   alias Jsonpatch.Operation.Move
@@ -64,7 +65,7 @@ defmodule Jsonpatch do
       |> Enum.map(&create_sort_value/1)
       |> Enum.sort(fn {sort_value_1, _}, {sort_value_2, _} -> sort_value_1 >= sort_value_2 end)
       |> Enum.map(fn {_, patch} -> patch end)
-      |> Enum.reduce(target, &do_apply_patch/2)
+      |> Enum.reduce(target, &Jsonpatch.Operation.apply_op/2)
 
     case result do
       :error -> target
@@ -73,36 +74,36 @@ defmodule Jsonpatch do
   end
 
   def apply_patch(%Add{} = json_patch, %{} = target) do
-    Add.apply_op(json_patch, target)
+    Operation.apply_op(json_patch, target)
   end
 
   def apply_patch(%Replace{} = json_patch, %{} = target) do
-    Replace.apply_op(json_patch, target)
+    Operation.apply_op(json_patch, target)
   end
 
   def apply_patch(%Remove{} = json_patch, %{} = target) do
-    case Remove.apply_op(json_patch, target) do
+    case Operation.apply_op(json_patch, target) do
       :error -> target
       update_val -> update_val
     end
   end
 
   def apply_patch(%Copy{} = json_patch, %{} = target) do
-    case Copy.apply_op(json_patch, target) do
+    case Operation.apply_op(json_patch, target) do
       :error -> target
       updated_val -> updated_val
     end
   end
 
   def apply_patch(%Move{} = json_patch, %{} = target) do
-    case Move.apply_op(json_patch, target) do
+    case Operation.apply_op(json_patch, target) do
       :error -> target
       updated_val -> updated_val
     end
   end
 
   def apply_patch(%Test{} = json_patch, %{} = target) do
-    case Test.apply_op(json_patch, target) do
+    case Operation.apply_op(json_patch, target) do
       :ok -> target
       :error -> :error
     end
@@ -191,37 +192,6 @@ defmodule Jsonpatch do
   end
 
   # ===== ===== PRIVATE ===== =====
-
-  defp do_apply_patch(%Add{} = json_patch, %{} = target) do
-    Add.apply_op(json_patch, target)
-  end
-
-  defp do_apply_patch(%Replace{} = json_patch, %{} = target) do
-    Replace.apply_op(json_patch, target)
-  end
-
-  defp do_apply_patch(%Remove{} = json_patch, %{} = target) do
-    Remove.apply_op(json_patch, target)
-  end
-
-  defp do_apply_patch(%Copy{} = json_patch, %{} = target) do
-    Copy.apply_op(json_patch, target)
-  end
-
-  defp do_apply_patch(%Move{} = json_patch, %{} = target) do
-    Move.apply_op(json_patch, target)
-  end
-
-  defp do_apply_patch(%Test{} = json_patch, %{} = target) do
-    case Test.apply_op(json_patch, target) do
-      :ok -> target
-      :error -> :error
-    end
-  end
-
-  defp do_apply_patch(_json_patch, :error) do
-    :error
-  end
 
   # Create once a easy sortable value for a operation
   defp create_sort_value(%{path: path} = operation) do

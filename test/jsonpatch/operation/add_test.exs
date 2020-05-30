@@ -1,6 +1,7 @@
 defmodule Jsonpatch.Operation.AddTest do
   use ExUnit.Case
 
+  alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Add
 
   doctest Add
@@ -25,7 +26,7 @@ defmodule Jsonpatch.Operation.AddTest do
 
     add_op = %Add{path: path, value: true}
 
-    patched_target = Add.apply_op(add_op, target)
+    patched_target = Operation.apply_op(add_op, target)
 
     excpected_target = %{
       "a" => %{

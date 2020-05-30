@@ -3,11 +3,13 @@ defmodule Jsonpatch.Operation.Test do
   A test operation in a JSON patch prevents the patch application or allows it.
   """
 
-  @behaviour Jsonpatch.PathUtil
-
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
+
+end
+
+defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
 
   @doc """
   Tests if the value at the given path is equal to the provided value.
@@ -16,18 +18,19 @@ defmodule Jsonpatch.Operation.Test do
 
       iex> test = %Jsonpatch.Operation.Test{path: "/x/y", value: "Bob"}
       iex> target = %{"x" => %{"y" => "Bob"}}
-      iex> Jsonpatch.Operation.Test.apply_op(test, target)
+      iex> Jsonpatch.Operation.apply_op(test, target)
       :ok
   """
-  @impl true
-  @spec apply_op(Jsonpatch.Operation.Test.t(), map) :: :ok | :error
+  @spec apply_op(Jsonpatch.Operation.Test.t(), map | :error) :: map() | :error
   def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target) do
     if Jsonpatch.PathUtil.get_final_destination(target, path) |> do_test(value) do
-      :ok
+      target
     else
       :error
     end
   end
+
+  def apply_op(_, :error), do: :error
 
   # ===== ===== PRIVATE ===== =====
 

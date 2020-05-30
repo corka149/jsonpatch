@@ -1,6 +1,7 @@
 defmodule Jsonpatch.Operation.ReplaceTest do
   use ExUnit.Case
 
+  alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Replace
 
   doctest Replace
@@ -25,7 +26,7 @@ defmodule Jsonpatch.Operation.ReplaceTest do
 
     replace_op = %Replace{path: path, value: true}
 
-    patched_target = Replace.apply_op(replace_op, target)
+    patched_target = Operation.apply_op(replace_op, target)
 
     excpected_target = %{
       "a" => %{

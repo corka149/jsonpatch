@@ -3,11 +3,13 @@ defmodule Jsonpatch.Operation.Remove do
   A JSON patch remove operation is responsible for removing values.
   """
 
-  @behaviour Jsonpatch.PathUtil
-
   @enforce_keys [:path]
   defstruct [:path]
   @type t :: %__MODULE__{path: String.t()}
+
+end
+
+defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
 
   @doc """
   Removes the element referenced by the JSON patch path.
@@ -16,16 +18,17 @@ defmodule Jsonpatch.Operation.Remove do
 
       iex> remove = %Jsonpatch.Operation.Remove{path: "/a/b"}
       iex> target = %{"a" => %{"b" => %{"c" => "Bob"}}, "d" => false}
-      iex> Jsonpatch.Operation.Remove.apply_op(remove, target)
+      iex> Jsonpatch.Operation.apply_op(remove, target)
       %{"a" => %{}, "d" => false}
   """
-  @impl true
-  @spec apply_op(Jsonpatch.Operation.Remove.t(), map) :: map | :error
+  @spec apply_op(Jsonpatch.Operation.Remove.t(), map | :error) :: map | :error
   def apply_op(%Jsonpatch.Operation.Remove{path: path}, target) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/")
     do_remove(target, fragments)
   end
+
+  def apply_op(_, :error), do: :error
 
   # ===== ===== PRIVATE ===== =====
 
@@ -76,5 +79,9 @@ defmodule Jsonpatch.Operation.Remove do
           _ -> update_list
         end
     end
+  end
+
+  defp do_remove(:error, _) do
+    :error
   end
 end

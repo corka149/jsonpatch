@@ -3,11 +3,13 @@ defmodule Jsonpatch.Operation.Copy do
   Represents the handling of JSON patches with a copy operation.
   """
 
-  @behaviour Jsonpatch.PathUtil
-
   @enforce_keys [:from, :path]
   defstruct [:from, :path]
   @type t :: %__MODULE__{from: String.t(), path: String.t()}
+
+end
+
+defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
 
   @doc """
   Copy the element referenced by the JSON patch path :from to to the other
@@ -17,11 +19,10 @@ defmodule Jsonpatch.Operation.Copy do
 
       iex> copy = %Jsonpatch.Operation.Copy{from: "/a/b", path: "/a/e"}
       iex> target = %{"a" => %{"b" => %{"c" => "Bob"}}, "d" => false}
-      iex> Jsonpatch.Operation.Copy.apply_op(copy, target)
+      iex> Jsonpatch.Operation.apply_op(copy, target)
       %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}
   """
-  @impl true
-  @spec apply_op(Jsonpatch.Operation.Copy.t(), map()) :: map() | :error
+  @spec apply_op(Jsonpatch.Operation.Copy.t(), map() | :error) :: map() | :error
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
 
@@ -36,6 +37,8 @@ defmodule Jsonpatch.Operation.Copy do
       updated_val -> updated_val
     end
   end
+
+  def apply_op(_, :error), do: :error
 
   # ===== ===== PRIVATE ===== =====
 
@@ -82,12 +85,16 @@ defmodule Jsonpatch.Operation.Copy do
     end
   end
 
+  defp extract_copy_value({:error, _} = error) do
+    error
+  end
+
   defp do_add({%{} = copy_target, _last_fragment}, copied_value, copy_path_end) do
     Map.put(copy_target, copy_path_end, copied_value)
   end
 
   defp do_add({copy_target, _last_fragment}, copied_value, copy_path_end)
-       when is_list(copy_target) do
+      when is_list(copy_target) do
     case Integer.parse(copy_path_end) do
       :error ->
         :error
@@ -99,5 +106,9 @@ defmodule Jsonpatch.Operation.Copy do
 
   defp do_add({:error, :invalid_path} = error, _, _) do
     error
+  end
+
+  defp do_add(_, _, _) do
+    {:error, :invalid_parameter}
   end
 end

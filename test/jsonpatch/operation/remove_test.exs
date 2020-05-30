@@ -1,6 +1,7 @@
 defmodule Jsonpatch.Operation.RemoveTest do
   use ExUnit.Case
 
+  alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Remove
 
   doctest Remove
@@ -25,7 +26,7 @@ defmodule Jsonpatch.Operation.RemoveTest do
 
     remove_op = %Remove{path: path}
 
-    patched_target = Remove.apply_op(remove_op, target)
+    patched_target = Operation.apply_op(remove_op, target)
 
     excpected_target = %{
       "a" => %{

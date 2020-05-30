@@ -1,6 +1,7 @@
 defmodule Jsonpatch.Operation.TestTest do
   use ExUnit.Case
 
+  alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Test
 
   doctest Test
@@ -22,10 +23,10 @@ defmodule Jsonpatch.Operation.TestTest do
     }
 
     test_op = %Test{path: "/a/b/1/c/2/f", value: false}
-    assert :ok = Test.apply_op(test_op, target)
+    assert ^target = Operation.apply_op(test_op, target)
 
     test_op = %Test{path: "/a/b/1/c/0", value: 1}
-    assert :ok = Test.apply_op(test_op, target)
+    assert ^target = Operation.apply_op(test_op, target)
   end
 
   test "Fail to test element with path with multiple indices" do
@@ -46,7 +47,7 @@ defmodule Jsonpatch.Operation.TestTest do
 
     test_op = %Test{path: "/a/b/1/c/1", value: 42}
 
-    patched_target = Test.apply_op(test_op, target)
+    patched_target = Operation.apply_op(test_op, target)
 
     assert :error = patched_target
   end
