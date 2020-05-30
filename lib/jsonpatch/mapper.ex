@@ -3,6 +3,16 @@ defmodule Jsonpatch.Mapper do
   Maps JSON patches between regular maps and Jsonpatch.Operations.
   """
 
+  @doc """
+  Turns JSON patches into regular map/s.
+
+  ## Examples
+
+      iex> add_patch_map = %Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
+      iex> Jsonpatch.Mapper.to_map(add_patch_map)
+      %{op: "add", path: "/name", value: "Alice"}
+
+  """
   @spec to_map(Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())) ::
           map() | {:error, :invalid}
   def to_map(patch)
@@ -15,7 +25,7 @@ defmodule Jsonpatch.Mapper do
   def to_map(%{} = patch_operation) do
     case prepare(patch_operation) do
       {:error, _} = error -> error
-      patch -> patch
+      patch -> patch |> Map.from_struct()
     end
   end
 
