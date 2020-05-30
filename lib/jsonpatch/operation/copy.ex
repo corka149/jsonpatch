@@ -1,9 +1,9 @@
-defmodule Jsonpatch.Operation.Copy do
+defmodule Jsonpatch.PathUtil.Copy do
   @moduledoc """
   Represents the handling of JSON patches with a copy operation.
   """
 
-  @behaviour Jsonpatch.Operation
+  @behaviour Jsonpatch.PathUtil
 
   @enforce_keys [:from, :path]
   defstruct [:from, :path]
@@ -15,19 +15,19 @@ defmodule Jsonpatch.Operation.Copy do
 
   ## Examples
 
-      iex> copy = %Jsonpatch.Operation.Copy{from: "/a/b", path: "/a/e"}
+      iex> copy = %Jsonpatch.PathUtil.Copy{from: "/a/b", path: "/a/e"}
       iex> target = %{"a" => %{"b" => %{"c" => "Bob"}}, "d" => false}
-      iex> Jsonpatch.Operation.Copy.apply_op(copy, target)
+      iex> Jsonpatch.PathUtil.Copy.apply_op(copy, target)
       %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}
   """
   @impl true
-  @spec apply_op(Jsonpatch.Operation.Copy.t(), map()) :: map() | :error
-  def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
+  @spec apply_op(Jsonpatch.PathUtil.Copy.t(), map()) :: map() | :error
+  def apply_op(%Jsonpatch.PathUtil.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
 
     updated_val =
       target
-      |> Jsonpatch.Operation.get_final_destination(from)
+      |> Jsonpatch.PathUtil.get_final_destination(from)
       |> extract_copy_value()
       |> do_copy(target, path)
 
@@ -53,13 +53,13 @@ defmodule Jsonpatch.Operation.Copy do
     updated_value =
       target
       # %{"b" => %{"c" => "Bob"}} is the "copy target"
-      |> Jsonpatch.Operation.get_final_destination(path)
+      |> Jsonpatch.PathUtil.get_final_destination(path)
       # Add copied_value to "copy target"
       |> do_add(copied_value, copy_path_end)
 
     case updated_value do
       {:error, _} = error -> error
-      updated_value -> Jsonpatch.Operation.update_final_destination(target, updated_value, path)
+      updated_value -> Jsonpatch.PathUtil.update_final_destination(target, updated_value, path)
     end
   end
 

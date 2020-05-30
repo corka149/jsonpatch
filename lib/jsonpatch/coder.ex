@@ -8,10 +8,10 @@ defmodule Jsonpatch.Coder do
 
   ## Examples
 
-      iex> Jsonpatch.Coder.encode(%Jsonpatch.Operation.Add{path: "/age", value: 1})
+      iex> Jsonpatch.Coder.encode(%Jsonpatch.PathUtil.Add{path: "/age", value: 1})
       {:ok, "{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}"}
   """
-  @spec encode(list(Jsonpatch.Operation.t()) | Jsonpatch.Operation.t()) ::
+  @spec encode(list(Jsonpatch.PathUtil.t()) | Jsonpatch.PathUtil.t()) ::
           {:ok, iodata} | {:ok, String.t()} | {:error, {:invalid, any}} | {:error, :invalid}
   def encode(patch)
 
@@ -37,10 +37,10 @@ defmodule Jsonpatch.Coder do
   ## Examples
 
       iex> Jsonpatch.Coder.decode("{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}")
-      {:ok, %Jsonpatch.Operation.Add{path: "/age", value: 1}}
+      {:ok, %Jsonpatch.PathUtil.Add{path: "/age", value: 1}}
   """
   @spec decode(iodata()) ::
-          {:error, :invalid} | Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())
+          {:error, :invalid} | Jsonpatch.PathUtil.t() | list(Jsonpatch.PathUtil.t())
   def decode(json_patch_str) do
     case Poison.decode(json_patch_str) do
       {:ok, parsed} ->

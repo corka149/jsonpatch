@@ -1,6 +1,6 @@
 defmodule Jsonpatch.Mapper do
   @moduledoc """
-  Maps JSON patches between regular maps and Jsonpatch.Operations.
+  Maps JSON patches between regular maps and Jsonpatch.PathUtils.
   """
 
   @doc """
@@ -8,12 +8,12 @@ defmodule Jsonpatch.Mapper do
 
   ## Examples
 
-      iex> add_patch_map = %Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
+      iex> add_patch_map = %Jsonpatch.PathUtil.Add{path: "/name", value: "Alice"}
       iex> Jsonpatch.Mapper.to_map(add_patch_map)
       %{op: "add", path: "/name", value: "Alice"}
 
   """
-  @spec to_map(Jsonpatch.Operation.t() | list(Jsonpatch.Operation.t())) ::
+  @spec to_map(Jsonpatch.PathUtil.t() | list(Jsonpatch.PathUtil.t())) ::
           map() | {:error, :invalid}
   def to_map(patch)
 
@@ -36,14 +36,14 @@ defmodule Jsonpatch.Mapper do
 
       iex> add_patch_map = %{"op" => "add", "path" => "/name", "value" => "Alice"}
       iex> Jsonpatch.Mapper.from_map(add_patch_map)
-      %Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
+      %Jsonpatch.PathUtil.Add{path: "/name", value: "Alice"}
 
       iex> unkown_patch_map = %{"op" => "foo", "path" => "/name", "value" => "Alice"}
       iex> Jsonpatch.Mapper.from_map(unkown_patch_map)
       {:error, :invalid}
   """
   @spec from_map(map() | list(map())) ::
-          list(Jsonpatch.Operation.t()) | Jsonpatch.Operation.t() | {:error, :invalid}
+          list(Jsonpatch.PathUtil.t()) | Jsonpatch.PathUtil.t() | {:error, :invalid}
   def from_map(patch)
 
   def from_map(%{} = patch) do
@@ -56,27 +56,27 @@ defmodule Jsonpatch.Mapper do
 
   # ===== ===== PRIVATE ===== =====
 
-  defp prepare(%Jsonpatch.Operation.Add{} = operation) do
+  defp prepare(%Jsonpatch.PathUtil.Add{} = operation) do
     Map.put(operation, :op, "add")
   end
 
-  defp prepare(%Jsonpatch.Operation.Remove{} = operation) do
+  defp prepare(%Jsonpatch.PathUtil.Remove{} = operation) do
     Map.put(operation, :op, "remove")
   end
 
-  defp prepare(%Jsonpatch.Operation.Replace{} = operation) do
+  defp prepare(%Jsonpatch.PathUtil.Replace{} = operation) do
     Map.put(operation, :op, "replace")
   end
 
-  defp prepare(%Jsonpatch.Operation.Copy{} = operation) do
+  defp prepare(%Jsonpatch.PathUtil.Copy{} = operation) do
     Map.put(operation, :op, "copy")
   end
 
-  defp prepare(%Jsonpatch.Operation.Move{} = operation) do
+  defp prepare(%Jsonpatch.PathUtil.Move{} = operation) do
     Map.put(operation, :op, "move")
   end
 
-  defp prepare(%Jsonpatch.Operation.Test{} = operation) do
+  defp prepare(%Jsonpatch.PathUtil.Test{} = operation) do
     Map.put(operation, :op, "test")
   end
 
@@ -89,27 +89,27 @@ defmodule Jsonpatch.Mapper do
   end
 
   defp convert_to(%{"op" => "add", "path" => path, "value" => value}) do
-    %Jsonpatch.Operation.Add{path: path, value: value}
+    %Jsonpatch.PathUtil.Add{path: path, value: value}
   end
 
   defp convert_to(%{"op" => "remove", "path" => path}) do
-    %Jsonpatch.Operation.Remove{path: path}
+    %Jsonpatch.PathUtil.Remove{path: path}
   end
 
   defp convert_to(%{"op" => "replace", "path" => path, "value" => value}) do
-    %Jsonpatch.Operation.Replace{path: path, value: value}
+    %Jsonpatch.PathUtil.Replace{path: path, value: value}
   end
 
   defp convert_to(%{"op" => "copy", "from" => from, "path" => path}) do
-    %Jsonpatch.Operation.Copy{from: from, path: path}
+    %Jsonpatch.PathUtil.Copy{from: from, path: path}
   end
 
   defp convert_to(%{"op" => "move", "from" => from, "path" => path}) do
-    %Jsonpatch.Operation.Move{from: from, path: path}
+    %Jsonpatch.PathUtil.Move{from: from, path: path}
   end
 
   defp convert_to(%{"op" => "test", "path" => path, "value" => value}) do
-    %Jsonpatch.Operation.Test{path: path, value: value}
+    %Jsonpatch.PathUtil.Test{path: path, value: value}
   end
 
   defp convert_to(_) do

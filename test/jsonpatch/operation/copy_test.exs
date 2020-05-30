@@ -1,7 +1,7 @@
-defmodule Jsonpatch.Operation.CopyTest do
+defmodule Jsonpatch.PathUtil.CopyTest do
   use ExUnit.Case
 
-  alias Jsonpatch.Operation.Copy
+  alias Jsonpatch.PathUtil.Copy
 
   doctest Copy
 

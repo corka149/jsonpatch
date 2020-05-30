@@ -8,13 +8,13 @@ defmodule Jsonpatch do
   """
 
   alias Jsonpatch.FlatMap
-  alias Jsonpatch.Operation
-  alias Jsonpatch.Operation.Add
-  alias Jsonpatch.Operation.Copy
-  alias Jsonpatch.Operation.Move
-  alias Jsonpatch.Operation.Remove
-  alias Jsonpatch.Operation.Replace
-  alias Jsonpatch.Operation.Test
+  alias Jsonpatch.PathUtil
+  alias Jsonpatch.PathUtil.Add
+  alias Jsonpatch.PathUtil.Copy
+  alias Jsonpatch.PathUtil.Move
+  alias Jsonpatch.PathUtil.Remove
+  alias Jsonpatch.PathUtil.Replace
+  alias Jsonpatch.PathUtil.Test
 
   @doc """
   Apply a Jsonpatch to a map or struct. The whole patch will not be applied
@@ -22,14 +22,14 @@ defmodule Jsonpatch do
 
   ## Examples
       iex> patch = [
-      ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
-      ...> %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
-      ...> %Jsonpatch.Operation.Replace{path: "/married", value: true},
-      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
-      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
-      ...> %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"},
-      ...> %Jsonpatch.Operation.Move{from: "/home", path: "/work"},
-      ...> %Jsonpatch.Operation.Test{path: "/name", value: "Bob"}
+      ...> %Jsonpatch.PathUtil.Add{path: "/age", value: 33},
+      ...> %Jsonpatch.PathUtil.Replace{path: "/hobbies/0", value: "Elixir!"},
+      ...> %Jsonpatch.PathUtil.Replace{path: "/married", value: true},
+      ...> %Jsonpatch.PathUtil.Remove{path: "/hobbies/1"},
+      ...> %Jsonpatch.PathUtil.Remove{path: "/hobbies/2"},
+      ...> %Jsonpatch.PathUtil.Copy{from: "/name", path: "/surname"},
+      ...> %Jsonpatch.PathUtil.Move{from: "/home", path: "/work"},
+      ...> %Jsonpatch.PathUtil.Test{path: "/name", value: "Bob"}
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
@@ -37,17 +37,17 @@ defmodule Jsonpatch do
 
       iex> # Patch will not be applied if test fails. The target will not be changed.
       iex> patch = [
-      ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
-      ...> %Jsonpatch.Operation.Test{path: "/name", value: "Alice"}
+      ...> %Jsonpatch.PathUtil.Add{path: "/age", value: 33},
+      ...> %Jsonpatch.PathUtil.Test{path: "/name", value: "Alice"}
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
       %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
   """
   @spec(
-    apply_patch(Operation.t() | list(Operation.t()), map()) ::
+    apply_patch(PathUtil.t() | list(PathUtil.t()), map()) ::
       map(),
-    Operation.t() | list(Operation.t())
+    PathUtil.t() | list(PathUtil.t())
   )
   def apply_patch(json_patch, target)
 
@@ -120,7 +120,7 @@ defmodule Jsonpatch do
         %Remove{path: "/hobbies/2"}
       ]
   """
-  @spec diff(map, map) :: list(Operation.t())
+  @spec diff(map, map) :: list(PathUtil.t())
   def diff(source, destination)
 
   def diff(%{} = source, %{} = destination) do
@@ -137,7 +137,7 @@ defmodule Jsonpatch do
   Creates "add"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_additions(list(Operation.t()), map, map) :: list(Operation.t())
+  @spec create_additions(list(PathUtil.t()), map, map) :: list(PathUtil.t())
   def create_additions(accumulator \\ [], source, destination)
 
   def create_additions(accumulator, %{} = source, %{} = destination) do
@@ -155,7 +155,7 @@ defmodule Jsonpatch do
   Creates "remove"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_removes(list(Operation.t()), map, map) :: list(Operation.t())
+  @spec create_removes(list(PathUtil.t()), map, map) :: list(PathUtil.t())
   def create_removes(accumulator \\ [], source, destination)
 
   def create_removes(accumulator, %{} = source, %{} = destination) do
@@ -171,7 +171,7 @@ defmodule Jsonpatch do
   Creates "replace"-operations by comparing keys and values of source and destination. The source and
   destination map have to be flat maps.
   """
-  @spec create_replaces(list(Operation.t()), map, map) :: list(Operation.t())
+  @spec create_replaces(list(PathUtil.t()), map, map) :: list(PathUtil.t())
   def create_replaces(accumulator \\ [], source, destination)
 
   def create_replaces(accumulator, source, destination) do
@@ -223,7 +223,7 @@ defmodule Jsonpatch do
   defp create_sort_value(%{path: path} = operation) do
     fragments = String.split(path, "/")
 
-    x = Jsonpatch.Operation.operation_sort_value?(operation) * 1_000_000 * 100_000_000
+    x = Jsonpatch.PathUtil.operation_sort_value?(operation) * 1_000_000 * 100_000_000
     y = length(fragments) * 100_000_000
 
     z =
@@ -233,7 +233,7 @@ defmodule Jsonpatch do
       end
 
     # Structure of recorde sort value
-    # x = Kind of Operation
+    # x = Kind of PathUtil
     # y = Amount of fragments (how deep goes the path?)
     # z = At which position in a list?
     # xxxxyyyyyyzzzzzzzz

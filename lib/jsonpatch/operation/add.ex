@@ -1,9 +1,9 @@
-defmodule Jsonpatch.Operation.Add do
+defmodule Jsonpatch.PathUtil.Add do
   @moduledoc """
   The add operation is the operation for adding (as you might guess) values to a map or struct.
   """
 
-  @behaviour Jsonpatch.Operation
+  @behaviour Jsonpatch.PathUtil
 
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
@@ -14,21 +14,21 @@ defmodule Jsonpatch.Operation.Add do
 
   ## Examples
 
-      iex> add = %Jsonpatch.Operation.Add{path: "/a/b", value: 1}
+      iex> add = %Jsonpatch.PathUtil.Add{path: "/a/b", value: 1}
       iex> target = %{"a" => %{"c" => false}}
-      iex> Jsonpatch.Operation.Add.apply_op(add, target)
+      iex> Jsonpatch.PathUtil.Add.apply_op(add, target)
       %{"a" => %{"b" => 1, "c" => false}}
   """
   @impl true
-  @spec apply_op(Jsonpatch.Operation.Add.t(), map) :: map
-  def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target) do
-    case Jsonpatch.Operation.get_final_destination(target, path) do
+  @spec apply_op(Jsonpatch.PathUtil.Add.t(), map) :: map
+  def apply_op(%Jsonpatch.PathUtil.Add{path: path, value: value}, %{} = target) do
+    case Jsonpatch.PathUtil.get_final_destination(target, path) do
       {:error, _} ->
         target
 
       {final_destination, last_fragment} ->
         updated_final_destination = Map.put_new(final_destination, last_fragment, value)
-        Jsonpatch.Operation.update_final_destination(target, updated_final_destination, path)
+        Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)
     end
   end
 end

@@ -1,21 +1,21 @@
-defmodule Jsonpatch.Operation do
+defmodule Jsonpatch.PathUtil do
   @moduledoc """
-  Defines behaviour for apply a patch to a struct.
+  Helper module for handling JSON paths.
   """
 
-  alias Jsonpatch.Operation.Add
-  alias Jsonpatch.Operation.Copy
-  alias Jsonpatch.Operation.Move
-  alias Jsonpatch.Operation.Remove
-  alias Jsonpatch.Operation.Replace
-  alias Jsonpatch.Operation.Test
+  alias Jsonpatch.PathUtil.Add
+  alias Jsonpatch.PathUtil.Copy
+  alias Jsonpatch.PathUtil.Move
+  alias Jsonpatch.PathUtil.Remove
+  alias Jsonpatch.PathUtil.Replace
+  alias Jsonpatch.PathUtil.Test
 
   @typedoc """
   A valid Jsonpatch operation by RFC 6902
   """
   @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t() | Move.t() | Test.t()
 
-  @callback apply_op(Jsonpatch.Operation.t(), map()) :: map() | :ok | :error
+  @callback apply_op(Jsonpatch.PathUtil.t(), map()) :: map() | :ok | :error
 
   @doc """
   Uses a JSON patch path to get the last map that this path references.
@@ -24,24 +24,24 @@ defmodule Jsonpatch.Operation do
 
       iex> path = "/a/b/c/d"
       iex> target = %{"a" => %{"b" => %{"c" => %{"d" => 1}}}}
-      iex> Jsonpatch.Operation.get_final_destination(target, path)
+      iex> Jsonpatch.PathUtil.get_final_destination(target, path)
       {%{"d" => 1}, "d"}
 
       iex> # Invalid path
       iex> path = "/a/e/c/d"
       iex> target = %{"a" => %{"b" => %{"c" => %{"d" => 1}}}}
-      iex> Jsonpatch.Operation.get_final_destination(target, path)
+      iex> Jsonpatch.PathUtil.get_final_destination(target, path)
       {:error, :invalid_path}
 
       iex> path = "/a/b/1/d"
       iex> target = %{"a" => %{"b" => [true, %{"d" => 1}]}}
-      iex> Jsonpatch.Operation.get_final_destination(target, path)
+      iex> Jsonpatch.PathUtil.get_final_destination(target, path)
       {%{"d" => 1}, "d"}
 
       iex> # Invalid path
       iex> path = "/a/b/42/d"
       iex> target = %{"a" => %{"b" => [true, %{"d" => 1}]}}
-      iex> Jsonpatch.Operation.get_final_destination(target, path)
+      iex> Jsonpatch.PathUtil.get_final_destination(target, path)
       {:error, :invalid_path}
   """
   @spec get_final_destination(map, binary) ::
@@ -59,7 +59,7 @@ defmodule Jsonpatch.Operation do
 
       iex> path = "/a/b/c/d"
       iex> target = %{"a" => %{"b" => %{"c" => %{"d" => 1}}}}
-      iex> Jsonpatch.Operation.update_final_destination(target, %{"e" => 1}, path)
+      iex> Jsonpatch.PathUtil.update_final_destination(target, %{"e" => 1}, path)
       %{"a" => %{"b" => %{"c" => %{"e" => 1}}}}
   """
   @spec update_final_destination(map, map, binary) :: map | {:error, :invalid_path}
@@ -74,13 +74,13 @@ defmodule Jsonpatch.Operation do
   assure in which order patches are applied. (Example: shall remove
   patches be applied before add patches?)
   """
-  @spec operation_sort_value?(Jsonpatch.Operation.t()) :: integer()
+  @spec operation_sort_value?(Jsonpatch.PathUtil.t()) :: integer()
   def operation_sort_value?(patch)
 
-  def operation_sort_value?(%Jsonpatch.Operation.Test{}), do: 600
-  def operation_sort_value?(%Jsonpatch.Operation.Add{}), do: 500
-  def operation_sort_value?(%Jsonpatch.Operation.Replace{}), do: 400
-  def operation_sort_value?(%Jsonpatch.Operation.Remove{}), do: 300
+  def operation_sort_value?(%Jsonpatch.PathUtil.Test{}), do: 600
+  def operation_sort_value?(%Jsonpatch.PathUtil.Add{}), do: 500
+  def operation_sort_value?(%Jsonpatch.PathUtil.Replace{}), do: 400
+  def operation_sort_value?(%Jsonpatch.PathUtil.Remove{}), do: 300
   def operation_sort_value?(_), do: 0
 
   # ===== ===== PRIVATE ===== =====

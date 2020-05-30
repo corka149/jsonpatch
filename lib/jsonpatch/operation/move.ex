@@ -1,16 +1,16 @@
-defmodule Jsonpatch.Operation.Move do
+defmodule Jsonpatch.PathUtil.Move do
   @moduledoc """
   Move operations change the position of values in map or struct.
   """
 
-  @behaviour Jsonpatch.Operation
+  @behaviour Jsonpatch.PathUtil
 
   @enforce_keys [:from, :path]
   defstruct [:from, :path]
   @type t :: %__MODULE__{from: String.t(), path: String.t()}
 
-  alias Jsonpatch.Operation.Copy
-  alias Jsonpatch.Operation.Remove
+  alias Jsonpatch.PathUtil.Copy
+  alias Jsonpatch.PathUtil.Remove
 
   @doc """
   Move the element referenced by the JSON patch path :from to to the other
@@ -18,14 +18,14 @@ defmodule Jsonpatch.Operation.Move do
 
   ## Examples
 
-      iex> move = %Jsonpatch.Operation.Move{from: "/a/b", path: "/a/e"}
+      iex> move = %Jsonpatch.PathUtil.Move{from: "/a/b", path: "/a/e"}
       iex> target = %{"a" => %{"b" => %{"c" => "Bob"}}, "d" => false}
-      iex> Jsonpatch.Operation.Move.apply_op(move, target)
+      iex> Jsonpatch.PathUtil.Move.apply_op(move, target)
       %{"a" => %{"e" => %{"c" => "Bob"}}, "d" => false}
   """
   @impl true
-  @spec apply_op(Jsonpatch.Operation.Move.t(), map) :: map | :error
-  def apply_op(%Jsonpatch.Operation.Move{from: from, path: path}, target) do
+  @spec apply_op(Jsonpatch.PathUtil.Move.t(), map) :: map | :error
+  def apply_op(%Jsonpatch.PathUtil.Move{from: from, path: path}, target) do
     copy_patch = %Copy{from: from, path: path}
 
     case Copy.apply_op(copy_patch, target) do

@@ -27,11 +27,11 @@ iex> source = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Eli
 iex> destination = %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
 iex> Jsonpatch.diff(source, destination)
 {:ok, [
-  %Jsonpatch.Operation.Add{path: "/age", value: 33},
-  %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
-  %Jsonpatch.Operation.Replace{path: "/married", value: true},
-  %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
-  %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
+  %Jsonpatch.PathUtil.Add{path: "/age", value: 33},
+  %Jsonpatch.PathUtil.Replace{path: "/hobbies/0", value: "Elixir!"},
+  %Jsonpatch.PathUtil.Replace{path: "/married", value: true},
+  %Jsonpatch.PathUtil.Remove{path: "/hobbies/1"},
+  %Jsonpatch.PathUtil.Remove{path: "/hobbies/2"}
 ]}
 ```
 
@@ -41,13 +41,13 @@ Encode a JSON patch struct to JSON string.
 
 ```elixir
 iex> Jsonpatch.Coder.decode("{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}")
-{:ok, %Jsonpatch.Operation.Add{path: "/age", value: 1}}
+{:ok, %Jsonpatch.PathUtil.Add{path: "/age", value: 1}}
 ```
 
 Decode a JSON patch struct from a JSON string.
 
 ```elixir
-iex> Jsonpatch.Coder.encode(%Jsonpatch.Operation.Add{path: "/age", value: 1})
+iex> Jsonpatch.Coder.encode(%Jsonpatch.PathUtil.Add{path: "/age", value: 1})
 {:ok, "{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}"}
 ```
 
@@ -55,11 +55,11 @@ iex> Jsonpatch.Coder.encode(%Jsonpatch.Operation.Add{path: "/age", value: 1})
 
 ```elixir
 iex> patch = [
-  %Jsonpatch.Operation.Add{path: "/age", value: 33},
-  %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
-  %Jsonpatch.Operation.Replace{path: "/married", value: true},
-  %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
-  %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
+  %Jsonpatch.PathUtil.Add{path: "/age", value: 33},
+  %Jsonpatch.PathUtil.Replace{path: "/hobbies/0", value: "Elixir!"},
+  %Jsonpatch.PathUtil.Replace{path: "/married", value: true},
+  %Jsonpatch.PathUtil.Remove{path: "/hobbies/1"},
+  %Jsonpatch.PathUtil.Remove{path: "/hobbies/2"}
 ]
 iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"]}
 iex> Jsonpatch.apply_patch(patch, target)
