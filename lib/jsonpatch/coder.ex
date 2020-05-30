@@ -11,7 +11,7 @@ defmodule Jsonpatch.Coder do
       iex> Jsonpatch.Coder.encode(%Jsonpatch.PathUtil.Add{path: "/age", value: 1})
       {:ok, "{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}"}
   """
-  @spec encode(list(Jsonpatch.PathUtil.t()) | Jsonpatch.PathUtil.t()) ::
+  @spec encode(list(Jsonpatch.t()) | Jsonpatch.t()) ::
           {:ok, iodata} | {:ok, String.t()} | {:error, {:invalid, any}} | {:error, :invalid}
   def encode(patch)
 
@@ -40,7 +40,7 @@ defmodule Jsonpatch.Coder do
       {:ok, %Jsonpatch.PathUtil.Add{path: "/age", value: 1}}
   """
   @spec decode(iodata()) ::
-          {:error, :invalid} | Jsonpatch.PathUtil.t() | list(Jsonpatch.PathUtil.t())
+          {:error, :invalid} | Jsonpatch.t() | list(Jsonpatch.t())
   def decode(json_patch_str) do
     case Poison.decode(json_patch_str) do
       {:ok, parsed} ->

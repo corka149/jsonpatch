@@ -10,12 +10,7 @@ defmodule Jsonpatch.PathUtil do
   alias Jsonpatch.PathUtil.Replace
   alias Jsonpatch.PathUtil.Test
 
-  @typedoc """
-  A valid Jsonpatch operation by RFC 6902
-  """
-  @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t() | Move.t() | Test.t()
-
-  @callback apply_op(Jsonpatch.PathUtil.t(), map()) :: map() | :ok | :error
+  @callback apply_op(Jsonpatch.t(), map()) :: map() | :ok | :error
 
   @doc """
   Uses a JSON patch path to get the last map that this path references.
@@ -74,13 +69,13 @@ defmodule Jsonpatch.PathUtil do
   assure in which order patches are applied. (Example: shall remove
   patches be applied before add patches?)
   """
-  @spec operation_sort_value?(Jsonpatch.PathUtil.t()) :: integer()
+  @spec operation_sort_value?(Jsonpatch.t()) :: integer()
   def operation_sort_value?(patch)
 
-  def operation_sort_value?(%Jsonpatch.PathUtil.Test{}), do: 600
-  def operation_sort_value?(%Jsonpatch.PathUtil.Add{}), do: 500
-  def operation_sort_value?(%Jsonpatch.PathUtil.Replace{}), do: 400
-  def operation_sort_value?(%Jsonpatch.PathUtil.Remove{}), do: 300
+  def operation_sort_value?(%Test{}), do: 600
+  def operation_sort_value?(%Add{}), do: 500
+  def operation_sort_value?(%Replace{}), do: 400
+  def operation_sort_value?(%Remove{}), do: 300
   def operation_sort_value?(_), do: 0
 
   # ===== ===== PRIVATE ===== =====

@@ -16,6 +16,11 @@ defmodule Jsonpatch do
   alias Jsonpatch.PathUtil.Replace
   alias Jsonpatch.PathUtil.Test
 
+  @typedoc """
+  A valid Jsonpatch operation by RFC 6902
+  """
+  @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t() | Move.t() | Test.t()
+
   @doc """
   Apply a Jsonpatch to a map or struct. The whole patch will not be applied
   when any path is invalid or any other error occured.
@@ -45,9 +50,9 @@ defmodule Jsonpatch do
       %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
   """
   @spec(
-    apply_patch(PathUtil.t() | list(PathUtil.t()), map()) ::
+    apply_patch(Jsonpatch.t() | list(Jsonpatch.t()), map()) ::
       map(),
-    PathUtil.t() | list(PathUtil.t())
+    Jsonpatch.t() | list(Jsonpatch.t())
   )
   def apply_patch(json_patch, target)
 
@@ -120,7 +125,7 @@ defmodule Jsonpatch do
         %Remove{path: "/hobbies/2"}
       ]
   """
-  @spec diff(map, map) :: list(PathUtil.t())
+  @spec diff(map, map) :: list(Jsonpatch.t())
   def diff(source, destination)
 
   def diff(%{} = source, %{} = destination) do
@@ -137,7 +142,7 @@ defmodule Jsonpatch do
   Creates "add"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_additions(list(PathUtil.t()), map, map) :: list(PathUtil.t())
+  @spec create_additions(list(Jsonpatch.t()), map, map) :: list(Jsonpatch.t())
   def create_additions(accumulator \\ [], source, destination)
 
   def create_additions(accumulator, %{} = source, %{} = destination) do
@@ -155,7 +160,7 @@ defmodule Jsonpatch do
   Creates "remove"-operations by using the keys of the destination and check their existence in the
   source map. Source and destination has to be parsed to a flat map.
   """
-  @spec create_removes(list(PathUtil.t()), map, map) :: list(PathUtil.t())
+  @spec create_removes(list(Jsonpatch.t()), map, map) :: list(Jsonpatch.t())
   def create_removes(accumulator \\ [], source, destination)
 
   def create_removes(accumulator, %{} = source, %{} = destination) do
@@ -171,7 +176,7 @@ defmodule Jsonpatch do
   Creates "replace"-operations by comparing keys and values of source and destination. The source and
   destination map have to be flat maps.
   """
-  @spec create_replaces(list(PathUtil.t()), map, map) :: list(PathUtil.t())
+  @spec create_replaces(list(Jsonpatch.t()), map, map) :: list(Jsonpatch.t())
   def create_replaces(accumulator \\ [], source, destination)
 
   def create_replaces(accumulator, source, destination) do

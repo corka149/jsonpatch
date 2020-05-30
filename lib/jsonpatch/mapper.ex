@@ -13,7 +13,7 @@ defmodule Jsonpatch.Mapper do
       %{op: "add", path: "/name", value: "Alice"}
 
   """
-  @spec to_map(Jsonpatch.PathUtil.t() | list(Jsonpatch.PathUtil.t())) ::
+  @spec to_map(Jsonpatch.t() | list(Jsonpatch.t())) ::
           map() | {:error, :invalid}
   def to_map(patch)
 
@@ -43,7 +43,7 @@ defmodule Jsonpatch.Mapper do
       {:error, :invalid}
   """
   @spec from_map(map() | list(map())) ::
-          list(Jsonpatch.PathUtil.t()) | Jsonpatch.PathUtil.t() | {:error, :invalid}
+          list(Jsonpatch.t()) | Jsonpatch.t() | {:error, :invalid}
   def from_map(patch)
 
   def from_map(%{} = patch) do
