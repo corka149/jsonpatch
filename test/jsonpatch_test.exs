@@ -192,10 +192,10 @@ defmodule JsonpatchTest do
              )
 
     assert ^target =
-      Jsonpatch.apply_patch(
-        %Jsonpatch.Operation.Remove{path: "/xyz/work"},
-        target
-      )
+             Jsonpatch.apply_patch(
+               %Jsonpatch.Operation.Remove{path: "/xyz/work"},
+               target
+             )
   end
 
   test "Apply patch with one invalid path and expect no target change" do
