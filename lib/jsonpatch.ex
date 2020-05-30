@@ -8,7 +8,6 @@ defmodule Jsonpatch do
   """
 
   alias Jsonpatch.FlatMap
-  alias Jsonpatch.PathUtil
   alias Jsonpatch.PathUtil.Add
   alias Jsonpatch.PathUtil.Copy
   alias Jsonpatch.PathUtil.Move

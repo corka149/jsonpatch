@@ -4,8 +4,6 @@ defmodule Jsonpatch.PathUtil do
   """
 
   alias Jsonpatch.PathUtil.Add
-  alias Jsonpatch.PathUtil.Copy
-  alias Jsonpatch.PathUtil.Move
   alias Jsonpatch.PathUtil.Remove
   alias Jsonpatch.PathUtil.Replace
   alias Jsonpatch.PathUtil.Test
