@@ -1,4 +1,4 @@
-defmodule Jsonpatch.PathUtil.MoveTest do
+defmodule Jsonpatch.Operation.MoveTest do
   use ExUnit.Case
-  doctest Jsonpatch.PathUtil.Move
+  doctest Jsonpatch.Operation.Move
 end

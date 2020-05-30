@@ -1,4 +1,4 @@
-defmodule Jsonpatch.PathUtil.Remove do
+defmodule Jsonpatch.Operation.Remove do
   @moduledoc """
   A JSON patch remove operation is responsible for removing values.
   """
@@ -14,14 +14,14 @@ defmodule Jsonpatch.PathUtil.Remove do
 
   ## Examples
 
-      iex> remove = %Jsonpatch.PathUtil.Remove{path: "/a/b"}
+      iex> remove = %Jsonpatch.Operation.Remove{path: "/a/b"}
       iex> target = %{"a" => %{"b" => %{"c" => "Bob"}}, "d" => false}
-      iex> Jsonpatch.PathUtil.Remove.apply_op(remove, target)
+      iex> Jsonpatch.Operation.Remove.apply_op(remove, target)
       %{"a" => %{}, "d" => false}
   """
   @impl true
-  @spec apply_op(Jsonpatch.PathUtil.Remove.t(), map) :: map | :error
-  def apply_op(%Jsonpatch.PathUtil.Remove{path: path}, target) do
+  @spec apply_op(Jsonpatch.Operation.Remove.t(), map) :: map | :error
+  def apply_op(%Jsonpatch.Operation.Remove{path: path}, target) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/")
     do_remove(target, fragments)

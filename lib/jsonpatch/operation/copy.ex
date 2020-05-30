@@ -1,4 +1,4 @@
-defmodule Jsonpatch.PathUtil.Copy do
+defmodule Jsonpatch.Operation.Copy do
   @moduledoc """
   Represents the handling of JSON patches with a copy operation.
   """
@@ -15,14 +15,14 @@ defmodule Jsonpatch.PathUtil.Copy do
 
   ## Examples
 
-      iex> copy = %Jsonpatch.PathUtil.Copy{from: "/a/b", path: "/a/e"}
+      iex> copy = %Jsonpatch.Operation.Copy{from: "/a/b", path: "/a/e"}
       iex> target = %{"a" => %{"b" => %{"c" => "Bob"}}, "d" => false}
-      iex> Jsonpatch.PathUtil.Copy.apply_op(copy, target)
+      iex> Jsonpatch.Operation.Copy.apply_op(copy, target)
       %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}
   """
   @impl true
-  @spec apply_op(Jsonpatch.PathUtil.Copy.t(), map()) :: map() | :error
-  def apply_op(%Jsonpatch.PathUtil.Copy{from: from, path: path}, target) do
+  @spec apply_op(Jsonpatch.Operation.Copy.t(), map()) :: map() | :error
+  def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
 
     updated_val =

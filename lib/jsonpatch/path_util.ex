@@ -3,10 +3,10 @@ defmodule Jsonpatch.PathUtil do
   Helper module for handling JSON paths.
   """
 
-  alias Jsonpatch.PathUtil.Add
-  alias Jsonpatch.PathUtil.Remove
-  alias Jsonpatch.PathUtil.Replace
-  alias Jsonpatch.PathUtil.Test
+  alias Jsonpatch.Operation.Add
+  alias Jsonpatch.Operation.Remove
+  alias Jsonpatch.Operation.Replace
+  alias Jsonpatch.Operation.Test
 
   @callback apply_op(Jsonpatch.t(), map()) :: map() | :ok | :error
 

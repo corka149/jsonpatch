@@ -1,7 +1,7 @@
-defmodule Jsonpatch.PathUtil.RemoveTest do
+defmodule Jsonpatch.Operation.RemoveTest do
   use ExUnit.Case
 
-  alias Jsonpatch.PathUtil.Remove
+  alias Jsonpatch.Operation.Remove
 
   doctest Remove
 
@@ -52,7 +52,7 @@ defmodule Jsonpatch.PathUtil.RemoveTest do
       "home" => "Berlin"
     }
 
-    test_patch = %Jsonpatch.PathUtil.Test{path: "/nameX", value: "Bob"}
+    test_patch = %Jsonpatch.Operation.Test{path: "/nameX", value: "Bob"}
     assert :error = Jsonpatch.apply_patch(test_patch, target)
   end
 end

@@ -8,12 +8,12 @@ defmodule Jsonpatch do
   """
 
   alias Jsonpatch.FlatMap
-  alias Jsonpatch.PathUtil.Add
-  alias Jsonpatch.PathUtil.Copy
-  alias Jsonpatch.PathUtil.Move
-  alias Jsonpatch.PathUtil.Remove
-  alias Jsonpatch.PathUtil.Replace
-  alias Jsonpatch.PathUtil.Test
+  alias Jsonpatch.Operation.Add
+  alias Jsonpatch.Operation.Copy
+  alias Jsonpatch.Operation.Move
+  alias Jsonpatch.Operation.Remove
+  alias Jsonpatch.Operation.Replace
+  alias Jsonpatch.Operation.Test
 
   @typedoc """
   A valid Jsonpatch operation by RFC 6902
@@ -26,14 +26,14 @@ defmodule Jsonpatch do
 
   ## Examples
       iex> patch = [
-      ...> %Jsonpatch.PathUtil.Add{path: "/age", value: 33},
-      ...> %Jsonpatch.PathUtil.Replace{path: "/hobbies/0", value: "Elixir!"},
-      ...> %Jsonpatch.PathUtil.Replace{path: "/married", value: true},
-      ...> %Jsonpatch.PathUtil.Remove{path: "/hobbies/1"},
-      ...> %Jsonpatch.PathUtil.Remove{path: "/hobbies/2"},
-      ...> %Jsonpatch.PathUtil.Copy{from: "/name", path: "/surname"},
-      ...> %Jsonpatch.PathUtil.Move{from: "/home", path: "/work"},
-      ...> %Jsonpatch.PathUtil.Test{path: "/name", value: "Bob"}
+      ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
+      ...> %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
+      ...> %Jsonpatch.Operation.Replace{path: "/married", value: true},
+      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
+      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
+      ...> %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"},
+      ...> %Jsonpatch.Operation.Move{from: "/home", path: "/work"},
+      ...> %Jsonpatch.Operation.Test{path: "/name", value: "Bob"}
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
@@ -41,8 +41,8 @@ defmodule Jsonpatch do
 
       iex> # Patch will not be applied if test fails. The target will not be changed.
       iex> patch = [
-      ...> %Jsonpatch.PathUtil.Add{path: "/age", value: 33},
-      ...> %Jsonpatch.PathUtil.Test{path: "/name", value: "Alice"}
+      ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
+      ...> %Jsonpatch.Operation.Test{path: "/name", value: "Alice"}
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)

@@ -1,7 +1,7 @@
-defmodule Jsonpatch.PathUtil.ReplaceTest do
+defmodule Jsonpatch.Operation.ReplaceTest do
   use ExUnit.Case
 
-  alias Jsonpatch.PathUtil.Replace
+  alias Jsonpatch.Operation.Replace
 
   doctest Replace
 

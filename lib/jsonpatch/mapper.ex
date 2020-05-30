@@ -8,7 +8,7 @@ defmodule Jsonpatch.Mapper do
 
   ## Examples
 
-      iex> add_patch_map = %Jsonpatch.PathUtil.Add{path: "/name", value: "Alice"}
+      iex> add_patch_map = %Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
       iex> Jsonpatch.Mapper.to_map(add_patch_map)
       %{op: "add", path: "/name", value: "Alice"}
 
@@ -36,7 +36,7 @@ defmodule Jsonpatch.Mapper do
 
       iex> add_patch_map = %{"op" => "add", "path" => "/name", "value" => "Alice"}
       iex> Jsonpatch.Mapper.from_map(add_patch_map)
-      %Jsonpatch.PathUtil.Add{path: "/name", value: "Alice"}
+      %Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
 
       iex> unkown_patch_map = %{"op" => "foo", "path" => "/name", "value" => "Alice"}
       iex> Jsonpatch.Mapper.from_map(unkown_patch_map)
@@ -56,27 +56,27 @@ defmodule Jsonpatch.Mapper do
 
   # ===== ===== PRIVATE ===== =====
 
-  defp prepare(%Jsonpatch.PathUtil.Add{} = operation) do
+  defp prepare(%Jsonpatch.Operation.Add{} = operation) do
     Map.put(operation, :op, "add")
   end
 
-  defp prepare(%Jsonpatch.PathUtil.Remove{} = operation) do
+  defp prepare(%Jsonpatch.Operation.Remove{} = operation) do
     Map.put(operation, :op, "remove")
   end
 
-  defp prepare(%Jsonpatch.PathUtil.Replace{} = operation) do
+  defp prepare(%Jsonpatch.Operation.Replace{} = operation) do
     Map.put(operation, :op, "replace")
   end
 
-  defp prepare(%Jsonpatch.PathUtil.Copy{} = operation) do
+  defp prepare(%Jsonpatch.Operation.Copy{} = operation) do
     Map.put(operation, :op, "copy")
   end
 
-  defp prepare(%Jsonpatch.PathUtil.Move{} = operation) do
+  defp prepare(%Jsonpatch.Operation.Move{} = operation) do
     Map.put(operation, :op, "move")
   end
 
-  defp prepare(%Jsonpatch.PathUtil.Test{} = operation) do
+  defp prepare(%Jsonpatch.Operation.Test{} = operation) do
     Map.put(operation, :op, "test")
   end
 
@@ -89,27 +89,27 @@ defmodule Jsonpatch.Mapper do
   end
 
   defp convert_to(%{"op" => "add", "path" => path, "value" => value}) do
-    %Jsonpatch.PathUtil.Add{path: path, value: value}
+    %Jsonpatch.Operation.Add{path: path, value: value}
   end
 
   defp convert_to(%{"op" => "remove", "path" => path}) do
-    %Jsonpatch.PathUtil.Remove{path: path}
+    %Jsonpatch.Operation.Remove{path: path}
   end
 
   defp convert_to(%{"op" => "replace", "path" => path, "value" => value}) do
-    %Jsonpatch.PathUtil.Replace{path: path, value: value}
+    %Jsonpatch.Operation.Replace{path: path, value: value}
   end
 
   defp convert_to(%{"op" => "copy", "from" => from, "path" => path}) do
-    %Jsonpatch.PathUtil.Copy{from: from, path: path}
+    %Jsonpatch.Operation.Copy{from: from, path: path}
   end
 
   defp convert_to(%{"op" => "move", "from" => from, "path" => path}) do
-    %Jsonpatch.PathUtil.Move{from: from, path: path}
+    %Jsonpatch.Operation.Move{from: from, path: path}
   end
 
   defp convert_to(%{"op" => "test", "path" => path, "value" => value}) do
-    %Jsonpatch.PathUtil.Test{path: path, value: value}
+    %Jsonpatch.Operation.Test{path: path, value: value}
   end
 
   defp convert_to(_) do

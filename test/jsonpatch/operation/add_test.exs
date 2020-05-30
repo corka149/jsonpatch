@@ -1,7 +1,7 @@
-defmodule Jsonpatch.PathUtil.AddTest do
+defmodule Jsonpatch.Operation.AddTest do
   use ExUnit.Case
 
-  alias Jsonpatch.PathUtil.Add
+  alias Jsonpatch.Operation.Add
 
   doctest Add
 

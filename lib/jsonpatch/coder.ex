@@ -8,7 +8,7 @@ defmodule Jsonpatch.Coder do
 
   ## Examples
 
-      iex> Jsonpatch.Coder.encode(%Jsonpatch.PathUtil.Add{path: "/age", value: 1})
+      iex> Jsonpatch.Coder.encode(%Jsonpatch.Operation.Add{path: "/age", value: 1})
       {:ok, "{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}"}
   """
   @spec encode(list(Jsonpatch.t()) | Jsonpatch.t()) ::
@@ -37,7 +37,7 @@ defmodule Jsonpatch.Coder do
   ## Examples
 
       iex> Jsonpatch.Coder.decode("{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}")
-      {:ok, %Jsonpatch.PathUtil.Add{path: "/age", value: 1}}
+      {:ok, %Jsonpatch.Operation.Add{path: "/age", value: 1}}
   """
   @spec decode(iodata()) ::
           {:error, :invalid} | Jsonpatch.t() | list(Jsonpatch.t())

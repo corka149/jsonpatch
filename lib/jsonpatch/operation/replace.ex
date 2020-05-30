@@ -1,4 +1,4 @@
-defmodule Jsonpatch.PathUtil.Replace do
+defmodule Jsonpatch.Operation.Replace do
   @moduledoc """
   The replace module helps replacing values in maps and structs by paths.
   """
@@ -14,14 +14,14 @@ defmodule Jsonpatch.PathUtil.Replace do
 
   ## Examples
 
-      iex> add = %Jsonpatch.PathUtil.Replace{path: "/a/b", value: 1}
+      iex> add = %Jsonpatch.Operation.Replace{path: "/a/b", value: 1}
       iex> target = %{"a" => %{"b" => 2}}
-      iex> Jsonpatch.PathUtil.Replace.apply_op(add, target)
+      iex> Jsonpatch.Operation.Replace.apply_op(add, target)
       %{"a" => %{"b" => 1}}
   """
   @impl true
-  @spec apply_op(Jsonpatch.PathUtil.Replace.t(), map) :: map
-  def apply_op(%Jsonpatch.PathUtil.Replace{path: path, value: value}, %{} = target) do
+  @spec apply_op(Jsonpatch.Operation.Replace.t(), map) :: map
+  def apply_op(%Jsonpatch.Operation.Replace{path: path, value: value}, %{} = target) do
     {final_destination, last_fragment} = Jsonpatch.PathUtil.get_final_destination(target, path)
     updated_final_destination = do_update(final_destination, last_fragment, value)
     Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)

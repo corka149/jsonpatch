@@ -1,4 +1,4 @@
-defmodule Jsonpatch.PathUtil.Add do
+defmodule Jsonpatch.Operation.Add do
   @moduledoc """
   The add operation is the operation for adding (as you might guess) values to a map or struct.
   """
@@ -14,14 +14,14 @@ defmodule Jsonpatch.PathUtil.Add do
 
   ## Examples
 
-      iex> add = %Jsonpatch.PathUtil.Add{path: "/a/b", value: 1}
+      iex> add = %Jsonpatch.Operation.Add{path: "/a/b", value: 1}
       iex> target = %{"a" => %{"c" => false}}
-      iex> Jsonpatch.PathUtil.Add.apply_op(add, target)
+      iex> Jsonpatch.Operation.Add.apply_op(add, target)
       %{"a" => %{"b" => 1, "c" => false}}
   """
   @impl true
-  @spec apply_op(Jsonpatch.PathUtil.Add.t(), map) :: map
-  def apply_op(%Jsonpatch.PathUtil.Add{path: path, value: value}, %{} = target) do
+  @spec apply_op(Jsonpatch.Operation.Add.t(), map) :: map
+  def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target) do
     case Jsonpatch.PathUtil.get_final_destination(target, path) do
       {:error, _} ->
         target

@@ -1,9 +1,9 @@
 defmodule JsonpatchTest do
   use ExUnit.Case
 
-  alias Jsonpatch.PathUtil.Add
-  alias Jsonpatch.PathUtil.Remove
-  alias Jsonpatch.PathUtil.Replace
+  alias Jsonpatch.Operation.Add
+  alias Jsonpatch.Operation.Remove
+  alias Jsonpatch.Operation.Replace
 
   doctest Jsonpatch
 
@@ -124,26 +124,26 @@ defmodule JsonpatchTest do
       patch = Jsonpatch.diff(source, destination)
 
       assert [
-               %Jsonpatch.PathUtil.Add{
+               %Jsonpatch.Operation.Add{
                  path: "/items/0/spec/template/spec/containers/0/env/1/value",
                  value: "Hey there!"
                },
-               %Jsonpatch.PathUtil.Add{
+               %Jsonpatch.Operation.Add{
                  path: "/items/0/spec/template/spec/containers/0/env/1/name",
                  value: "ANOTHER_MESSAGE"
                },
-               %Jsonpatch.PathUtil.Replace{
+               %Jsonpatch.Operation.Replace{
                  path: "/items/0/spec/template/spec/containers/0/env/0/name",
                  value: "ENVIRONMENT_MESSAGE"
                },
-               %Jsonpatch.PathUtil.Replace{
+               %Jsonpatch.Operation.Replace{
                  path: "/items/0/spec/template/spec/containers/0/image",
                  value: "whoami:1.1.2"
                },
-               %Jsonpatch.PathUtil.Remove{
+               %Jsonpatch.Operation.Remove{
                  path: "/items/0/spec/template/spec/containers/0/ports/0/protocol"
                },
-               %Jsonpatch.PathUtil.Remove{
+               %Jsonpatch.Operation.Remove{
                  path: "/items/0/spec/template/spec/containers/0/ports/0/containerPort"
                }
              ] = patch
@@ -152,11 +152,11 @@ defmodule JsonpatchTest do
 
   test "Apply patch with invalid source path and expect no target change" do
     patch = [
-      %Jsonpatch.PathUtil.Add{path: "/child/0/age", value: 33},
-      %Jsonpatch.PathUtil.Replace{path: "/age", value: 42},
-      %Jsonpatch.PathUtil.Remove{path: "/hobby/4"},
-      %Jsonpatch.PathUtil.Copy{from: "/nameX", path: "/surname"},
-      %Jsonpatch.PathUtil.Move{from: "/homeX", path: "/work"}
+      %Jsonpatch.Operation.Add{path: "/child/0/age", value: 33},
+      %Jsonpatch.Operation.Replace{path: "/age", value: 42},
+      %Jsonpatch.Operation.Remove{path: "/hobby/4"},
+      %Jsonpatch.Operation.Copy{from: "/nameX", path: "/surname"},
+      %Jsonpatch.Operation.Move{from: "/homeX", path: "/work"}
     ]
 
     target = %{
@@ -181,34 +181,34 @@ defmodule JsonpatchTest do
 
     assert ^target =
              Jsonpatch.apply_patch(
-               %Jsonpatch.PathUtil.Copy{from: "/name", path: "/xyz/surname"},
+               %Jsonpatch.Operation.Copy{from: "/name", path: "/xyz/surname"},
                target
              )
 
     assert ^target =
              Jsonpatch.apply_patch(
-               %Jsonpatch.PathUtil.Move{from: "/home", path: "/xyz/work"},
+               %Jsonpatch.Operation.Move{from: "/home", path: "/xyz/work"},
                target
              )
 
     assert ^target =
              Jsonpatch.apply_patch(
-               %Jsonpatch.PathUtil.Remove{path: "/xyz/work"},
+               %Jsonpatch.Operation.Remove{path: "/xyz/work"},
                target
              )
   end
 
   test "Apply patch with one invalid path and expect no target change" do
     patch = [
-      %Jsonpatch.PathUtil.Add{path: "/age", value: 33},
-      %Jsonpatch.PathUtil.Replace{path: "/hobbies/0", value: "Elixir!"},
-      %Jsonpatch.PathUtil.Replace{path: "/married", value: true},
-      %Jsonpatch.PathUtil.Remove{path: "/hobbies/1"},
+      %Jsonpatch.Operation.Add{path: "/age", value: 33},
+      %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
+      %Jsonpatch.Operation.Replace{path: "/married", value: true},
+      %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
       # Should fail
-      %Jsonpatch.PathUtil.Remove{path: "/hobbies/4"},
-      %Jsonpatch.PathUtil.Copy{from: "/name", path: "/surname"},
-      %Jsonpatch.PathUtil.Move{from: "/home", path: "/work"},
-      %Jsonpatch.PathUtil.Test{path: "/name", value: "Bob"}
+      %Jsonpatch.Operation.Remove{path: "/hobbies/4"},
+      %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"},
+      %Jsonpatch.Operation.Move{from: "/home", path: "/work"},
+      %Jsonpatch.Operation.Test{path: "/name", value: "Bob"}
     ]
 
     target = %{
