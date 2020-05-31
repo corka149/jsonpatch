@@ -6,11 +6,9 @@ defmodule Jsonpatch.Operation.Move do
   @enforce_keys [:from, :path]
   defstruct [:from, :path]
   @type t :: %__MODULE__{from: String.t(), path: String.t()}
-
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Move do
-
   alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Copy
   alias Jsonpatch.Operation.Remove

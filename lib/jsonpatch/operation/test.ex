@@ -6,11 +6,9 @@ defmodule Jsonpatch.Operation.Test do
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
-
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
-
   @doc """
   Tests if the value at the given path is equal to the provided value.
 

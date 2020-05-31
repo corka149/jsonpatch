@@ -6,11 +6,9 @@ defmodule Jsonpatch.Operation.Copy do
   @enforce_keys [:from, :path]
   defstruct [:from, :path]
   @type t :: %__MODULE__{from: String.t(), path: String.t()}
-
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
-
   @doc """
   Copy the element referenced by the JSON patch path :from to to the other
   given path.
@@ -94,7 +92,7 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
   end
 
   defp do_add({copy_target, _last_fragment}, copied_value, copy_path_end)
-      when is_list(copy_target) do
+       when is_list(copy_target) do
     case Integer.parse(copy_path_end) do
       :error ->
         :error

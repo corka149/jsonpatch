@@ -6,11 +6,9 @@ defmodule Jsonpatch.Operation.Add do
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
-
 end
 
-defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add  do
-
+defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
   @doc """
   Applies an add operation a struct/map.
 
