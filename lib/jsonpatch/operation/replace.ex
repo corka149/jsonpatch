@@ -1,16 +1,6 @@
 defmodule Jsonpatch.Operation.Replace do
   @moduledoc """
   The replace module helps replacing values in maps and structs by paths.
-  """
-
-  @enforce_keys [:path, :value]
-  defstruct [:path, :value]
-  @type t :: %__MODULE__{path: String.t(), value: any}
-end
-
-defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Replace do
-  @doc """
-  Applies an replace operation to a struct/map.
 
   ## Examples
 
@@ -19,6 +9,14 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Replace do
       iex> Jsonpatch.Operation.apply_op(add, target)
       %{"a" => %{"b" => 1}}
   """
+
+  @enforce_keys [:path, :value]
+  defstruct [:path, :value]
+  @type t :: %__MODULE__{path: String.t(), value: any}
+end
+
+defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Replace do
+
   @spec apply_op(Jsonpatch.Operation.Replace.t(), map | :error) :: map
   def apply_op(%Jsonpatch.Operation.Replace{path: path, value: value}, %{} = target) do
     {final_destination, last_fragment} = Jsonpatch.PathUtil.get_final_destination(target, path)

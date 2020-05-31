@@ -1,6 +1,15 @@
 defprotocol Jsonpatch.Operation do
   @moduledoc """
-  The Operation module is responsible for applying patches.
+  The Operation module is responsible for applying patches. For examples see in the
+  available implementation from this library for this protocol:
+
+  - Jsonpatch.Operation.Add
+  - Jsonpatch.Operation.Copy
+  - Jsonpatch.Operation.Move
+  - Jsonpatch.Operation.Remove
+  - Jsonpatch.Operation.Replace
+  - Jsonpatch.Operation.Test
+
   """
 
   @doc """

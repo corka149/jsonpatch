@@ -1,16 +1,6 @@
 defmodule Jsonpatch.Operation.Add do
   @moduledoc """
   The add operation is the operation for adding (as you might guess) values to a map or struct.
-  """
-
-  @enforce_keys [:path, :value]
-  defstruct [:path, :value]
-  @type t :: %__MODULE__{path: String.t(), value: any}
-end
-
-defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
-  @doc """
-  Applies an add operation a struct/map.
 
   ## Examples
 
@@ -19,6 +9,14 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
       iex> Jsonpatch.Operation.apply_op(add, target)
       %{"a" => %{"b" => 1, "c" => false}}
   """
+
+  @enforce_keys [:path, :value]
+  defstruct [:path, :value]
+  @type t :: %__MODULE__{path: String.t(), value: any}
+end
+
+defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
+
   @spec apply_op(Jsonpatch.Operation.Add.t(), map | :error) :: map
   def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target) do
     case Jsonpatch.PathUtil.get_final_destination(target, path) do

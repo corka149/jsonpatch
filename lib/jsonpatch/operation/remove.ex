@@ -1,16 +1,6 @@
 defmodule Jsonpatch.Operation.Remove do
   @moduledoc """
   A JSON patch remove operation is responsible for removing values.
-  """
-
-  @enforce_keys [:path]
-  defstruct [:path]
-  @type t :: %__MODULE__{path: String.t()}
-end
-
-defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
-  @doc """
-  Removes the element referenced by the JSON patch path.
 
   ## Examples
 
@@ -19,6 +9,14 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
       iex> Jsonpatch.Operation.apply_op(remove, target)
       %{"a" => %{}, "d" => false}
   """
+
+  @enforce_keys [:path]
+  defstruct [:path]
+  @type t :: %__MODULE__{path: String.t()}
+end
+
+defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
+
   @spec apply_op(Jsonpatch.Operation.Remove.t(), map | :error) :: map | :error
   def apply_op(%Jsonpatch.Operation.Remove{path: path}, target) do
     # The first element is always "" which is useless.

@@ -1,6 +1,13 @@
 defmodule Jsonpatch.Operation.Test do
   @moduledoc """
   A test operation in a JSON patch prevents the patch application or allows it.
+
+  ## Examples
+
+      iex> test = %Jsonpatch.Operation.Test{path: "/x/y", value: "Bob"}
+      iex> target = %{"x" => %{"y" => "Bob"}}
+      iex> Jsonpatch.Operation.apply_op(test, target)
+      %{"x" => %{"y" => "Bob"}}
   """
 
   @enforce_keys [:path, :value]
@@ -9,16 +16,7 @@ defmodule Jsonpatch.Operation.Test do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
-  @doc """
-  Tests if the value at the given path is equal to the provided value.
 
-  ## Examples
-
-      iex> test = %Jsonpatch.Operation.Test{path: "/x/y", value: "Bob"}
-      iex> target = %{"x" => %{"y" => "Bob"}}
-      iex> Jsonpatch.Operation.apply_op(test, target)
-      :ok
-  """
   @spec apply_op(Jsonpatch.Operation.Test.t(), map | :error) :: map() | :error
   def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target) do
     if Jsonpatch.PathUtil.get_final_destination(target, path) |> do_test(value) do

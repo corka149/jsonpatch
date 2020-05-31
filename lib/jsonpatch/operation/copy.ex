@@ -1,17 +1,6 @@
 defmodule Jsonpatch.Operation.Copy do
   @moduledoc """
   Represents the handling of JSON patches with a copy operation.
-  """
-
-  @enforce_keys [:from, :path]
-  defstruct [:from, :path]
-  @type t :: %__MODULE__{from: String.t(), path: String.t()}
-end
-
-defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
-  @doc """
-  Copy the element referenced by the JSON patch path :from to to the other
-  given path.
 
   ## Examples
 
@@ -20,6 +9,14 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
       iex> Jsonpatch.Operation.apply_op(copy, target)
       %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}
   """
+
+  @enforce_keys [:from, :path]
+  defstruct [:from, :path]
+  @type t :: %__MODULE__{from: String.t(), path: String.t()}
+end
+
+defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
+
   @spec apply_op(Jsonpatch.Operation.Copy.t(), map() | :error) :: map() | :error
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
