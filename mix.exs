@@ -6,7 +6,7 @@ defmodule Jsonpatch.MixProject do
       app: :jsonpatch,
       name: "Jsonpatch",
       description: "Implementation of RFC 6902 in pure Elixir",
-      version: "0.7.0",
+      version: "0.8.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -24,9 +24,11 @@ defmodule Jsonpatch.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:poison, "~> 3.1"},
+      # REQUIRED
 
       # DEV
+      ## testing with real json files
+      {:poison, "~> 3.1", only: [:test]},
       ## code test coverage
       {:excoveralls, "~> 0.12.3", only: [:test]},
       ## linting

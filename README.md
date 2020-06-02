@@ -35,20 +35,22 @@ iex> Jsonpatch.diff(source, destination)
 ]}
 ```
 
-### Encode and decode
+### Mapping for de and encoding
 
-Encode a JSON patch struct to JSON string.
+Map a JSON patch struct to a regular map.
 
 ```elixir
-iex> Jsonpatch.Coder.decode("{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}")
-{:ok, %Jsonpatch.Operation.Add{path: "/age", value: 1}}
+iex> add_patch_map = %Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
+iex> Jsonpatch.Mapper.to_map(add_patch_map)
+%{op: "add", path: "/name", value: "Alice"}
 ```
 
-Decode a JSON patch struct from a JSON string.
+Map a regular map to a JSON patch struct.
 
 ```elixir
-iex> Jsonpatch.Coder.encode(%Jsonpatch.Operation.Add{path: "/age", value: 1})
-{:ok, "{\"op\": \"add\",\"value\": \"1\",\"path\": \"/age\"}"}
+iex> add_patch_map = %{"op" => "add", "path" => "/name", "value" => "Alice"}
+iex> Jsonpatch.Mapper.from_map(add_patch_map)
+%Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
 ```
 
 ### Apply patches
@@ -75,7 +77,7 @@ by adding `jsonpatch` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:jsonpatch, "~> 0.5.0"}
+    {:jsonpatch, "~> 0.8.0"}
   ]
 end
 ```
