@@ -16,7 +16,6 @@ defmodule Jsonpatch.Operation.Replace do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Replace do
-
   @spec apply_op(Jsonpatch.Operation.Replace.t(), map | Jsonpatch.error()) :: map
   def apply_op(%Jsonpatch.Operation.Replace{path: path, value: value}, %{} = target) do
     {final_destination, last_fragment} = Jsonpatch.PathUtil.get_final_destination(target, path)
@@ -38,7 +37,9 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Replace do
 
   defp do_update(final_destination, last_fragment, value) when is_list(final_destination) do
     case Integer.parse(last_fragment) do
-      :error -> {:error, :invalid_index, last_fragment}
+      :error ->
+        {:error, :invalid_index, last_fragment}
+
       {index, _} ->
         case List.pop_at(final_destination, index) do
           {nil, _} -> {:error, :invalid_index, last_fragment}

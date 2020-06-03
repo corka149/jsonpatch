@@ -16,7 +16,6 @@ defmodule Jsonpatch.Operation.Test do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
-
   @spec apply_op(Jsonpatch.Operation.Test.t(), map | Jsonpatch.error()) :: map()
   def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target) do
     if Jsonpatch.PathUtil.get_final_destination(target, path) |> do_test(value) do

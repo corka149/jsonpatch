@@ -151,7 +151,6 @@ defmodule JsonpatchTest do
   end
 
   test "Apply patch with invalid source path and expect error" do
-
     target = %{
       "name" => "Bob",
       "married" => false,
@@ -159,11 +158,29 @@ defmodule JsonpatchTest do
       "home" => "Berlin"
     }
 
-    assert {:error, :invalid_path, "child"} = Jsonpatch.apply_patch(%Jsonpatch.Operation.Add{path: "/child/0/age", value: 33}, target)
-    assert {:error, :invalid_path, "age"} = Jsonpatch.apply_patch(%Jsonpatch.Operation.Replace{path: "/age", value: 42}, target)
-    assert {:error, :invalid_path, "hobby"} = Jsonpatch.apply_patch(%Jsonpatch.Operation.Remove{path: "/hobby/4"}, target)
-    assert {:error, :invalid_path, "nameX"} = Jsonpatch.apply_patch(%Jsonpatch.Operation.Copy{from: "/nameX", path: "/surname"}, target)
-    assert {:error, :invalid_path, "homeX"} = Jsonpatch.apply_patch(%Jsonpatch.Operation.Move{from: "/homeX", path: "/work"}, target)
+    assert {:error, :invalid_path, "child"} =
+             Jsonpatch.apply_patch(
+               %Jsonpatch.Operation.Add{path: "/child/0/age", value: 33},
+               target
+             )
+
+    assert {:error, :invalid_path, "age"} =
+             Jsonpatch.apply_patch(%Jsonpatch.Operation.Replace{path: "/age", value: 42}, target)
+
+    assert {:error, :invalid_path, "hobby"} =
+             Jsonpatch.apply_patch(%Jsonpatch.Operation.Remove{path: "/hobby/4"}, target)
+
+    assert {:error, :invalid_path, "nameX"} =
+             Jsonpatch.apply_patch(
+               %Jsonpatch.Operation.Copy{from: "/nameX", path: "/surname"},
+               target
+             )
+
+    assert {:error, :invalid_path, "homeX"} =
+             Jsonpatch.apply_patch(
+               %Jsonpatch.Operation.Move{from: "/homeX", path: "/work"},
+               target
+             )
   end
 
   test "Apply patch with invalid target source path and expect error" do

@@ -16,7 +16,6 @@ defmodule Jsonpatch.Operation.Add do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
-
   @spec apply_op(Jsonpatch.Operation.Add.t(), map | Jsonpatch.error()) :: map
   def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target) do
     case Jsonpatch.PathUtil.get_final_destination(target, path) do

@@ -16,7 +16,6 @@ defmodule Jsonpatch.Operation.Copy do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
-
   @spec apply_op(Jsonpatch.Operation.Copy.t(), map() | Jsonpatch.error()) :: map()
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
@@ -57,7 +56,7 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
       # %{"b" => %{"c" => "Bob"}} is the "copy target"
       |> Jsonpatch.PathUtil.get_final_destination(path)
       # Add copied_value to "copy target"
-      |> IO.inspect
+      |> IO.inspect()
       |> do_add(copied_value, copy_path_end)
 
     case updated_value do

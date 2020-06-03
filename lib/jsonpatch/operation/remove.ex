@@ -16,8 +16,8 @@ defmodule Jsonpatch.Operation.Remove do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
-
-  @spec apply_op(Jsonpatch.Operation.Remove.t(), map | Jsonpatch.error()) :: map | Jsonpatch.error()
+  @spec apply_op(Jsonpatch.Operation.Remove.t(), map | Jsonpatch.error()) ::
+          map | Jsonpatch.error()
   def apply_op(%Jsonpatch.Operation.Remove{path: path}, target) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/")
