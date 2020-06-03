@@ -15,6 +15,6 @@ defprotocol Jsonpatch.Operation do
   @doc """
   Executes the given patch to map/struct.
   """
-  @spec apply_op(Jsonpatch.t(), map()) :: map() | :ok | :error
+  @spec apply_op(Jsonpatch.t(), map() | Jsonpatch.error()) :: map() | Jsonpatch.error()
   def apply_op(patch, target)
 end

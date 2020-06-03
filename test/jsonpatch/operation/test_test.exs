@@ -49,6 +49,6 @@ defmodule Jsonpatch.Operation.TestTest do
 
     patched_target = Operation.apply_op(test_op, target)
 
-    assert :error = patched_target
+    assert {:error, :test_failed, "Expected value '42' at '/a/b/1/c/1'"} = patched_target
   end
 end

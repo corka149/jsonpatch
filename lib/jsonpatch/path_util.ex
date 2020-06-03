@@ -22,7 +22,7 @@ defmodule Jsonpatch.PathUtil do
       iex> path = "/a/e/c/d"
       iex> target = %{"a" => %{"b" => %{"c" => %{"d" => 1}}}}
       iex> Jsonpatch.PathUtil.get_final_destination(target, path)
-      {:error, :invalid_path}
+      {:error, :invalid_path, "e"}
 
       iex> path = "/a/b/1/d"
       iex> target = %{"a" => %{"b" => [true, %{"d" => 1}]}}
@@ -33,10 +33,10 @@ defmodule Jsonpatch.PathUtil do
       iex> path = "/a/b/42/d"
       iex> target = %{"a" => %{"b" => [true, %{"d" => 1}]}}
       iex> Jsonpatch.PathUtil.get_final_destination(target, path)
-      {:error, :invalid_path}
+      {:error, :invalid_index, "42"}
   """
   @spec get_final_destination(map, binary) ::
-          {map, binary} | {list, binary} | {:error, :invalid_path}
+          {map, binary} | {list, binary} | Jsonpatch.error()
   def get_final_destination(target, path) when is_bitstring(path) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/")
@@ -53,7 +53,7 @@ defmodule Jsonpatch.PathUtil do
       iex> Jsonpatch.PathUtil.update_final_destination(target, %{"e" => 1}, path)
       %{"a" => %{"b" => %{"c" => %{"e" => 1}}}}
   """
-  @spec update_final_destination(map, map, binary) :: map | {:error, :invalid_path}
+  @spec update_final_destination(map, map, binary) :: map | Jsonpatch.error()
   def update_final_destination(target, new_destination, path) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/")
@@ -76,12 +76,12 @@ defmodule Jsonpatch.PathUtil do
 
   # ===== ===== PRIVATE ===== =====
 
-  defp find_final_destination(nil, _) do
-    {:error, :invalid_path}
-  end
+  # defp find_final_destination(nil, _) do
+  #  error
+  # end
 
-  defp find_final_destination(:error, _) do
-    {:error, :invalid_parameter}
+  defp find_final_destination({:error, _, _} = error, _) do
+    error
   end
 
   defp find_final_destination(%{} = target, [fragment | []]) do
@@ -94,7 +94,7 @@ defmodule Jsonpatch.PathUtil do
 
   defp find_final_destination(%{} = target, [fragment | tail]) do
     case Map.get(target, fragment) do
-      nil -> {:error, :invalid_path}
+      nil -> {:error, :invalid_path, fragment}
       val -> find_final_destination(val, tail)
     end
   end
@@ -103,7 +103,7 @@ defmodule Jsonpatch.PathUtil do
     {index, _} = Integer.parse(fragment)
 
     case Enum.with_index(target) |> Enum.find(fn {_val, i} -> i == index end) do
-      nil -> {:error, :invalid_path}
+      nil -> {:error, :invalid_index, fragment}
       {val, _} -> find_final_destination(val, tail)
     end
   end
@@ -127,11 +127,11 @@ defmodule Jsonpatch.PathUtil do
   defp do_update_final_destination(%{} = target, new_final_dest, [fragment | tail]) do
     case Map.get(target, fragment) do
       nil ->
-        {:error, :invalid_path}
+        {:error, :invalid_path, fragment}
 
       val ->
         case do_update_final_destination(val, new_final_dest, tail) do
-          {:error, _} = error -> error
+          {:error, _, _} = error -> error
           updated_val -> %{target | fragment => updated_val}
         end
     end

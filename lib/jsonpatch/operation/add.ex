@@ -17,11 +17,11 @@ end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
 
-  @spec apply_op(Jsonpatch.Operation.Add.t(), map | :error) :: map
+  @spec apply_op(Jsonpatch.Operation.Add.t(), map | Jsonpatch.error()) :: map
   def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target) do
     case Jsonpatch.PathUtil.get_final_destination(target, path) do
-      {:error, _} ->
-        target
+      {:error, _, _} = error ->
+        error
 
       {final_destination, last_fragment} ->
         updated_final_destination = Map.put_new(final_destination, last_fragment, value)
@@ -29,5 +29,5 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
     end
   end
 
-  def apply_op(_, :error), do: :error
+  def apply_op(_, {:error, _, _} = error), do: error
 end

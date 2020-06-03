@@ -21,6 +21,11 @@ defmodule Jsonpatch do
   """
   @type t :: Add.t() | Remove.t() | Replace.t() | Copy.t() | Move.t() | Test.t()
 
+  @typedoc """
+  Describe an error that occured while patching.
+  """
+  @type error :: {:error, :invalid_path | :invalid_index | :test_failed, bitstring()}
+
   @doc """
   Apply a Jsonpatch to a map or struct. The whole patch will not be applied
   when any path is invalid or any other error occured.
@@ -47,12 +52,12 @@ defmodule Jsonpatch do
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
-      %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
+      {:error, :test_failed, "Expected value 'Alice' at '/name'"}
   """
   @spec(
     apply_patch(Jsonpatch.t() | list(Jsonpatch.t()), map()) ::
       map(),
-    Jsonpatch.t() | list(Jsonpatch.t())
+    Jsonpatch.t() | list(Jsonpatch.t()) | Jsonpatch.error()
   )
   def apply_patch(json_patch, target)
 
@@ -68,45 +73,13 @@ defmodule Jsonpatch do
       |> Enum.reduce(target, &Jsonpatch.Operation.apply_op/2)
 
     case result do
-      :error -> target
+      {:error, _, _} = error -> error
       ok_result -> ok_result
     end
   end
 
-  def apply_patch(%Add{} = json_patch, %{} = target) do
+  def apply_patch(json_patch, %{} = target) do
     Operation.apply_op(json_patch, target)
-  end
-
-  def apply_patch(%Replace{} = json_patch, %{} = target) do
-    Operation.apply_op(json_patch, target)
-  end
-
-  def apply_patch(%Remove{} = json_patch, %{} = target) do
-    case Operation.apply_op(json_patch, target) do
-      :error -> target
-      update_val -> update_val
-    end
-  end
-
-  def apply_patch(%Copy{} = json_patch, %{} = target) do
-    case Operation.apply_op(json_patch, target) do
-      :error -> target
-      updated_val -> updated_val
-    end
-  end
-
-  def apply_patch(%Move{} = json_patch, %{} = target) do
-    case Operation.apply_op(json_patch, target) do
-      :error -> target
-      updated_val -> updated_val
-    end
-  end
-
-  def apply_patch(%Test{} = json_patch, %{} = target) do
-    case Operation.apply_op(json_patch, target) do
-      :ok -> target
-      :error -> :error
-    end
   end
 
   @doc """

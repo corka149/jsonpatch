@@ -17,7 +17,7 @@ end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
 
-  @spec apply_op(Jsonpatch.Operation.Copy.t(), map() | :error) :: map() | :error
+  @spec apply_op(Jsonpatch.Operation.Copy.t(), map() | Jsonpatch.error()) :: map()
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
 
@@ -28,17 +28,21 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
       |> do_copy(target, path)
 
     case updated_val do
-      {:error, _} -> :error
+      {:error, _, _} = error -> error
       updated_val -> updated_val
     end
   end
 
-  def apply_op(_, :error), do: :error
+  def apply_op(_, {:error, _, _} = error), do: error
 
   # ===== ===== PRIVATE ===== =====
 
   defp do_copy(nil, target, _path) do
     target
+  end
+
+  defp do_copy({:error, _, _} = error, _target, _path) do
+    error
   end
 
   defp do_copy(copied_value, target, path) do
@@ -53,34 +57,38 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
       # %{"b" => %{"c" => "Bob"}} is the "copy target"
       |> Jsonpatch.PathUtil.get_final_destination(path)
       # Add copied_value to "copy target"
+      |> IO.inspect
       |> do_add(copied_value, copy_path_end)
 
     case updated_value do
-      {:error, _} = error -> error
+      {:error, _, _} = error -> error
       updated_value -> Jsonpatch.PathUtil.update_final_destination(target, updated_value, path)
     end
   end
 
   defp extract_copy_value({%{} = final_destination, fragment}) do
-    Map.get(final_destination, fragment)
+    Map.get(final_destination, fragment, {:error, :invalid_path, fragment})
   end
 
   defp extract_copy_value({final_destination, fragment}) when is_list(final_destination) do
     case Integer.parse(fragment) do
       :error ->
-        :error
+        {:error, :invalid_index, fragment}
 
       {index, _} ->
-        {val, _} =
+        result =
           final_destination
           |> Enum.with_index()
           |> Enum.find(fn {_, other_index} -> index == other_index end)
 
-        val
+        case result do
+          nil -> {:error, :invalid_index, fragment}
+          {val, _} -> val
+        end
     end
   end
 
-  defp extract_copy_value({:error, _} = error) do
+  defp extract_copy_value({:error, _, _} = error) do
     error
   end
 
@@ -92,18 +100,14 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
        when is_list(copy_target) do
     case Integer.parse(copy_path_end) do
       :error ->
-        :error
+        {:error, :invalid_index, copy_target}
 
       {index, _} ->
         List.insert_at(copy_target, index, copied_value)
     end
   end
 
-  defp do_add({:error, :invalid_path} = error, _, _) do
+  defp do_add({:error, _, _} = error, _, _) do
     error
-  end
-
-  defp do_add(_, _, _) do
-    {:error, :invalid_parameter}
   end
 end
