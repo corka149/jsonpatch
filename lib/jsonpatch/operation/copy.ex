@@ -56,7 +56,6 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
       # %{"b" => %{"c" => "Bob"}} is the "copy target"
       |> Jsonpatch.PathUtil.get_final_destination(path)
       # Add copied_value to "copy target"
-      |> IO.inspect()
       |> do_add(copied_value, copy_path_end)
 
     case updated_value do

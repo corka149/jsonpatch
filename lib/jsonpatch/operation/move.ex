@@ -21,7 +21,7 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Move do
   alias Jsonpatch.Operation.Remove
 
   @spec apply_op(Jsonpatch.Operation.Move.t(), map | Jsonpatch.error()) ::
-          map() | Jsonpatch.error()
+          map()
   def apply_op(%Jsonpatch.Operation.Move{from: from, path: path}, target) do
     copy_patch = %Copy{from: from, path: path}
 

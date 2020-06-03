@@ -20,6 +20,7 @@ defmodule Jsonpatch.Mapper do
   def to_map(patch_operations) when is_list(patch_operations) do
     Enum.map(patch_operations, &prepare/1)
     |> Enum.filter(&is_valid/1)
+    |> Enum.map(&Map.from_struct/1)
   end
 
   def to_map(%{} = patch_operation) do
