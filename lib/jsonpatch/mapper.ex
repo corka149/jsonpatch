@@ -85,10 +85,6 @@ defmodule Jsonpatch.Mapper do
     {:error, :invalid}
   end
 
-  defp convert_to(json_patch) when is_list(json_patch) do
-    Enum.map(json_patch, fn patch_part -> convert_to(patch_part) end)
-  end
-
   defp convert_to(%{"op" => "add", "path" => path, "value" => value}) do
     %Jsonpatch.Operation.Add{path: path, value: value}
   end
