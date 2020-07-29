@@ -98,7 +98,7 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
        when is_list(copy_target) do
     case Integer.parse(copy_path_end) do
       :error ->
-        {:error, :invalid_index, copy_target}
+        {:error, :invalid_index, copy_path_end}
 
       {index, _} ->
         List.insert_at(copy_target, index, copied_value)

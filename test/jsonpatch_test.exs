@@ -232,4 +232,28 @@ defmodule JsonpatchTest do
 
     assert {:error, :invalid_index, "4"} = Jsonpatch.apply_patch(patch, target)
   end
+
+  test "Apply patch with failing test and expect error" do
+    patch = [
+      %Jsonpatch.Operation.Add{path: "/age", value: 33},
+      %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
+      %Jsonpatch.Operation.Replace{path: "/married", value: true},
+      %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
+      %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"},
+      %Jsonpatch.Operation.Move{from: "/home", path: "/work"},
+      # Name is Bob therefore this should fail
+      %Jsonpatch.Operation.Test{path: "/name", value: "Alice"},
+      # Should never be applied
+      %Jsonpatch.Operation.Test{path: "/year", value: 1980}
+    ]
+
+    target = %{
+      "name" => "Bob",
+      "married" => false,
+      "hobbies" => ["Sport", "Elixir", "Football"],
+      "home" => "Berlin"
+    }
+
+    assert {:error, :test_failed, "Expected value 'Alice' at '/name'"} = Jsonpatch.apply_patch(patch, target)
+  end
 end

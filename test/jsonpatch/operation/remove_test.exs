@@ -56,4 +56,16 @@ defmodule Jsonpatch.Operation.RemoveTest do
     remove_patch = %Jsonpatch.Operation.Remove{path: "/nameX"}
     assert {:error, :invalid_path, "nameX"} = Jsonpatch.apply_patch(remove_patch, target)
   end
+
+  test "Remove element by invalid index" do
+    target = %{
+      "name" => "Bob",
+      "married" => false,
+      "hobbies" => ["Sport", "Elixir", "Football"],
+      "home" => "Berlin"
+    }
+
+    remove_patch = %Jsonpatch.Operation.Remove{path: "/hobbies/a"}
+    assert {:error, :invalid_index, "a"} = Jsonpatch.apply_patch(remove_patch, target)
+  end
 end
