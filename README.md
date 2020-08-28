@@ -77,7 +77,7 @@ by adding `jsonpatch` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:jsonpatch, "~> 0.9.0"}
+    {:jsonpatch, "~> 0.9.1"}
   ]
 end
 ```
