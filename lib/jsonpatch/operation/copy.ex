@@ -36,10 +36,6 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
 
   # ===== ===== PRIVATE ===== =====
 
-  defp do_copy(nil, target, _path) do
-    target
-  end
-
   defp do_copy({:error, _, _} = error, _target, _path) do
     error
   end

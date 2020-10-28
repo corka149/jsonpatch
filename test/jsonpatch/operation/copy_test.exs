@@ -48,9 +48,9 @@ defmodule Jsonpatch.Operation.CopyTest do
     assert ^excpected_target = patched_target
   end
 
-  test "Copy element by path with invalid source index and expect error" do
-    path = "/a/b/1/c/a"
+  test "Copy element by path with invalid target index and expect error" do
     from = "/a/b/1/c/2"
+    to = "/a/b/1/c/a"
 
     target = %{
       "a" => %{
@@ -67,16 +67,31 @@ defmodule Jsonpatch.Operation.CopyTest do
       }
     }
 
-    copy_op = %Copy{path: path, from: from}
+    copy_op = %Copy{path: to, from: from}
 
     patched_target = Operation.apply_op(copy_op, target)
 
     assert {:error, :invalid_index, "a"} = patched_target
   end
 
-  test "Copy element by path with invalid target index and expect error" do
-    path = "/a/b/1/c/2"
+  test "Copy element by path with invalid soure path and expect error" do
+    from = "/b"
+    to = "/c"
+
+    target = %{
+      "a" => 1
+    }
+
+    copy_op = %Copy{path: to, from: from}
+
+    patched_target = Operation.apply_op(copy_op, target)
+
+    assert {:error, :invalid_path, "b"} = patched_target
+  end
+
+  test "Copy element by path with invalid source index and expect error" do
     from = "/a/b/1/c/b"
+    to = "/a/b/1/c/2"
 
     target = %{
       "a" => %{
@@ -93,7 +108,7 @@ defmodule Jsonpatch.Operation.CopyTest do
       }
     }
 
-    copy_op = %Copy{path: path, from: from}
+    copy_op = %Copy{path: to, from: from}
 
     patched_target = Operation.apply_op(copy_op, target)
 
