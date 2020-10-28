@@ -30,6 +30,7 @@ jobs:
       - run: mix deps.get
       - run: mix dialyzer
       - run: mix credo --strict
+      - run: mix inch.report
       
   coverage:
     name: Coverage
