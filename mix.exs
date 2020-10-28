@@ -36,8 +36,7 @@ defmodule Jsonpatch.MixProject do
       ## type checking
       {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
       ## Docs
-      {:ex_doc, "~> 0.22.1", only: [:dev], runtime: false},
-      {:inch_ex, only: [:dev, :test]}
+      {:ex_doc, "~> 0.22.1", only: [:dev], runtime: false}
     ]
   end
 
