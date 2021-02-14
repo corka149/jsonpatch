@@ -19,7 +19,9 @@ defmodule Jsonpatch.MixProject do
 
   # Run "mix help compile.app" to learn about applications.
   def application do
-    []
+    [
+      extra_applications: [:logger]
+    ]
   end
 
   # Run "mix help deps" to learn about dependencies.
@@ -39,7 +41,7 @@ defmodule Jsonpatch.MixProject do
       ## Docs
       {:ex_doc, "~> 0.22.1", only: [:dev], runtime: false},
       ## Mutation testing
-      {:muzak, "~> 1.1"}
+      {:muzak, "~> 1.1", only: :test}
     ]
   end
 
