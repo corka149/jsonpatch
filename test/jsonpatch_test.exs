@@ -115,11 +115,11 @@ defmodule JsonpatchTest do
     test "Create diff for a Kubernetes deployment" do
       source =
         File.read!("test/jsonpatch/res/deploy_source.json")
-        |> Poison.Parser.parse!()
+        |> Poison.Parser.parse!(%{})
 
       destination =
         File.read!("test/jsonpatch/res/deploy_destination.json")
-        |> Poison.Parser.parse!()
+        |> Poison.Parser.parse!(%{})
 
       patch = Jsonpatch.diff(source, destination)
 
@@ -254,6 +254,7 @@ defmodule JsonpatchTest do
       "home" => "Berlin"
     }
 
-    assert {:error, :test_failed, "Expected value 'Alice' at '/name'"} = Jsonpatch.apply_patch(patch, target)
+    assert {:error, :test_failed, "Expected value 'Alice' at '/name'"} =
+             Jsonpatch.apply_patch(patch, target)
   end
 end

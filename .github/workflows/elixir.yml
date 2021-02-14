@@ -10,8 +10,8 @@ jobs:
     - name: Setup elixir
       uses: actions/setup-elixir@v1
       with:
-        otp-version: 22.x
-        elixir-version: 1.9.x
+        otp-version: 23.x
+        elixir-version: 1.11.x
     - name: Install Dependencies
       run: mix deps.get
     - name: Run Tests
@@ -19,17 +19,18 @@ jobs:
 
   analyze:
     runs-on: ubuntu-latest
-    name: Dialyzer - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    name: Analyze - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     steps:
       - uses: actions/checkout@v1.0.0
       - name: Setup elixir
         uses: actions/setup-elixir@v1.0.0
         with:
-          otp-version: 22.x
-          elixir-version: 1.9.x
+          otp-version: 23.x
+          elixir-version: 1.11.x
       - run: mix deps.get
       - run: mix dialyzer
       - run: mix credo --strict
+      - run: mix muzak
       
   coverage:
     name: Coverage
@@ -38,11 +39,11 @@ jobs:
       MIX_ENV: test
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v1.0.0
+      - uses: actions/checkout@v2
       - name: Setup elixir
-        uses: actions/setup-elixir@v1.0.0
+        uses: actions/setup-elixir@v1
         with:
-          otp-version: 22.x
-          elixir-version: 1.9.x
+          otp-version: 23.x
+          elixir-version: 1.11.x
       - run: mix deps.get
       - run: mix coveralls.github
