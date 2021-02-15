@@ -49,6 +49,7 @@ defmodule Jsonpatch.MixProject do
     [
       maintainers: ["Sebastian Ziemann"],
       licenses: ["MIT"],
+      source_url: "https://github.com/corka149/jsonpatch",
       links: %{
         "GitHub" => "https://github.com/corka149/jsonpatch"
       }
