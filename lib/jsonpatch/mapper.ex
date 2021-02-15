@@ -1,6 +1,6 @@
 defmodule Jsonpatch.Mapper do
   @moduledoc """
-  Maps JSON patches between regular maps and Jsonpatch.PathUtils.
+  Maps JSON patches between regular Maps and list or a single Jsonpatch.Operation.
   """
 
   @doc """

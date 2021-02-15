@@ -1,7 +1,8 @@
 defmodule Jsonpatch.FlatMap do
-  @moduledoc """
-  Forms structs in a flat format with paths instead of nested maps/structs.
-  """
+  @moduledoc false
+
+  # ===== Internal documentation =====
+  # Forms structs in a flat format with paths instead of nested maps/structs.
 
   @doc ~S"""
   Parses any map with/out arrays to a flat map.

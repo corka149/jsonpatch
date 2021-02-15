@@ -1,7 +1,8 @@
 defmodule Jsonpatch.PathUtil do
-  @moduledoc """
-  Helper module for handling JSON paths.
-  """
+  @moduledoc false
+
+  # ===== Internal documentation =====
+  # Helper module for handling JSON paths.
 
   alias Jsonpatch.Operation.Add
   alias Jsonpatch.Operation.Remove
