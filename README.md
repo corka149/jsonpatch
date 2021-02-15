@@ -1,6 +1,8 @@
 # Jsonpatch
 ![Elixir CI](https://github.com/corka149/jsonpatch/workflows/Elixir%20CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/corka149/jsonpatch/badge.svg?branch=master)](https://coveralls.io/github/corka149/jsonpatch?branch=master)
+[![Generic badge](https://img.shields.io/badge/Mutation-Tested-success.svg)](https://shields.io/)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
 
 A implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elixir.
 
