@@ -3,35 +3,63 @@ name: Elixir CI
 on: push
 
 jobs:
+  # unit tests
   test:
     runs-on: ubuntu-latest
+    name: Test - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      matrix:
+        otp: ["21.x", "22.x", "23.x"]
+        elixir: ["1.9.x", "1.10.x", "1.11.x"]
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup elixir
-      uses: actions/setup-elixir@v1
-      with:
-        otp-version: 23.x
-        elixir-version: 1.11.x
-    - name: Install Dependencies
-      run: mix deps.get
-    - name: Run Tests
-      run: mix test
-
-  analyze:
-    runs-on: ubuntu-latest
-    name: Analyze - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
-    steps:
-      - uses: actions/checkout@v1.0.0
+      - uses: actions/checkout@v2
       - name: Setup elixir
-        uses: actions/setup-elixir@v1.0.0
+        uses: erlef/setup-elixir@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      - name: Install Dependencies
+        run: mix deps.get
+      - name: Run Tests
+        run: mix test
+
+  # mutation tests
+  test-mutation:
+    name: Test mutation
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: test
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup elixir
+        uses: erlef/setup-elixir@v1
         with:
           otp-version: 23.x
           elixir-version: 1.11.x
       - run: mix deps.get
+      - run: mix muzak
+
+  # Linit and type checking
+  analyze:
+    runs-on: ubuntu-latest
+    name: Analyze - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      matrix:
+        otp: ["21.x", "22.x", "23.x"]
+        elixir: ["1.9.x", "1.10.x", "1.11.x"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup elixir
+        uses: erlef/setup-elixir@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      - run: mix deps.get
       - run: mix dialyzer
       - run: mix credo --strict
-      - run: mix muzak
-      
+
+  # Coverage
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
@@ -41,7 +69,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Setup elixir
-        uses: actions/setup-elixir@v1
+        uses: erlef/setup-elixir@v1
         with:
           otp-version: 23.x
           elixir-version: 1.11.x

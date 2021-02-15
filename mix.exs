@@ -7,7 +7,7 @@ defmodule Jsonpatch.MixProject do
       name: "Jsonpatch",
       description: "Implementation of RFC 6902 in pure Elixir",
       version: "0.9.2",
-      elixir: "~> 1.11",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
@@ -33,15 +33,15 @@ defmodule Jsonpatch.MixProject do
       ## testing with real json files
       {:poison, "~> 4.0", only: [:test]},
       ## code test coverage
-      {:excoveralls, "~> 0.14", only: [:test]},
+      {:excoveralls, "~> 0.14.0", only: [:test]},
       ## linting
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.5.0", only: [:dev, :test], runtime: false},
       ## type checking
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
       ## Docs
       {:ex_doc, "~> 0.22.1", only: [:dev], runtime: false},
       ## Mutation testing
-      {:muzak, "~> 1.1", only: :test}
+      {:muzak, "~> 1.1.0", only: :test}
     ]
   end
 
