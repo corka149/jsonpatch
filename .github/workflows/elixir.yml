@@ -28,8 +28,7 @@ jobs:
     name: Test mutation
     runs-on: ubuntu-latest
     env:
-      MIX_ENV: test
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      MIX_ENV: mutation
     steps:
       - uses: actions/checkout@v2
       - name: Setup elixir
@@ -38,7 +37,7 @@ jobs:
           otp-version: 23.x
           elixir-version: 1.11.x
       - run: mix deps.get
-      - run: mix muzak
+      - run: mix muzak --min-coverage 95.0
 
   # Linit and type checking
   analyze:

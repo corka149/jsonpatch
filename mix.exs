@@ -41,7 +41,7 @@ defmodule Jsonpatch.MixProject do
       ## Docs
       {:ex_doc, "~> 0.22.1", only: [:dev], runtime: false},
       ## Mutation testing
-      {:muzak, "~> 1.1.0", only: :test}
+      {:muzak, "~> 1.1.0", only: :mutation}
     ]
   end
 

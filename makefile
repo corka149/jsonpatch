@@ -4,4 +4,4 @@ check:
 	mix test
 	mix dialyzer
 	mix credo --strict
-	mix muzak
+	MIX_ENV=mutation mix muzak --min-coverage 95.0
