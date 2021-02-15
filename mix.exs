@@ -6,14 +6,18 @@ defmodule Jsonpatch.MixProject do
       app: :jsonpatch,
       name: "Jsonpatch",
       description: "Implementation of RFC 6902 in pure Elixir",
-      version: "0.9.2",
+      version: "0.9.3",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
       package: package(),
       source_url: "https://github.com/corka149/jsonpatch",
-      preferred_cli_env: [muzak: :test]
+      preferred_cli_env: [muzak: :test],
+      docs: [
+        main: "readme",
+        extras: ["README.md"]
+      ]
     ]
   end
 
