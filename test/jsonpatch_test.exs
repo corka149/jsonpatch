@@ -91,27 +91,6 @@ defmodule JsonpatchTest do
       assert [%Replace{path: "/a/b/c/1", value: "d3"}] = patch
     end
 
-    test "A.10. Adding a Nested Member Object" do
-    end
-
-    test "A.11. Ignoring Unrecognized Elements" do
-    end
-
-    test "A.12. Adding to a Nonexistent Target" do
-    end
-
-    test "A.13. Invalid JSON Patch Document" do
-    end
-
-    test "A.14. ~ Escape Ordering" do
-    end
-
-    test "A.15. Comparing Strings and Numbers" do
-    end
-
-    test "A.16. Adding an Array Value" do
-    end
-
     test "Create diff for a Kubernetes deployment" do
       source =
         File.read!("test/jsonpatch/res/deploy_source.json")
