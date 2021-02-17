@@ -20,7 +20,21 @@ Features:
 3. De/Encoding and mapping 
 
 
-## Usage
+## Getting started
+
+### Installation
+
+The package can be installed by adding `jsonpatch` to your list of dependencies in `mix.exs`:
+
+```elixir
+def deps do
+  [
+    {:jsonpatch, "~> 0.9.3"}
+  ]
+end
+```
+
+The docs can be found at [https://hexdocs.pm/jsonpatch](https://hexdocs.pm/jsonpatch).
 
 ### Create a diff
 
@@ -37,7 +51,7 @@ iex> Jsonpatch.diff(source, destination)
 ]}
 ```
 
-### Mapping for de and encoding
+### Mapping for de- and encoding
 
 Map a JSON patch struct to a regular map.
 
@@ -69,24 +83,6 @@ iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Eli
 iex> Jsonpatch.apply_patch(patch, target)
 %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
 ```
-
-
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `jsonpatch` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:jsonpatch, "~> 0.9.3"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/jsonpatch](https://hexdocs.pm/jsonpatch).
 
 ## Important sources
 - [Official RFC 6902](https://tools.ietf.org/html/rfc6902)
