@@ -7,7 +7,7 @@ defmodule JsonpatchException do
 
   @impl true
   def exception({:error, err_type, err_msg} = _error) do
-    msg = "#{err_type}: #{err_msg}"
+    msg = "#{err_type}: '#{err_msg}'"
     %JsonpatchException{message: msg}
   end
 end
