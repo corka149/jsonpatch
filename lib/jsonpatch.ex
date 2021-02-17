@@ -5,6 +5,9 @@ defmodule Jsonpatch do
   The patch can be a single change or a list of things that shall be changed. Therefore
   a list or a single JSON patch can be provided. Every patch belongs to a certain operation
   which influences the usage.
+
+  Accorrding to [RFC 6901](https://tools.ietf.org/html/rfc6901) escaping of `/` and `~` is done
+  by using `~1` for `/` and `~0` for `~`.
   """
 
   alias Jsonpatch.FlatMap
@@ -43,7 +46,7 @@ defmodule Jsonpatch do
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
-      %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob", "work" => "Berlin"}
+      {:ok, %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33, "surname" => "Bob", "work" => "Berlin"}}
 
       iex> # Patch will not be applied if test fails. The target will not be changed.
       iex> patch = [
@@ -54,11 +57,8 @@ defmodule Jsonpatch do
       iex> Jsonpatch.apply_patch(patch, target)
       {:error, :test_failed, "Expected value 'Alice' at '/name'"}
   """
-  @spec(
-    apply_patch(Jsonpatch.t() | list(Jsonpatch.t()), map()) ::
-      map(),
-    Jsonpatch.t() | list(Jsonpatch.t()) | Jsonpatch.error()
-  )
+  @spec apply_patch(Jsonpatch.t() | list(Jsonpatch.t()), map()) ::
+          {:ok, map()} | Jsonpatch.error()
   def apply_patch(json_patch, target)
 
   def apply_patch(json_patch, %{} = target) when is_list(json_patch) do
@@ -74,12 +74,17 @@ defmodule Jsonpatch do
 
     case result do
       {:error, _, _} = error -> error
-      ok_result -> ok_result
+      ok_result -> {:ok, ok_result}
     end
   end
 
   def apply_patch(json_patch, %{} = target) do
-    Operation.apply_op(json_patch, target)
+    result = Operation.apply_op(json_patch, target)
+
+    case result do
+      {:error, _, _} = error -> error
+      ok_result -> {:ok, ok_result}
+    end
   end
 
   @doc """
