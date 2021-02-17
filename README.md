@@ -18,7 +18,8 @@ Features:
     - copy
     - move
     - test
-3. De/Encoding and mapping 
+3. De/Encoding and mapping
+4. Escaping of "`/`" (by "`~1`") and "`~`" (by "`~0`")
 
 
 ## Getting started
@@ -30,7 +31,7 @@ The package can be installed by adding `jsonpatch` to your list of dependencies 
 ```elixir
 def deps do
   [
-    {:jsonpatch, "~> 0.9.3"}
+    {:jsonpatch, "~> 0.10.0"}
   ]
 end
 ```
@@ -82,7 +83,7 @@ iex> patch = [
 ]
 iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"]}
 iex> Jsonpatch.apply_patch(patch, target)
-%{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
+{:ok, %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}}
 ```
 
 ## Important sources
