@@ -54,7 +54,7 @@ defmodule Jsonpatch.PathUtil do
       iex> Jsonpatch.PathUtil.update_final_destination(target, %{"e" => 1}, path)
       %{"a" => %{"b" => %{"c" => %{"e" => 1}}}}
   """
-  @spec update_final_destination(map, map, binary) :: map | Jsonpatch.error()
+  @spec update_final_destination(map, map | list, binary) :: map | Jsonpatch.error()
   def update_final_destination(target, new_destination, path) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/") |> Enum.map(&unescape/1)

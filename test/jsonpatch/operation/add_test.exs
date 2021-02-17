@@ -45,4 +45,25 @@ defmodule Jsonpatch.Operation.AddTest do
 
     assert ^excpected_target = patched_target
   end
+
+  test "Add a value to an array" do
+    patch = %Add{path: "/a/2", value: 3}
+    target = %{"a" => [0, 1, 2]}
+
+    assert %{"a" => [0, 1, 3]} = Operation.apply_op(patch, target)
+  end
+
+  test "Add a value to an array with invalid index" do
+    patch = %Add{path: "/a/b", value: 3}
+    target = %{"a" => [0, 1, 2]}
+
+    assert {:error, :invalid_index, "b"} = Operation.apply_op(patch, target)
+  end
+
+  test "Add a value at the end of array" do
+    patch = %Add{path: "/a/-", value: 3}
+    target = %{"a" => [0, 1, 2]}
+
+    assert %{"a" => [0, 1, 2, 3]} = Operation.apply_op(patch, target)
+  end
 end

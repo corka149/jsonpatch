@@ -20,6 +20,7 @@ Features:
     - test
 3. De/Encoding and mapping
 4. Escaping of "`/`" (by "`~1`") and "`~`" (by "`~0`")
+5. Allow usage of `-` for appending things to list
 
 
 ## Getting started

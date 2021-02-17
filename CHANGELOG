@@ -2,3 +2,5 @@
 
 - Made jsonpatch more Elixir-API-like by adding Jsonpatch.apply_patch! (which raise an exception) and changed Jsonpatch.apply_patch to return a tuple.
 - Implemented escaping for '~' and '/'
+- Allow usage of '-' for Add operation
+- Fixed adding values to array
