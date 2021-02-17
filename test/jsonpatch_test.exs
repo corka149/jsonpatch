@@ -254,11 +254,15 @@ defmodule JsonpatchTest do
     end
 
     test "Apply patch with escaped '~' and '/' in path" do
-      patch = %Jsonpatch.Operation.Add{path: "/escape~1me~0now", value: "somnevalue"}
+      patch = [
+        %Jsonpatch.Operation.Add{path: "/foo/escape~1me~0now", value: "somnevalue"},
+        %Jsonpatch.Operation.Remove{path: "/bar/escape~1me~0now"}
+      ]
 
-      target = %{}
+      target = %{"foo" => %{}, "bar" => %{"escape/me~now" => 5}}
 
-      assert {:ok, %{"escape/me~now" => "somnevalue"}} = Jsonpatch.apply_patch(patch, target)
+      assert {:ok, %{"foo" => %{"escape/me~now" => "somnevalue"}, "bar" => %{}}} =
+               Jsonpatch.apply_patch(patch, target)
     end
 
     test "Apply patch with '!' and expect valid result" do

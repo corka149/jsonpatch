@@ -20,7 +20,7 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
           map()
   def apply_op(%Jsonpatch.Operation.Remove{path: path}, target) do
     # The first element is always "" which is useless.
-    [_ | fragments] = String.split(path, "/")
+    [_ | fragments] = String.split(path, "/") |> Enum.map(&Jsonpatch.PathUtil.unescape/1)
     do_remove(target, fragments)
   end
 

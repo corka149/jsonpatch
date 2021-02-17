@@ -40,7 +40,7 @@ defmodule Jsonpatch.PathUtil do
           {map, binary} | {list, binary} | Jsonpatch.error()
   def get_final_destination(target, path) when is_bitstring(path) do
     # The first element is always "" which is useless.
-    [_ | fragments] = String.split(path, "/")
+    [_ | fragments] = String.split(path, "/") |> Enum.map(&unescape/1)
     find_final_destination(target, fragments)
   end
 
@@ -57,7 +57,7 @@ defmodule Jsonpatch.PathUtil do
   @spec update_final_destination(map, map, binary) :: map | Jsonpatch.error()
   def update_final_destination(target, new_destination, path) do
     # The first element is always "" which is useless.
-    [_ | fragments] = String.split(path, "/")
+    [_ | fragments] = String.split(path, "/") |> Enum.map(&unescape/1)
     do_update_final_destination(target, new_destination, fragments)
   end
 
@@ -74,6 +74,19 @@ defmodule Jsonpatch.PathUtil do
   def operation_sort_value?(%Replace{}), do: 400
   def operation_sort_value?(%Remove{}), do: 300
   def operation_sort_value?(_), do: 0
+
+  @doc """
+  Unescape `~1` to  `/` and `~0` to `~`.
+  """
+  def unescape(fragment) when is_bitstring(fragment) do
+    fragment
+    |> String.replace("~1", "/")
+    |> String.replace("~0", "~")
+  end
+
+  def unescape(fragment) do
+    fragment
+  end
 
   # ===== ===== PRIVATE ===== =====
 
