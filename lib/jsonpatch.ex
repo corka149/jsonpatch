@@ -88,6 +88,22 @@ defmodule Jsonpatch do
   end
 
   @doc """
+  Apply a Jsonpatch to a map or struct. In case of an error
+  it will raise an exception.
+
+  (See Jsonpatch.apply_patch/2 for more details)
+  """
+  @spec apply_patch!(Jsonpatch.t() | list(Jsonpatch.t()), map()) :: map()
+  def apply_patch!(json_patch, target)
+
+  def apply_patch!(json_patch, target) do
+    case apply_patch(json_patch, target) do
+      {:ok, patched} -> patched
+      {:error, _, _} = error -> raise JsonpatchException, error
+    end
+  end
+
+  @doc """
   Creates a patch from the difference of a source map to a target map.
 
   ## Examples

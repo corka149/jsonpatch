@@ -260,5 +260,20 @@ defmodule JsonpatchTest do
 
       assert {:ok, %{"escape/me~now" => "somnevalue"}} = Jsonpatch.apply_patch(patch, target)
     end
+
+    test "Apply patch with '!' and expect valid result" do
+      patch = %Jsonpatch.Operation.Remove{path: "/name"}
+      target = %{"name" => "Alice", "age" => 44}
+
+      patched = Jsonpatch.apply_patch!(patch, target)
+      assert %{"age" => 44} = patched
+    end
+
+    test "Apply patch with '!' and expect exception" do
+      patch = %Jsonpatch.Operation.Replace{path: "/surname", value: "Misty"}
+      target = %{"name" => "Alice", "age" => 44}
+
+      assert_raise JsonpatchException, fn -> Jsonpatch.apply_patch!(patch, target) end
+    end
   end
 end
