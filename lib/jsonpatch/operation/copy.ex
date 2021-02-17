@@ -17,6 +17,8 @@ end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
   @spec apply_op(Jsonpatch.Operation.Copy.t(), map() | Jsonpatch.error()) :: map()
+  def apply_op(_, {:error, _, _} = error), do: error
+
   def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
     # %{"c" => "Bob"}
 
@@ -31,8 +33,6 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
       updated_val -> updated_val
     end
   end
-
-  def apply_op(_, {:error, _, _} = error), do: error
 
   # ===== ===== PRIVATE ===== =====
 
@@ -80,10 +80,6 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
           {val, _} -> val
         end
     end
-  end
-
-  defp extract_copy_value({:error, _, _} = error) do
-    error
   end
 
   defp do_add({%{} = copy_target, _last_fragment}, copied_value, copy_path_end) do

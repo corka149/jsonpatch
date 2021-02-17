@@ -17,6 +17,8 @@ end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
   @spec apply_op(Jsonpatch.Operation.Test.t(), map | Jsonpatch.error()) :: map()
+  def apply_op(_, {:error, _, _} = error), do: error
+
   def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target) do
     if Jsonpatch.PathUtil.get_final_destination(target, path) |> do_test(value) do
       target
@@ -24,8 +26,6 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
       {:error, :test_failed, "Expected value '#{value}' at '#{path}'"}
     end
   end
-
-  def apply_op(_, {:error, _, _} = error), do: error
 
   # ===== ===== PRIVATE ===== =====
 

@@ -11,4 +11,11 @@ defmodule Jsonpatch.PathUtilTest do
     assert {:error, :invalid_path, "x"} =
              PathUtil.update_final_destination(target, %{"e" => 1}, path)
   end
+
+  test "Unescape '~' and '/'" do
+    assert "unescape~me" = PathUtil.unescape("unescape~0me")
+    assert "unescape/me" = PathUtil.unescape("unescape~1me")
+    assert "unescape~me/" = PathUtil.unescape("unescape~0me~1")
+    assert 1 = PathUtil.unescape(1)
+  end
 end

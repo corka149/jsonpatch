@@ -18,13 +18,13 @@ end
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
   @spec apply_op(Jsonpatch.Operation.Remove.t(), map | Jsonpatch.error()) ::
           map()
+  def apply_op(_, {:error, _, _} = error), do: error
+
   def apply_op(%Jsonpatch.Operation.Remove{path: path}, target) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/") |> Enum.map(&Jsonpatch.PathUtil.unescape/1)
     do_remove(target, fragments)
   end
-
-  def apply_op(_, {:error, _, _} = error), do: error
 
   # ===== ===== PRIVATE ===== =====
 
@@ -75,9 +75,5 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
           _ -> update_list
         end
     end
-  end
-
-  defp do_remove({:error, _, _} = error, _) do
-    error
   end
 end
