@@ -77,10 +77,6 @@ defmodule Jsonpatch.PathUtil do
 
   # ===== ===== PRIVATE ===== =====
 
-  # defp find_final_destination(nil, _) do
-  #  error
-  # end
-
   defp find_final_destination({:error, _, _} = error, _) do
     error
   end
