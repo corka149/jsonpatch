@@ -28,10 +28,9 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Replace do
   # ===== ===== PRIVATE ===== =====
 
   defp do_update(%{} = final_destination, last_fragment, value) do
-    if Map.has_key?(final_destination, last_fragment) do
-      Map.replace!(final_destination, last_fragment, value)
-    else
-      {:error, :invalid_path, last_fragment}
+    case final_destination do
+      %{^last_fragment => _} -> %{final_destination | last_fragment => value}
+      _ -> {:error, :invalid_path, last_fragment}
     end
   end
 
