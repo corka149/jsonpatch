@@ -135,7 +135,7 @@ defmodule JsonpatchTest do
 
       actual_patch = Jsonpatch.diff(source, destination)
 
-      assert %Jsonpatch.Operation.Add{path: "/escape~1me~0now", value: "somnevalue"} =
+      assert [%Jsonpatch.Operation.Add{path: "/escape~1me~0now", value: "somnevalue"}] =
                actual_patch
     end
   end
@@ -258,7 +258,7 @@ defmodule JsonpatchTest do
 
       target = %{}
 
-      assert %{"escape/me~now" => "somnevalue"} = Jsonpatch.apply_patch(patch, target)
+      assert {:ok, %{"escape/me~now" => "somnevalue"}} = Jsonpatch.apply_patch(patch, target)
     end
   end
 end
