@@ -20,10 +20,10 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
   def apply_op(_, {:error, _, _} = error), do: error
 
   def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target) do
-    if Jsonpatch.PathUtil.get_final_destination(target, path) |> do_test(value) do
-      target
-    else
-      {:error, :test_failed, "Expected value '#{value}' at '#{path}'"}
+    case Jsonpatch.PathUtil.get_final_destination(target, path) |> do_test(value) do
+      true -> target
+      false -> {:error, :test_failed, "Expected value '#{value}' at '#{path}'"}
+      {:error, _, _} = error -> error
     end
   end
 
@@ -36,14 +36,13 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
   defp do_test({target, last_fragment}, value) when is_list(target) do
     case Integer.parse(last_fragment) do
       {index, _} ->
-        {target_val, _index} =
-          Enum.with_index(target)
-          |> Enum.find(fn {_, i} -> i == index end)
-
-        target_val == value
+        case Enum.fetch(target, index) do
+          {:ok, target_val} -> target_val == value
+          :error -> {:error, :invalid_index, last_fragment}
+        end
 
       :error ->
-        false
+        {:error, :invalid_index, last_fragment}
     end
   end
 end
