@@ -126,7 +126,17 @@ defmodule Jsonpatch.Operation.CopyTest do
     assert %{"a" => [999, 999]} = patched
   end
 
-  test "Copy list element with invalid index" do
+  test "Copy list element from invalid index" do
+    patch = %Copy{from: "/a/6", path: "/a/0"}
+
+    target = %{"a" => [999, 888]}
+
+    patched_error = Operation.apply_op(patch, target)
+
+    assert {:error, :invalid_index, "6"} = patched_error
+  end
+
+  test "Copy list element to invalid index" do
     patch = %Copy{from: "/a/0", path: "/a/5"}
 
     target = %{"a" => [999, 888]}
