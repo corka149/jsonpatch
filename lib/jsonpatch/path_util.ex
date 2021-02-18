@@ -108,9 +108,9 @@ defmodule Jsonpatch.PathUtil do
   defp find_final_destination(target, [fragment | tail]) when is_list(target) do
     {index, _} = Integer.parse(fragment)
 
-    case Enum.with_index(target) |> Enum.find(fn {_val, i} -> i == index end) do
-      nil -> {:error, :invalid_index, fragment}
-      {val, _} -> find_final_destination(val, tail)
+    case Enum.fetch(target, index) do
+      :error -> {:error, :invalid_index, fragment}
+      {:ok, val} -> find_final_destination(val, tail)
     end
   end
 

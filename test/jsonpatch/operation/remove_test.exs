@@ -1,4 +1,4 @@
-defmodule Jsonpatch.Operation.RemoveTest do
+defmodule RemoveTest do
   use ExUnit.Case
 
   alias Jsonpatch.Operation
@@ -53,7 +53,7 @@ defmodule Jsonpatch.Operation.RemoveTest do
       "home" => "Berlin"
     }
 
-    remove_patch = %Jsonpatch.Operation.Remove{path: "/nameX"}
+    remove_patch = %Remove{path: "/nameX"}
     assert {:error, :invalid_path, "nameX"} = Jsonpatch.apply_patch(remove_patch, target)
   end
 
@@ -65,7 +65,7 @@ defmodule Jsonpatch.Operation.RemoveTest do
       "home" => "Berlin"
     }
 
-    remove_patch = %Jsonpatch.Operation.Remove{path: "/hobbies/a"}
+    remove_patch = %Remove{path: "/hobbies/a"}
     assert {:error, :invalid_index, "a"} = Jsonpatch.apply_patch(remove_patch, target)
 
     # Longer path
@@ -76,18 +76,11 @@ defmodule Jsonpatch.Operation.RemoveTest do
       "home" => "Berlin"
     }
 
-    remove_patch = %Jsonpatch.Operation.Remove{path: "/hobbies/b/description"}
+    remove_patch = %Remove{path: "/hobbies/b/description"}
     assert {:error, :invalid_index, "b"} = Jsonpatch.apply_patch(remove_patch, target)
 
-    # Longer path, numeric
-    target = %{
-      "name" => "Bob",
-      "married" => false,
-      "hobbies" => [%{"description" => "Foo"}],
-      "home" => "Berlin"
-    }
-
-    remove_patch = %Jsonpatch.Operation.Remove{path: "/hobbies/1/description"}
+    # Longer path, numeric - out of
+    remove_patch = %Remove{path: "/hobbies/1/description"}
     assert {:error, :invalid_index, "1"} = Jsonpatch.apply_patch(remove_patch, target)
   end
 end

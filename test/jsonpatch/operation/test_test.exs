@@ -51,4 +51,18 @@ defmodule Jsonpatch.Operation.TestTest do
 
     assert {:error, :test_failed, "Expected value '42' at '/a/b/1/c/1'"} = patched_target
   end
+
+  test "Test list with index out of range" do
+    test = %Test{path: "/m/2", value: "foo"}
+    target = %{"m" => [0, 1]}
+
+    assert {:error, :invalid_index, "2"} = Operation.apply_op(test, target)
+  end
+
+  test "Test list with invalid index" do
+    test = %Test{path: "/m/b", value: "foo"}
+    target = %{"m" => [0, 1]}
+
+    assert {:error, :invalid_index, "b"} = Operation.apply_op(test, target)
+  end
 end

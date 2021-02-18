@@ -70,14 +70,9 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
         {:error, :invalid_index, fragment}
 
       {index, _} ->
-        result =
-          final_destination
-          |> Enum.with_index()
-          |> Enum.find(fn {_, other_index} -> index == other_index end)
-
-        case result do
-          nil -> {:error, :invalid_index, fragment}
-          {val, _} -> val
+        case Enum.fetch(final_destination, index) do
+          :error -> {:error, :invalid_index, fragment}
+          {:ok, val} -> val
         end
     end
   end
@@ -88,12 +83,20 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
 
   defp do_add({copy_target, _last_fragment}, copied_value, copy_path_end)
        when is_list(copy_target) do
-    case Integer.parse(copy_path_end) do
-      :error ->
-        {:error, :invalid_index, copy_path_end}
+    if copy_path_end == "-" do
+      List.insert_at(copy_target, length(copy_target), copied_value)
+    else
+      case Integer.parse(copy_path_end) do
+        :error ->
+          {:error, :invalid_index, copy_path_end}
 
-      {index, _} ->
-        List.insert_at(copy_target, index, copied_value)
+        {index, _} ->
+          if index < length(copy_target) do
+            List.update_at(copy_target, index, fn _old -> copied_value end)
+          else
+            {:error, :invalid_index, copy_path_end}
+          end
+      end
     end
   end
 

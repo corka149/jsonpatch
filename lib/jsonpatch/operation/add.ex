@@ -36,8 +36,7 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
   defp do_add({:error, _, _} = error, _target, _path, _value), do: error
 
   # Map
-  defp do_add({final_destination, last_fragment}, target, path, value)
-       when is_map(final_destination) do
+  defp do_add({%{} = final_destination, last_fragment}, target, path, value) do
     updated_final_destination = Map.put_new(final_destination, last_fragment, value)
     Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)
   end

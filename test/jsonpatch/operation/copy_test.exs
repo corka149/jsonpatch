@@ -7,8 +7,9 @@ defmodule Jsonpatch.Operation.CopyTest do
   doctest Copy
 
   test "Copy element by path with multiple indices" do
-    path = "/a/b/1/c/3"
     from = "/a/b/1/c/2"
+    # Copy to  end
+    path = "/a/b/1/c/-"
 
     target = %{
       "a" => %{
@@ -113,5 +114,25 @@ defmodule Jsonpatch.Operation.CopyTest do
     patched_target = Operation.apply_op(copy_op, target)
 
     assert {:error, :invalid_index, "b"} = patched_target
+  end
+
+  test "Copy list element" do
+    patch = %Copy{from: "/a/0", path: "/a/1"}
+
+    target = %{"a" => [999, 888]}
+
+    patched = Operation.apply_op(patch, target)
+
+    assert %{"a" => [999, 999]} = patched
+  end
+
+  test "Copy list element with invalid index" do
+    patch = %Copy{from: "/a/0", path: "/a/5"}
+
+    target = %{"a" => [999, 888]}
+
+    patched_error = Operation.apply_op(patch, target)
+
+    assert {:error, :invalid_index, "5"} = patched_error
   end
 end

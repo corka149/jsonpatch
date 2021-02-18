@@ -2,5 +2,8 @@
 
 - Made jsonpatch more Elixir-API-like by adding Jsonpatch.apply_patch! (which raise an exception) and changed Jsonpatch.apply_patch to return a tuple.
 - Implemented escaping for '~' and '/'
-- Allow usage of '-' for Add operation
-- Fixed adding values to array
+- Allow usage of '-' for Add and Copy operation
+- Fixed adding and copying values to array
+- Improved error feedback of test operation
+- Fixed: Replace operation adds error to target
+- Cleaned code: Replaced strange constructs of Enum.with_index with Enum.fetch
