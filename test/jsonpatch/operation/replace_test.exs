@@ -61,7 +61,7 @@ defmodule Jsonpatch.Operation.ReplaceTest do
 
     patched_target = Operation.apply_op(replace_op, target)
 
-    assert %{"a" => %{"b" => {:error, :invalid_index, "2"}}} = patched_target
+    assert {:error, :invalid_index, "2"} = patched_target
   end
 
   test "Replace element to path with invalid index and expect error" do
@@ -79,6 +79,6 @@ defmodule Jsonpatch.Operation.ReplaceTest do
 
     patched_target = Operation.apply_op(replace_op, target)
 
-    assert %{"a" => %{"b" => {:error, :invalid_index, "c"}}} = patched_target
+    assert {:error, :invalid_index, "c"} = patched_target
   end
 end
