@@ -77,6 +77,6 @@ jobs:
         uses: erlef/setup-elixir@v1
         with:
           otp-version: 23.x
-          elixir-version: 1.11.x
+          elixir-version: 1.11.3
       - run: mix deps.get
       - run: mix coveralls.github
