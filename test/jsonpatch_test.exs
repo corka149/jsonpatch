@@ -111,8 +111,19 @@ defmodule JsonpatchTest do
     end
 
     test "Create diff with nested map" do
-      patch = Jsonpatch.diff(%{"a" => []}, %{"a" => [%{"b" => 1}]})
+      source = %{"a" => []}
+      target = %{"a" => [%{"b" => 1}]}
+
+      patch = Jsonpatch.diff(source, target)
       assert [%Jsonpatch.Operation.Add{path: "/a/0", value: %{"b" => 1}}] = patch
+    end
+
+    test "Create diff that replace list with map" do
+      source = %{"a" => [1, 2, 3]}
+      target = %{"a" => %{"foo" => :bar}}
+
+      patch = Jsonpatch.diff(source, target)
+      assert [%Relace{path: "/a", value: %{"foo" => :bar}}]
     end
   end
 
