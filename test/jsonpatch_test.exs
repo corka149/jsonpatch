@@ -7,35 +7,6 @@ defmodule JsonpatchTest do
 
   doctest Jsonpatch
 
-  # ===== ===== kernel functions
-
-  test "create additions" do
-    source = %{"/a" => "b"}
-    destination = %{"/a" => "b", "/c" => "d"}
-
-    addition_patch = Jsonpatch.create_additions(source, destination)
-
-    assert [%Add{path: "/c", value: "d"}] = addition_patch
-  end
-
-  test "create removes" do
-    source = %{"/a" => "b", "/c" => "d"}
-    destination = %{"/c" => "d"}
-
-    deletion_patch = Jsonpatch.create_removes(source, destination)
-
-    assert [%Remove{path: "/a"}] = deletion_patch
-  end
-
-  test "create replaces" do
-    source = %{"/a" => "b", "/c" => "d"}
-    destination = %{"/a" => "f", "/c" => "d"}
-
-    replace_patch = Jsonpatch.create_replaces(source, destination)
-
-    assert [%Replace{path: "/a", value: "f"}] = replace_patch
-  end
-
   # ===== DIFF =====
   describe "Create diffs" do
     test "adding an Object Member" do

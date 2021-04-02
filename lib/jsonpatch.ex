@@ -119,73 +119,86 @@ defmodule Jsonpatch do
         %Remove{path: "/hobbies/2"}
       ]
   """
-  @spec diff(map, map) :: list(Jsonpatch.t())
+  @spec diff(maybe_improper_list | map, maybe_improper_list | map) :: list(Jsonpatch.t())
   def diff(source, destination)
 
   def diff(%{} = source, %{} = destination) do
-    source = FlatMap.parse(source)
-    destination = FlatMap.parse(destination)
+    Map.to_list(destination)
+    |> do_diff(source, "")
+  end
 
+  def diff(source, destination) when is_list(source) and is_list(destination) do
+    Enum.with_index(destination)
+    |> do_diff(source, "")
+  end
+
+  def diff(_, _) do
     []
-    |> create_additions(source, destination)
-    |> create_replaces(source, destination)
-    |> create_removes(source, destination)
-  end
-
-  @doc """
-  Creates "add"-operations by using the keys of the destination and check their existence in the
-  source map. Source and destination has to be parsed to a flat map.
-  """
-  @spec create_additions(list(Jsonpatch.t()), map, map) :: list(Jsonpatch.t())
-  def create_additions(accumulator \\ [], source, destination)
-
-  def create_additions(accumulator, %{} = source, %{} = destination) do
-    additions =
-      Map.keys(destination)
-      |> Enum.filter(fn key -> not Map.has_key?(source, key) end)
-      |> Enum.map(fn key ->
-        %Add{path: key, value: Map.get(destination, key)}
-      end)
-
-    accumulator ++ additions
-  end
-
-  @doc """
-  Creates "remove"-operations by using the keys of the destination and check their existence in the
-  source map. Source and destination has to be parsed to a flat map.
-  """
-  @spec create_removes(list(Jsonpatch.t()), map, map) :: list(Jsonpatch.t())
-  def create_removes(accumulator \\ [], source, destination)
-
-  def create_removes(accumulator, %{} = source, %{} = destination) do
-    removes =
-      Map.keys(source)
-      |> Enum.filter(fn key -> not Map.has_key?(destination, key) end)
-      |> Enum.map(fn key -> %Remove{path: key} end)
-
-    accumulator ++ removes
-  end
-
-  @doc """
-  Creates "replace"-operations by comparing keys and values of source and destination. The source and
-  destination map have to be flat maps.
-  """
-  @spec create_replaces(list(Jsonpatch.t()), map, map) :: list(Jsonpatch.t())
-  def create_replaces(accumulator \\ [], source, destination)
-
-  def create_replaces(accumulator, source, destination) do
-    replaces =
-      Map.keys(destination)
-      |> Enum.filter(fn key -> Map.has_key?(source, key) end)
-      |> Enum.filter(fn key -> Map.get(source, key) != Map.get(destination, key) end)
-      |> Enum.map(fn key ->
-        %Replace{path: key, value: Map.get(destination, key)}
-      end)
-
-    accumulator ++ replaces
   end
 
   # ===== ===== PRIVATE ===== =====
+
+  defp do_diff(target, source, current_path, acc \\ [])
+
+  defp do_diff([], _, _, acc) do
+    acc
+  end
+
+  defp do_diff([{key, val} | tail], %{} = source, ancestor_path, acc) do
+    # Example: "" + "foo" or "foo/" + "bar"
+    current_path = "#{ancestor_path}#{key}"
+
+    {acc, source} =
+      case Map.pop(source, key) do
+        # Key is not present in source
+        {nil, source} ->
+          {[%Add{path: current_path, value: val} | acc], source}
+
+        # Source has a different value
+        {source_val, source} when source_val != val ->
+          {[%Replace{path: current_path, value: val} | acc], source}
+
+        # Source has the same value! Enter next level if it is a list or map
+        {source_val, source} ->
+          # Enter next level
+          {do_diff(next_level(val), source_val, "#{current_path}/", acc), source}
+      end
+
+    # Diff next value of same level
+    do_diff(tail, source, ancestor_path, acc)
+  end
+
+  defp do_diff([{index, val} | tail], source, ancestor_path, acc) when is_list(source) do
+    # Example: "" + "0" or "foo/" + "0"
+    current_path = "#{ancestor_path}#{index}"
+
+    # Reduce the source list
+    {acc, source} =
+      case List.pop_at(source, index) do
+        # Does not exists at source
+        {nil, _} ->
+          {[%Add{path: "#{current_path}/#{index}", value: val} | acc], source}
+
+        # Source value differs to target value
+        {source_val, source} when source_val != val ->
+          {[%Replace{path: current_path, value: val} | acc], source}
+
+        {source_val, source} ->
+          # Enter next level
+          {do_diff(next_level(val), source_val, "#{current_path}/", acc), source}
+      end
+
+    # Diff next value of same level
+    do_diff(tail, source, ancestor_path, acc)
+  end
+
+  defp next_level(val) do
+    cond do
+      is_list(val) -> Enum.with_index(val)
+      is_map(val) -> Map.to_list(val)
+      true -> []
+    end
+  end
 
   # Create once a easy sortable value for a operation
   defp create_sort_value(%{path: path} = operation) do
