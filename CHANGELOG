@@ -1,3 +1,8 @@
+# 0.11.0
+- Removed module Jsonpatch.FlatMap because it is not necessary anymore and not the focus of the lib
+- Reworked creating diff to create less unnecessary data and for more accurate patches
+- Fixed adding values to empty lists (thanks https://github.com/webdeb)
+
 # 0.10.0
 
 - Made jsonpatch more Elixir-API-like by adding Jsonpatch.apply_patch! (which raise an exception) and changed Jsonpatch.apply_patch to return a tuple.
