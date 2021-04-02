@@ -129,6 +129,7 @@ defmodule Jsonpatch do
 
   def diff(source, destination) when is_list(source) and is_list(destination) do
     Enum.with_index(destination)
+    |> Enum.map(fn {v, k} -> {k, v} end)
     |> do_diff(source, "")
   end
 
@@ -138,54 +139,47 @@ defmodule Jsonpatch do
 
   # ===== ===== PRIVATE ===== =====
 
+  defguardp are_unequal_maps(val1, val2)
+            when val1 != val2 and is_map(val2) and is_map(val1)
+
+  defguardp are_unequal_lists(val1, val2)
+            when val1 != val2 and is_list(val2) and is_list(val1)
+
   defp do_diff(target, source, current_path, acc \\ [])
 
   defp do_diff([], _, _, acc) do
     acc
   end
 
-  defp do_diff([{key, val} | tail], %{} = source, ancestor_path, acc) do
-    # Example: "" + "foo" or "foo/" + "bar"
+  defp do_diff([{key, val} | tail], source, ancestor_path, acc)
+       when is_list(source) or is_map(source) do
+    # Example: "" + "foo" or "foo/" + "bar" || "" + "0" or "foo/" + "0"
     current_path = "#{ancestor_path}#{key}"
 
+    from_source =
+      cond do
+        is_map(source) -> Map.pop(source, key)
+        is_list(source) -> List.pop_at(source, key)
+      end
+
     {acc, source} =
-      case Map.pop(source, key) do
+      case from_source do
         # Key is not present in source
         {nil, source} ->
           {[%Add{path: current_path, value: val} | acc], source}
 
-        # Source has a different value
+        # Source has a different value but both (target and source) value are lists or a maps
+        {source_val, source}
+        when are_unequal_lists(source_val, val) or are_unequal_maps(source_val, val) ->
+          # Enter next level
+          {do_diff(next_level(val), source_val, "#{current_path}/", acc), source}
+
+        # Scalar source val that is not equal
         {source_val, source} when source_val != val ->
           {[%Replace{path: current_path, value: val} | acc], source}
 
-        # Source has the same value! Enter next level if it is a list or map
-        {source_val, source} ->
-          # Enter next level
-          {do_diff(next_level(val), source_val, "#{current_path}/", acc), source}
-      end
-
-    # Diff next value of same level
-    do_diff(tail, source, ancestor_path, acc)
-  end
-
-  defp do_diff([{index, val} | tail], source, ancestor_path, acc) when is_list(source) do
-    # Example: "" + "0" or "foo/" + "0"
-    current_path = "#{ancestor_path}#{index}"
-
-    # Reduce the source list
-    {acc, source} =
-      case List.pop_at(source, index) do
-        # Does not exists at source
-        {nil, _} ->
-          {[%Add{path: "#{current_path}/#{index}", value: val} | acc], source}
-
-        # Source value differs to target value
-        {source_val, source} when source_val != val ->
-          {[%Replace{path: current_path, value: val} | acc], source}
-
-        {source_val, source} ->
-          # Enter next level
-          {do_diff(next_level(val), source_val, "#{current_path}/", acc), source}
+        _ ->
+          acc
       end
 
     # Diff next value of same level
@@ -194,7 +188,7 @@ defmodule Jsonpatch do
 
   defp next_level(val) do
     cond do
-      is_list(val) -> Enum.with_index(val)
+      is_list(val) -> Enum.with_index(val) |> Enum.map(fn {v, k} -> {k, v} end)
       is_map(val) -> Map.to_list(val)
       true -> []
     end
