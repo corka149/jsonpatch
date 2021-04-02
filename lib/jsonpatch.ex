@@ -10,7 +10,6 @@ defmodule Jsonpatch do
   by using `~1` for `/` and `~0` for `~`.
   """
 
-  alias Jsonpatch.FlatMap
   alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Add
   alias Jsonpatch.Operation.Copy
