@@ -138,6 +138,11 @@ defmodule JsonpatchTest do
       assert [%Jsonpatch.Operation.Add{path: "/escape~1me~0now", value: "somnevalue"}] =
                actual_patch
     end
+
+    test "Create diff with nested map" do
+      patch = Jsonpatch.diff(%{"a" => []}, %{"a" => [%{"b" => 1}]})
+      assert [%Jsonpatch.Operation.Add{path: "/a/0", value: %{"b" => 1}}] = patch
+    end
   end
 
   # ===== APPLY =====
