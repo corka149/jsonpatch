@@ -103,7 +103,7 @@ defmodule Jsonpatch do
   end
 
   @doc """
-  Creates a patch from the difference of a source map to a target map.
+  Creates a patch from the difference of a source map to a destination map or list.
 
   ## Examples
 
@@ -153,7 +153,7 @@ defmodule Jsonpatch do
   defguardp are_unequal_lists(val1, val2)
             when val1 != val2 and is_list(val2) and is_list(val1)
 
-  defp diff_removes(target, source, current_path, acc)
+  defp diff_removes(destination, source, current_path, acc)
 
   defp diff_removes([], _, _, acc) do
     acc
@@ -163,7 +163,7 @@ defmodule Jsonpatch do
     acc
   end
 
-  defp diff_adds_and_replaces(target, source, current_path, acc \\ [])
+  defp diff_adds_and_replaces(destination, source, current_path, acc \\ [])
 
   defp diff_adds_and_replaces([], _, _, acc) do
     acc
@@ -185,7 +185,7 @@ defmodule Jsonpatch do
         nil ->
           [%Add{path: current_path, value: val} | acc]
 
-        # Source has a different value but both (target and source) value are lists or a maps
+        # Source has a different value but both (destination and source) value are lists or a maps
         source_val
         when are_unequal_lists(source_val, val) or are_unequal_maps(source_val, val) ->
           # Enter next level
