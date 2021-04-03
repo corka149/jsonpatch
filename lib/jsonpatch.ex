@@ -122,14 +122,23 @@ defmodule Jsonpatch do
   def diff(source, destination)
 
   def diff(%{} = source, %{} = destination) do
-    Map.to_list(destination)
-    |> diff_adds_and_replaces(source, "")
+    destination = Map.to_list(destination)
+
+    acc = diff_adds_and_replaces(destination, source, "")
+    acc = diff_removes(destination, source, "", acc)
+
+    acc
   end
 
   def diff(source, destination) when is_list(source) and is_list(destination) do
-    Enum.with_index(destination)
-    |> Enum.map(fn {v, k} -> {k, v} end)
-    |> diff_adds_and_replaces(source, "")
+    destination =
+      Enum.with_index(destination)
+      |> Enum.map(fn {v, k} -> {k, v} end)
+
+    acc = diff_adds_and_replaces(destination, source, "")
+    acc = diff_removes(destination, source, "", acc)
+
+    acc
   end
 
   def diff(_, _) do
@@ -143,6 +152,16 @@ defmodule Jsonpatch do
 
   defguardp are_unequal_lists(val1, val2)
             when val1 != val2 and is_list(val2) and is_list(val1)
+
+  defp diff_removes(target, source, current_path, acc)
+
+  defp diff_removes([], _, _, acc) do
+    acc
+  end
+
+  defp diff_removes([{key, val} | tail], source, current_path, acc) do
+    acc
+  end
 
   defp diff_adds_and_replaces(target, source, current_path, acc \\ [])
 
