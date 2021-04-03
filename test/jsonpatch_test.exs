@@ -76,12 +76,8 @@ defmodule JsonpatchTest do
 
       assert [
                %Jsonpatch.Operation.Add{
-                 path: "/items/0/spec/template/spec/containers/0/env/1/value",
-                 value: "Hey there!"
-               },
-               %Jsonpatch.Operation.Add{
-                 path: "/items/0/spec/template/spec/containers/0/env/1/name",
-                 value: "ANOTHER_MESSAGE"
+                 path: "/items/0/spec/template/spec/containers/0/env/1",
+                 value: %{"name" => "ANOTHER_MESSAGE", "value" => "Hey there!"}
                },
                %Jsonpatch.Operation.Replace{
                  path: "/items/0/spec/template/spec/containers/0/env/0/name",
@@ -123,7 +119,7 @@ defmodule JsonpatchTest do
       target = %{"a" => %{"foo" => :bar}}
 
       patch = Jsonpatch.diff(source, target)
-      assert [%Relace{path: "/a", value: %{"foo" => :bar}}]
+      assert [%Replace{path: "/a", value: %{"foo" => :bar}}] = patch
     end
   end
 
