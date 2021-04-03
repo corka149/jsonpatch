@@ -152,7 +152,7 @@ defmodule Jsonpatch do
 
   defp do_diff([{key, val} | tail], source, ancestor_path, acc)
        when is_list(source) or is_map(source) do
-    current_path = "#{ancestor_path}/#{key}"
+    current_path = "#{ancestor_path}/#{escape(key)}"
 
     from_source =
       cond do
@@ -190,6 +190,17 @@ defmodule Jsonpatch do
       is_map(val) -> Map.to_list(val)
       true -> []
     end
+  end
+
+  # Escape `/` to `~1 and `~` to `~`.
+  defp escape(subpath) when is_bitstring(subpath) do
+    subpath
+    |> String.replace("~", "~0")
+    |> String.replace("/", "~1")
+  end
+
+  defp escape(subpath) do
+    subpath
   end
 
   # Create once a easy sortable value for a operation
