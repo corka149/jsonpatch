@@ -200,7 +200,6 @@ defmodule Jsonpatch do
     cond do
       is_list(val) -> Stream.with_index(val) |> Enum.map(fn {v, k} -> {k, v} end)
       is_map(val) -> Map.to_list(val)
-      true -> []
     end
   end
 

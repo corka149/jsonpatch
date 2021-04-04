@@ -118,6 +118,14 @@ defmodule JsonpatchTest do
       patch = Jsonpatch.diff(source, target)
       assert [%Replace{path: "/a", value: %{"foo" => :bar}}] = patch
     end
+
+    test "Create diff when source has a scalar value where in the destination is a list" do
+      source = %{"a" => 150}
+      destination = %{"a" => [1, 5, 0]}
+
+      patch = Jsonpatch.diff(source, destination)
+      assert [%Replace{path: "/a", value: [1, 5, 0]}] = patch
+    end
   end
 
   # ===== APPLY =====
