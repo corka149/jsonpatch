@@ -122,23 +122,14 @@ defmodule Jsonpatch do
   def diff(source, destination)
 
   def diff(%{} = source, %{} = destination) do
-    destination = Map.to_list(destination)
-
-    acc = diff_adds_and_replaces(destination, source, "")
-    acc = diff_removes(destination, source, "", acc)
-
-    acc
+    Map.to_list(destination)
+    |> do_diff(source, "")
   end
 
   def diff(source, destination) when is_list(source) and is_list(destination) do
-    destination =
-      Enum.with_index(destination)
-      |> Enum.map(fn {v, k} -> {k, v} end)
-
-    acc = diff_adds_and_replaces(destination, source, "")
-    acc = diff_removes(destination, source, "", acc)
-
-    acc
+    Enum.with_index(destination)
+    |> Enum.map(fn {v, k} -> {k, v} end)
+    |> do_diff(source, "")
   end
 
   def diff(_, _) do
@@ -153,23 +144,13 @@ defmodule Jsonpatch do
   defguardp are_unequal_lists(val1, val2)
             when val1 != val2 and is_list(val2) and is_list(val1)
 
-  defp diff_removes(destination, source, current_path, acc)
+  defp do_diff(destination, source, current_path, acc \\ [])
 
-  defp diff_removes([], _, _, acc) do
+  defp do_diff([], _, _, acc) do
     acc
   end
 
-  defp diff_removes([{key, val} | tail], source, current_path, acc) do
-    acc
-  end
-
-  defp diff_adds_and_replaces(destination, source, current_path, acc \\ [])
-
-  defp diff_adds_and_replaces([], _, _, acc) do
-    acc
-  end
-
-  defp diff_adds_and_replaces([{key, val} | tail], source, ancestor_path, acc)
+  defp do_diff([{key, val} | tail], source, ancestor_path, acc)
        when is_list(source) or is_map(source) do
     current_path = "#{ancestor_path}/#{escape(key)}"
 
@@ -189,7 +170,7 @@ defmodule Jsonpatch do
         source_val
         when are_unequal_lists(source_val, val) or are_unequal_maps(source_val, val) ->
           # Enter next level
-          diff_adds_and_replaces(next_level(val), source_val, current_path, acc)
+          do_diff(next_level(val), source_val, current_path, acc)
 
         # Scalar source val that is not equal
         source_val when source_val != val ->
@@ -200,7 +181,7 @@ defmodule Jsonpatch do
       end
 
     # Diff next value of same level
-    diff_adds_and_replaces(tail, source, ancestor_path, acc)
+    do_diff(tail, source, ancestor_path, acc)
   end
 
   # Transforms a map into a tuple list and a list also into a tuple list with indizes
