@@ -126,6 +126,19 @@ defmodule JsonpatchTest do
       patch = Jsonpatch.diff(source, destination)
       assert [%Replace{path: "/a", value: [1, 5, 0]}] = patch
     end
+
+    test "Create diff for lists" do
+      source = [1, "pizza", %{"name" => "Alice"}, [4, 2]]
+      target = [1, "hamburger", %{"name" => "Alice", "age" => 55}]
+
+      patch = Jsonpatch.diff(source, target)
+
+      assert [
+               %Jsonpatch.Operation.Remove{path: "/3"},
+               %Jsonpatch.Operation.Add{path: "/2/age", value: 55},
+               %Jsonpatch.Operation.Replace{path: "/1", value: "hamburger"}
+             ] = patch
+    end
   end
 
   # ===== APPLY =====
