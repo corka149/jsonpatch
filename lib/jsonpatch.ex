@@ -138,12 +138,15 @@ defmodule Jsonpatch do
 
   # ===== ===== PRIVATE ===== =====
 
+  # Helper for better readability
   defguardp are_unequal_maps(val1, val2)
             when val1 != val2 and is_map(val2) and is_map(val1)
 
+  # Helper for better readability
   defguardp are_unequal_lists(val1, val2)
             when val1 != val2 and is_list(val2) and is_list(val1)
 
+  # Diff reduce loop
   defp do_diff(destination, source, ancestor_path, acc \\ [], checked_keys \\ [])
 
   defp do_diff([], source, ancestor_path, acc, checked_keys) do
@@ -163,16 +166,9 @@ defmodule Jsonpatch do
   defp do_diff([{key, val} | tail], source, ancestor_path, acc, checked_keys)
        when is_list(source) or is_map(source) do
     current_path = "#{ancestor_path}/#{escape(key)}"
-    checked_keys = [escape(key) | checked_keys]
-
-    from_source =
-      cond do
-        is_map(source) -> Map.get(source, key)
-        is_list(source) -> Enum.at(source, key)
-      end
 
     acc =
-      case from_source do
+      case get(source, key) do
         # Key is not present in source
         nil ->
           [%Add{path: current_path, value: val} | acc]
@@ -192,15 +188,25 @@ defmodule Jsonpatch do
       end
 
     # Diff next value of same level
-    do_diff(tail, source, ancestor_path, acc, checked_keys)
+    do_diff(tail, source, ancestor_path, acc, [escape(key) | checked_keys])
   end
 
   # Transforms a map into a tuple list and a list also into a tuple list with indizes
-  defp flat(val) do
-    cond do
-      is_list(val) -> Stream.with_index(val) |> Enum.map(fn {v, k} -> {k, v} end)
-      is_map(val) -> Map.to_list(val)
-    end
+  defp flat(val) when is_list(val) do
+    Stream.with_index(val) |> Enum.map(fn {v, k} -> {k, v} end)
+  end
+
+  defp flat(val) when is_map(val) do
+    Map.to_list(val)
+  end
+
+  # Unified access to lists or maps
+  defp get(source, key) when is_list(source) do
+    Enum.at(source, key)
+  end
+
+  defp get(source, key) do
+    Map.get(source, key)
   end
 
   # Escape `/` to `~1 and `~` to `~`.
