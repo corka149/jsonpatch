@@ -71,7 +71,6 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
 
         case List.pop_at(target, index) do
           {nil, _} -> {:error, :invalid_index, fragment}
-          {{:error, _, _} = error, _} -> error
           _ -> update_list
         end
     end
