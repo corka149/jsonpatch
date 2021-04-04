@@ -111,11 +111,11 @@ defmodule Jsonpatch do
       iex> destination = %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
       iex> Jsonpatch.diff(source, destination)
       [
-        %Add{path: "/age", value: 33},
-        %Replace{path: "/hobbies/0", value: "Elixir!"},
-        %Replace{path: "/married", value: true},
-        %Remove{path: "/hobbies/1"},
-        %Remove{path: "/hobbies/2"}
+        %Jsonpatch.Operation.Replace{path: "/married", value: true},
+        %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
+        %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
+        %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
+        %Jsonpatch.Operation.Add{path: "/age", value: 33}
       ]
   """
   @spec diff(maybe_improper_list | map, maybe_improper_list | map) :: list(Jsonpatch.t())
@@ -144,15 +144,26 @@ defmodule Jsonpatch do
   defguardp are_unequal_lists(val1, val2)
             when val1 != val2 and is_list(val2) and is_list(val1)
 
-  defp do_diff(destination, source, current_path, acc \\ [])
+  defp do_diff(destination, source, ancestor_path, acc \\ [], checked_keys \\ [])
 
-  defp do_diff([], _, _, acc) do
+  defp do_diff([], source, ancestor_path, acc, checked_keys) do
+    # The complete desination was check. Every key that is not in the list of
+    # checked keys, must be removed.
+    acc =
+      source
+      |> flat()
+      |> Stream.map(fn {k, _} -> k end)
+      |> Stream.filter(fn k -> k not in checked_keys end)
+      |> Stream.map(fn k -> %Remove{path: "#{ancestor_path}/#{k}"} end)
+      |> Enum.reduce(acc, fn r, acc -> [r | acc] end)
+
     acc
   end
 
-  defp do_diff([{key, val} | tail], source, ancestor_path, acc)
+  defp do_diff([{key, val} | tail], source, ancestor_path, acc, checked_keys)
        when is_list(source) or is_map(source) do
     current_path = "#{ancestor_path}/#{escape(key)}"
+    checked_keys = [escape(key) | checked_keys]
 
     from_source =
       cond do
@@ -169,8 +180,8 @@ defmodule Jsonpatch do
         # Source has a different value but both (destination and source) value are lists or a maps
         source_val
         when are_unequal_lists(source_val, val) or are_unequal_maps(source_val, val) ->
-          # Enter next level
-          do_diff(next_level(val), source_val, current_path, acc)
+          # Enter next level - set check_keys to empty list because it is a different level
+          do_diff(flat(val), source_val, current_path, acc, [])
 
         # Scalar source val that is not equal
         source_val when source_val != val ->
@@ -181,13 +192,13 @@ defmodule Jsonpatch do
       end
 
     # Diff next value of same level
-    do_diff(tail, source, ancestor_path, acc)
+    do_diff(tail, source, ancestor_path, acc, checked_keys)
   end
 
   # Transforms a map into a tuple list and a list also into a tuple list with indizes
-  defp next_level(val) do
+  defp flat(val) do
     cond do
-      is_list(val) -> Enum.with_index(val) |> Enum.map(fn {v, k} -> {k, v} end)
+      is_list(val) -> Stream.with_index(val) |> Enum.map(fn {v, k} -> {k, v} end)
       is_map(val) -> Map.to_list(val)
       true -> []
     end
