@@ -10,7 +10,6 @@ defmodule Jsonpatch do
   by using `~1` for `/` and `~0` for `~`.
   """
 
-  alias Jsonpatch.FlatMap
   alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Add
   alias Jsonpatch.Operation.Copy
@@ -104,7 +103,7 @@ defmodule Jsonpatch do
   end
 
   @doc """
-  Creates a patch from the difference of a source map to a target map.
+  Creates a patch from the difference of a source map to a destination map or list.
 
   ## Examples
 
@@ -112,80 +111,114 @@ defmodule Jsonpatch do
       iex> destination = %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
       iex> Jsonpatch.diff(source, destination)
       [
-        %Add{path: "/age", value: 33},
-        %Replace{path: "/hobbies/0", value: "Elixir!"},
-        %Replace{path: "/married", value: true},
-        %Remove{path: "/hobbies/1"},
-        %Remove{path: "/hobbies/2"}
+        %Jsonpatch.Operation.Replace{path: "/married", value: true},
+        %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
+        %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
+        %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
+        %Jsonpatch.Operation.Add{path: "/age", value: 33}
       ]
   """
-  @spec diff(map, map) :: list(Jsonpatch.t())
+  @spec diff(maybe_improper_list | map, maybe_improper_list | map) :: list(Jsonpatch.t())
   def diff(source, destination)
 
   def diff(%{} = source, %{} = destination) do
-    source = FlatMap.parse(source)
-    destination = FlatMap.parse(destination)
+    Map.to_list(destination)
+    |> do_diff(source, "")
+  end
 
+  def diff(source, destination) when is_list(source) and is_list(destination) do
+    Enum.with_index(destination)
+    |> Enum.map(fn {v, k} -> {k, v} end)
+    |> do_diff(source, "")
+  end
+
+  def diff(_, _) do
     []
-    |> create_additions(source, destination)
-    |> create_replaces(source, destination)
-    |> create_removes(source, destination)
-  end
-
-  @doc """
-  Creates "add"-operations by using the keys of the destination and check their existence in the
-  source map. Source and destination has to be parsed to a flat map.
-  """
-  @spec create_additions(list(Jsonpatch.t()), map, map) :: list(Jsonpatch.t())
-  def create_additions(accumulator \\ [], source, destination)
-
-  def create_additions(accumulator, %{} = source, %{} = destination) do
-    additions =
-      Map.keys(destination)
-      |> Enum.filter(fn key -> not Map.has_key?(source, key) end)
-      |> Enum.map(fn key ->
-        %Add{path: key, value: Map.get(destination, key)}
-      end)
-
-    accumulator ++ additions
-  end
-
-  @doc """
-  Creates "remove"-operations by using the keys of the destination and check their existence in the
-  source map. Source and destination has to be parsed to a flat map.
-  """
-  @spec create_removes(list(Jsonpatch.t()), map, map) :: list(Jsonpatch.t())
-  def create_removes(accumulator \\ [], source, destination)
-
-  def create_removes(accumulator, %{} = source, %{} = destination) do
-    removes =
-      Map.keys(source)
-      |> Enum.filter(fn key -> not Map.has_key?(destination, key) end)
-      |> Enum.map(fn key -> %Remove{path: key} end)
-
-    accumulator ++ removes
-  end
-
-  @doc """
-  Creates "replace"-operations by comparing keys and values of source and destination. The source and
-  destination map have to be flat maps.
-  """
-  @spec create_replaces(list(Jsonpatch.t()), map, map) :: list(Jsonpatch.t())
-  def create_replaces(accumulator \\ [], source, destination)
-
-  def create_replaces(accumulator, source, destination) do
-    replaces =
-      Map.keys(destination)
-      |> Enum.filter(fn key -> Map.has_key?(source, key) end)
-      |> Enum.filter(fn key -> Map.get(source, key) != Map.get(destination, key) end)
-      |> Enum.map(fn key ->
-        %Replace{path: key, value: Map.get(destination, key)}
-      end)
-
-    accumulator ++ replaces
   end
 
   # ===== ===== PRIVATE ===== =====
+
+  # Helper for better readability
+  defguardp are_unequal_maps(val1, val2)
+            when val1 != val2 and is_map(val2) and is_map(val1)
+
+  # Helper for better readability
+  defguardp are_unequal_lists(val1, val2)
+            when val1 != val2 and is_list(val2) and is_list(val1)
+
+  # Diff reduce loop
+  defp do_diff(destination, source, ancestor_path, acc \\ [], checked_keys \\ [])
+
+  defp do_diff([], source, ancestor_path, acc, checked_keys) do
+    # The complete desination was check. Every key that is not in the list of
+    # checked keys, must be removed.
+    acc =
+      source
+      |> flat()
+      |> Stream.map(fn {k, _} -> k end)
+      |> Stream.filter(fn k -> k not in checked_keys end)
+      |> Stream.map(fn k -> %Remove{path: "#{ancestor_path}/#{k}"} end)
+      |> Enum.reduce(acc, fn r, acc -> [r | acc] end)
+
+    acc
+  end
+
+  defp do_diff([{key, val} | tail], source, ancestor_path, acc, checked_keys)
+       when is_list(source) or is_map(source) do
+    current_path = "#{ancestor_path}/#{escape(key)}"
+
+    acc =
+      case get(source, key) do
+        # Key is not present in source
+        nil ->
+          [%Add{path: current_path, value: val} | acc]
+
+        # Source has a different value but both (destination and source) value are lists or a maps
+        source_val
+        when are_unequal_lists(source_val, val) or are_unequal_maps(source_val, val) ->
+          # Enter next level - set check_keys to empty list because it is a different level
+          do_diff(flat(val), source_val, current_path, acc, [])
+
+        # Scalar source val that is not equal
+        source_val when source_val != val ->
+          [%Replace{path: current_path, value: val} | acc]
+
+        _ ->
+          acc
+      end
+
+    # Diff next value of same level
+    do_diff(tail, source, ancestor_path, acc, [escape(key) | checked_keys])
+  end
+
+  # Transforms a map into a tuple list and a list also into a tuple list with indizes
+  defp flat(val) when is_list(val) do
+    Stream.with_index(val) |> Enum.map(fn {v, k} -> {k, v} end)
+  end
+
+  defp flat(val) when is_map(val) do
+    Map.to_list(val)
+  end
+
+  # Unified access to lists or maps
+  defp get(source, key) when is_list(source) do
+    Enum.at(source, key)
+  end
+
+  defp get(source, key) do
+    Map.get(source, key)
+  end
+
+  # Escape `/` to `~1 and `~` to `~`.
+  defp escape(subpath) when is_bitstring(subpath) do
+    subpath
+    |> String.replace("~", "~0")
+    |> String.replace("/", "~1")
+  end
+
+  defp escape(subpath) do
+    subpath
+  end
 
   # Create once a easy sortable value for a operation
   defp create_sort_value(%{path: path} = operation) do

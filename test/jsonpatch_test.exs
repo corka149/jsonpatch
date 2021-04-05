@@ -7,35 +7,6 @@ defmodule JsonpatchTest do
 
   doctest Jsonpatch
 
-  # ===== ===== kernel functions
-
-  test "create additions" do
-    source = %{"/a" => "b"}
-    destination = %{"/a" => "b", "/c" => "d"}
-
-    addition_patch = Jsonpatch.create_additions(source, destination)
-
-    assert [%Add{path: "/c", value: "d"}] = addition_patch
-  end
-
-  test "create removes" do
-    source = %{"/a" => "b", "/c" => "d"}
-    destination = %{"/c" => "d"}
-
-    deletion_patch = Jsonpatch.create_removes(source, destination)
-
-    assert [%Remove{path: "/a"}] = deletion_patch
-  end
-
-  test "create replaces" do
-    source = %{"/a" => "b", "/c" => "d"}
-    destination = %{"/a" => "f", "/c" => "d"}
-
-    replace_patch = Jsonpatch.create_replaces(source, destination)
-
-    assert [%Replace{path: "/a", value: "f"}] = replace_patch
-  end
-
   # ===== DIFF =====
   describe "Create diffs" do
     test "adding an Object Member" do
@@ -104,27 +75,20 @@ defmodule JsonpatchTest do
       patch = Jsonpatch.diff(source, destination)
 
       assert [
-               %Jsonpatch.Operation.Add{
-                 path: "/items/0/spec/template/spec/containers/0/env/1/value",
-                 value: "Hey there!"
-               },
-               %Jsonpatch.Operation.Add{
-                 path: "/items/0/spec/template/spec/containers/0/env/1/name",
-                 value: "ANOTHER_MESSAGE"
-               },
-               %Jsonpatch.Operation.Replace{
-                 path: "/items/0/spec/template/spec/containers/0/env/0/name",
-                 value: "ENVIRONMENT_MESSAGE"
+               %Jsonpatch.Operation.Remove{
+                 path: "/items/0/spec/template/spec/containers/0/ports/0"
                },
                %Jsonpatch.Operation.Replace{
                  path: "/items/0/spec/template/spec/containers/0/image",
                  value: "whoami:1.1.2"
                },
-               %Jsonpatch.Operation.Remove{
-                 path: "/items/0/spec/template/spec/containers/0/ports/0/protocol"
+               %Jsonpatch.Operation.Add{
+                 path: "/items/0/spec/template/spec/containers/0/env/1",
+                 value: %{"name" => "ANOTHER_MESSAGE", "value" => "Hey there!"}
                },
-               %Jsonpatch.Operation.Remove{
-                 path: "/items/0/spec/template/spec/containers/0/ports/0/containerPort"
+               %Jsonpatch.Operation.Replace{
+                 path: "/items/0/spec/template/spec/containers/0/env/0/name",
+                 value: "ENVIRONMENT_MESSAGE"
                }
              ] = patch
     end
@@ -137,6 +101,43 @@ defmodule JsonpatchTest do
 
       assert [%Jsonpatch.Operation.Add{path: "/escape~1me~0now", value: "somnevalue"}] =
                actual_patch
+    end
+
+    test "Create diff with nested map" do
+      source = %{"a" => []}
+      target = %{"a" => [%{"b" => 1}]}
+
+      patch = Jsonpatch.diff(source, target)
+      assert [%Jsonpatch.Operation.Add{path: "/a/0", value: %{"b" => 1}}] = patch
+    end
+
+    test "Create diff that replace list with map" do
+      source = %{"a" => [1, 2, 3]}
+      target = %{"a" => %{"foo" => :bar}}
+
+      patch = Jsonpatch.diff(source, target)
+      assert [%Replace{path: "/a", value: %{"foo" => :bar}}] = patch
+    end
+
+    test "Create diff when source has a scalar value where in the destination is a list" do
+      source = %{"a" => 150}
+      destination = %{"a" => [1, 5, 0]}
+
+      patch = Jsonpatch.diff(source, destination)
+      assert [%Replace{path: "/a", value: [1, 5, 0]}] = patch
+    end
+
+    test "Create diff for lists" do
+      source = [1, "pizza", %{"name" => "Alice"}, [4, 2]]
+      target = [1, "hamburger", %{"name" => "Alice", "age" => 55}]
+
+      patch = Jsonpatch.diff(source, target)
+
+      assert [
+               %Jsonpatch.Operation.Remove{path: "/3"},
+               %Jsonpatch.Operation.Add{path: "/2/age", value: 55},
+               %Jsonpatch.Operation.Replace{path: "/1", value: "hamburger"}
+             ] = patch
     end
   end
 
