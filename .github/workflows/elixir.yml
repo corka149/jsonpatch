@@ -15,8 +15,8 @@ jobs:
     name: Test - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: ["21.x", "22.x", "23.x"]
-        elixir: ["1.9.x", "1.10.x", "1.11.x"]
+        otp: ["22.x", "23.x", "24.x"]
+        elixir: ["1.10.x", "1.11.x", "1.12.x"]
     steps:
       - uses: actions/checkout@v2
       - name: Setup elixir
@@ -51,8 +51,8 @@ jobs:
     name: Analyze - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: ["21.x", "22.x", "23.x"]
-        elixir: ["1.9.x", "1.10.x", "1.11.x"]
+        otp: ["22.x", "23.x", "24.x"]
+        elixir: ["1.10.x", "1.11.x", "1.12.x"]
     steps:
       - uses: actions/checkout@v2
       - name: Setup elixir
