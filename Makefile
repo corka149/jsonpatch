@@ -1,3 +1,5 @@
+.PHONY: check
+
 
 check:
 	mix format

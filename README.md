@@ -87,6 +87,28 @@ iex> Jsonpatch.apply_patch(patch, target)
 {:ok, %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}}
 ```
 
+### In a script
+
+With `Mix.install` small scripts can be written to create JSON patches.
+```elixir
+Mix.install([:jsonpatch, :poison])
+
+source =
+  File.read!("foo.json")
+  |> Poison.Parser.parse!(%{})
+
+destination =
+  File.read!("bar.json")
+  |> Poison.Parser.parse!(%{})
+
+patch =
+  source
+  |> Jsonpatch.diff(destination)
+  |> Jsonpatch.Mapper.to_map()
+
+IO.inspect(patch, label: :patch)
+```
+
 ## Important sources
 - [Official RFC 6902](https://tools.ietf.org/html/rfc6902)
 - [Inspiration: python-json-patch](https://github.com/stefankoegl/python-json-patch) 
