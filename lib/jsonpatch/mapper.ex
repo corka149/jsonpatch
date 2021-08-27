@@ -12,9 +12,15 @@ defmodule Jsonpatch.Mapper do
       iex> Jsonpatch.Mapper.to_map(add_patch_map)
       %{op: "add", path: "/name", value: "Alice"}
 
+      iex> add_patch_map = %Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
+      iex> remove_patch_map = %Jsonpatch.Operation.Remove{path: "/location"}
+      iex> Jsonpatch.Mapper.to_map([add_patch_map, remove_patch_map])
+      [%{op: "add", path: "/name", value: "Alice"},
+       %{op: "remove", path: "/location"}]
+
   """
   @spec to_map(Jsonpatch.t() | list(Jsonpatch.t())) ::
-          map() | {:error, :invalid}
+          map() | list() | {:error, :invalid}
   def to_map(patch)
 
   def to_map(patch_operations) when is_list(patch_operations) do
