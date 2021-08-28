@@ -43,7 +43,7 @@ defmodule Jsonpatch.MixProject do
       ## type checking
       {:dialyxir, "~> 1.0.0", only: [:dev], runtime: false},
       ## Docs
-      {:ex_doc, "~> 0.22.1", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.24", only: [:dev], runtime: false},
       ## Mutation testing
       {:muzak, "~> 1.1.0", only: :mutation}
     ]
