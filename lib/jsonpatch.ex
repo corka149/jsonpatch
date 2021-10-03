@@ -6,7 +6,7 @@ defmodule Jsonpatch do
   a list or a single JSON patch can be provided. Every patch belongs to a certain operation
   which influences the usage.
 
-  Accorrding to [RFC 6901](https://tools.ietf.org/html/rfc6901) escaping of `/` and `~` is done
+  According to [RFC 6901](https://tools.ietf.org/html/rfc6901) escaping of `/` and `~` is done
   by using `~1` for `/` and `~0` for `~`.
   """
 

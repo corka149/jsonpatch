@@ -1,6 +1,7 @@
 defmodule JsonpatchException do
   @moduledoc """
-  JsonpatchException will be raised if a patch is applied with "!".
+  JsonpatchException will be raised if a patch is applied with "!"
+  and the patching fails.
   """
 
   defexception [:message]

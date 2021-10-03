@@ -1,6 +1,6 @@
 defmodule Jsonpatch.Operation.Add do
   @moduledoc """
-  The add operation is the operation for adding (as you might guess) values to a map or struct.
+  The add operation is the operation for adding values to a map or struct.
   Values can be appended to lists by using `-` instead of an index.
 
   ## Examples
