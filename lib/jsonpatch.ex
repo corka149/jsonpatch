@@ -205,7 +205,7 @@ defmodule Jsonpatch do
     Enum.at(source, key)
   end
 
-  defp get(source, key) do
+  defp get(source, key) when is_map(source) do
     Map.get(source, key)
   end
 
