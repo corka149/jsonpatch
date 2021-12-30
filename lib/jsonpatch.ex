@@ -29,7 +29,7 @@ defmodule Jsonpatch do
   @type error :: {:error, :invalid_path | :invalid_index | :test_failed, bitstring()}
 
   @doc """
-  Apply a Jsonpatch to a map or struct. The whole patch will not be applied
+  Apply a Jsonpatch or a list of Jsonpatches to a map or struct. The whole patch will not be applied
   when any path is invalid or any other error occured.
 
   ## Examples
@@ -87,7 +87,7 @@ defmodule Jsonpatch do
   end
 
   @doc """
-  Apply a Jsonpatch to a map or struct. In case of an error
+  Apply a Jsonpatch or a list of Jsonpatches to a map or struct. In case of an error
   it will raise an exception.
 
   (See Jsonpatch.apply_patch/2 for more details)
