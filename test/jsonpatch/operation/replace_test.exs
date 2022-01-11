@@ -81,4 +81,11 @@ defmodule Jsonpatch.Operation.ReplaceTest do
 
     assert {:error, :invalid_index, "c"} = patched_target
   end
+
+  test "Return error when patch error was provided to replace operation" do
+    patch = %Replace{path: "/a", value: true}
+    error = {:error, :invalid_index, "4"}
+
+    assert ^error = Operation.apply_op(patch, error)
+  end
 end

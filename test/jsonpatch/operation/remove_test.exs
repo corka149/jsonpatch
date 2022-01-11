@@ -83,4 +83,11 @@ defmodule RemoveTest do
     remove_patch = %Remove{path: "/hobbies/1/description"}
     assert {:error, :invalid_index, "1"} = Jsonpatch.apply_patch(remove_patch, target)
   end
+
+  test "Return error when patch error was provided to remove operation" do
+    patch = %Remove{path: "/a"}
+    error = {:error, :invalid_index, "4"}
+
+    assert ^error = Operation.apply_op(patch, error)
+  end
 end

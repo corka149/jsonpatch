@@ -73,4 +73,11 @@ defmodule Jsonpatch.Operation.AddTest do
 
     assert %{"a" => [0, 1, 2, 3]} = Operation.apply_op(patch, target)
   end
+
+  test "Return error when patch error was provided to add operation" do
+    patch = %Add{path: "/a", value: false}
+    error = {:error, :invalid_index, "4"}
+
+    assert ^error = Operation.apply_op(patch, error)
+  end
 end
