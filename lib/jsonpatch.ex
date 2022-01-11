@@ -30,7 +30,8 @@ defmodule Jsonpatch do
 
   @doc """
   Apply a Jsonpatch or a list of Jsonpatches to a map or struct. The whole patch will not be applied
-  when any path is invalid or any other error occured.
+  when any path is invalid or any other error occured. When a list is provided, the operations are
+  applied in the order as they appear in the list.
 
   ## Examples
       iex> patch = [
@@ -84,7 +85,8 @@ defmodule Jsonpatch do
 
   @doc """
   Apply a Jsonpatch or a list of Jsonpatches to a map or struct. In case of an error
-  it will raise an exception.
+  it will raise an exception. When a list is provided, the operations are applied in
+  the order as they appear in the list.
 
   (See Jsonpatch.apply_patch/2 for more details)
   """
