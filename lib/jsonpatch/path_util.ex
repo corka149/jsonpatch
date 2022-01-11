@@ -62,20 +62,6 @@ defmodule Jsonpatch.PathUtil do
   end
 
   @doc """
-  Determines the sort value for the operation of a patch. This value
-  assure in which order patches are applied. (Example: shall remove
-  patches be applied before add patches?)
-  """
-  @spec operation_sort_value?(Jsonpatch.t()) :: integer()
-  def operation_sort_value?(patch)
-
-  def operation_sort_value?(%Test{}), do: 600
-  def operation_sort_value?(%Add{}), do: 500
-  def operation_sort_value?(%Replace{}), do: 400
-  def operation_sort_value?(%Remove{}), do: 300
-  def operation_sort_value?(_), do: 0
-
-  @doc """
   Unescape `~1` to  `/` and `~0` to `~`.
   """
   def unescape(fragment) when is_bitstring(fragment) do
