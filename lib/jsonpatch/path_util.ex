@@ -4,11 +4,6 @@ defmodule Jsonpatch.PathUtil do
   # ===== Internal documentation =====
   # Helper module for handling JSON paths.
 
-  alias Jsonpatch.Operation.Add
-  alias Jsonpatch.Operation.Remove
-  alias Jsonpatch.Operation.Replace
-  alias Jsonpatch.Operation.Test
-
   @doc """
   Uses a JSON patch path to get the last map that this path references.
 
