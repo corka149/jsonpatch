@@ -1,3 +1,6 @@
+# 0.12.0
+- The functions apply_patch and apply_patch! do not sort anymore a list of patches before applying them
+
 # 0.11.0
 - Removed module Jsonpatch.FlatMap because it is not necessary anymore and not the focus of the lib
 - Reworked creating diff to create less unnecessary data and for more accurate patches
