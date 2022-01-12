@@ -179,6 +179,19 @@ defmodule JsonpatchTest do
                )
     end
 
+    test "Apply patch with multilple operations" do
+      patch = [
+        %Jsonpatch.Operation.Remove{path: "/age"},
+        %Jsonpatch.Operation.Add{path: "/age", value: 34},
+        %Jsonpatch.Operation.Replace{path: "/age", value: 35}
+      ]
+
+      target = %{"age" => "33"}
+      patched = Jsonpatch.apply_patch!(patch, target)
+
+      assert %{"age" => 35} = patched
+    end
+
     test "Apply patch with invalid target source path and expect error" do
       target = %{
         "name" => "Bob",

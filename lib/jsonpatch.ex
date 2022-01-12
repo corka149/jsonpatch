@@ -30,15 +30,16 @@ defmodule Jsonpatch do
 
   @doc """
   Apply a Jsonpatch or a list of Jsonpatches to a map or struct. The whole patch will not be applied
-  when any path is invalid or any other error occured.
+  when any path is invalid or any other error occured. When a list is provided, the operations are
+  applied in the order as they appear in the list.
 
   ## Examples
       iex> patch = [
       ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
       ...> %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
       ...> %Jsonpatch.Operation.Replace{path: "/married", value: true},
-      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
       ...> %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
+      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
       ...> %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"},
       ...> %Jsonpatch.Operation.Move{from: "/home", path: "/work"},
       ...> %Jsonpatch.Operation.Test{path: "/name", value: "Bob"}
@@ -61,14 +62,10 @@ defmodule Jsonpatch do
   def apply_patch(json_patch, target)
 
   def apply_patch(json_patch, %{} = target) when is_list(json_patch) do
-    # Operatons MUST be sorted before applying because a remove operation for path "/foo/2" must be done
-    # before the remove operation for path "/foo/1". Without order it could be possible that the wrong
-    # value will be removed or only one value instead of two.
+    # https://datatracker.ietf.org/doc/html/rfc6902#section-3
+    # > Operations are applied sequentially in the order they appear in the array.
     result =
       json_patch
-      |> Enum.map(&create_sort_value/1)
-      |> Enum.sort(fn {sort_value_1, _}, {sort_value_2, _} -> sort_value_1 >= sort_value_2 end)
-      |> Enum.map(fn {_, patch} -> patch end)
       |> Enum.reduce(target, &Jsonpatch.Operation.apply_op/2)
 
     case result do
@@ -88,7 +85,8 @@ defmodule Jsonpatch do
 
   @doc """
   Apply a Jsonpatch or a list of Jsonpatches to a map or struct. In case of an error
-  it will raise an exception.
+  it will raise an exception. When a list is provided, the operations are applied in
+  the order as they appear in the list.
 
   (See Jsonpatch.apply_patch/2 for more details)
   """
@@ -218,26 +216,5 @@ defmodule Jsonpatch do
 
   defp escape(subpath) do
     subpath
-  end
-
-  # Create once a easy sortable value for a operation
-  defp create_sort_value(%{path: path} = operation) do
-    fragments = String.split(path, "/")
-
-    x = Jsonpatch.PathUtil.operation_sort_value?(operation) * 1_000_000 * 100_000_000
-    y = length(fragments) * 100_000_000
-
-    z =
-      case List.last(fragments) |> Integer.parse() do
-        :error -> 0
-        {int, _} -> int
-      end
-
-    # Structure of recorde sort value
-    # x = Kind of PathUtil
-    # y = Amount of fragments (how deep goes the path?)
-    # z = At which position in a list?
-    # xxxxyyyyyyzzzzzzzz
-    {x + y + z, operation}
   end
 end
