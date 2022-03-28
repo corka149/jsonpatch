@@ -87,7 +87,7 @@ iex> Jsonpatch.apply_patch(patch, target)
 {:ok, %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}}
 ```
 
-### In a script
+### In an Elixir script
 
 With `Mix.install` small scripts can be written to create JSON patches.
 ```elixir
