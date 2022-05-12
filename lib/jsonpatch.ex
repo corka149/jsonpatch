@@ -65,8 +65,12 @@ defmodule Jsonpatch do
     # https://datatracker.ietf.org/doc/html/rfc6902#section-3
     # > Operations are applied sequentially in the order they appear in the array.
     result =
-      json_patch
-      |> Enum.reduce(target, &Jsonpatch.Operation.apply_op/2)
+      Enum.reduce_while(json_patch, target, fn patch, acc ->
+        case Jsonpatch.Operation.apply_op(patch, acc) do
+          {:error, _, _} = error -> {:halt, error}
+          result -> {:cont, result}
+        end
+      end)
 
     case result do
       {:error, _, _} = error -> error
@@ -75,12 +79,7 @@ defmodule Jsonpatch do
   end
 
   def apply_patch(json_patch, %{} = target) do
-    result = Operation.apply_op(json_patch, target)
-
-    case result do
-      {:error, _, _} = error -> error
-      ok_result -> {:ok, ok_result}
-    end
+    apply_patch([json_patch], target)
   end
 
   @doc """
