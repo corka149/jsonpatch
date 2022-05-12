@@ -27,7 +27,7 @@ jobs:
       - name: Install Dependencies
         run: mix deps.get
       - name: Run Tests
-        run: MIX_ENV=test mix do compile --warnings-as-errors, test --warnings-as-errors
+        run: mix test
 
   # mutation tests
   test-mutation:
