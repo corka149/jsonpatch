@@ -172,10 +172,12 @@ defmodule Jsonpatch do
           [%Add{path: current_path, value: val} | acc]
 
         # Source has a different value but both (destination and source) value are lists or a maps
-        source_val
-        when are_unequal_lists(source_val, val) or are_unequal_maps(source_val, val) ->
+        source_val when are_unequal_lists(source_val, val) ->
+          val |> flat() |> Enum.reverse() |> do_diff(source_val, current_path, acc, [])
+
+        source_val when are_unequal_maps(source_val, val) ->
           # Enter next level - set check_keys to empty list because it is a different level
-          do_diff(flat(val), source_val, current_path, acc, [])
+          val |> flat() |> do_diff(source_val, current_path, acc, [])
 
         # Scalar source val that is not equal
         source_val when source_val != val ->
