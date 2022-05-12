@@ -65,8 +65,12 @@ defmodule Jsonpatch do
     # https://datatracker.ietf.org/doc/html/rfc6902#section-3
     # > Operations are applied sequentially in the order they appear in the array.
     result =
-      json_patch
-      |> Enum.reduce(target, &Jsonpatch.Operation.apply_op/2)
+      Enum.reduce_while(json_patch, target, fn patch, acc ->
+        case Jsonpatch.Operation.apply_op(patch, acc) do
+          {:error, _, _} = error -> {:halt, error}
+          result -> {:cont, result}
+        end
+      end)
 
     case result do
       {:error, _, _} = error -> error
@@ -75,12 +79,7 @@ defmodule Jsonpatch do
   end
 
   def apply_patch(json_patch, %{} = target) do
-    result = Operation.apply_op(json_patch, target)
-
-    case result do
-      {:error, _, _} = error -> error
-      ok_result -> {:ok, ok_result}
-    end
+    apply_patch([json_patch], target)
   end
 
   @doc """
@@ -172,10 +171,12 @@ defmodule Jsonpatch do
           [%Add{path: current_path, value: val} | acc]
 
         # Source has a different value but both (destination and source) value are lists or a maps
-        source_val
-        when are_unequal_lists(source_val, val) or are_unequal_maps(source_val, val) ->
+        source_val when are_unequal_lists(source_val, val) ->
+          val |> flat() |> Enum.reverse() |> do_diff(source_val, current_path, acc, [])
+
+        source_val when are_unequal_maps(source_val, val) ->
           # Enter next level - set check_keys to empty list because it is a different level
-          do_diff(flat(val), source_val, current_path, acc, [])
+          val |> flat() |> do_diff(source_val, current_path, acc, [])
 
         # Scalar source val that is not equal
         source_val when source_val != val ->
