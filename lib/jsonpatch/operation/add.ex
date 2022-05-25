@@ -19,54 +19,54 @@ defmodule Jsonpatch.Operation.Add do
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
-end
 
-defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
-  @spec apply_op(Jsonpatch.Operation.Add.t(), map | Jsonpatch.error(), keyword()) :: map
-  def apply_op(_, {:error, _, _} = error, _opt), do: error
+  defimpl Jsonpatch.Operation do
+    @spec apply_op(Jsonpatch.Operation.Add.t(), map | Jsonpatch.error(), keyword()) :: map
+    def apply_op(_, {:error, _, _} = error, _opt), do: error
 
-  def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target, opts) do
-    Jsonpatch.PathUtil.get_final_destination(target, path, opts)
-    |> do_add(target, path, value)
-  end
-
-  # ===== ===== PRIVATE ===== =====
-
-  # Error
-  defp do_add({:error, _, _} = error, _target, _path, _value), do: error
-
-  # Map
-  defp do_add({%{} = final_destination, last_fragment}, target, path, value) do
-    updated_final_destination = Map.put_new(final_destination, last_fragment, value)
-    Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)
-  end
-
-  # List
-  defp do_add({final_destination, last_fragment}, target, path, value)
-       when is_list(final_destination) do
-    case parse_index(final_destination, last_fragment) do
-      {:error, _, _} = error ->
-        error
-
-      index ->
-        updated_final_destination =
-          if last_fragment == "-" or length(final_destination) == index do
-            Enum.concat(final_destination, [value])
-          else
-            List.update_at(final_destination, index, fn _ -> value end)
-          end
-
-        Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)
+    def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target, opts) do
+      Jsonpatch.PathUtil.get_final_destination(target, path, opts)
+      |> do_add(target, path, value)
     end
-  end
 
-  defp parse_index(list, unparsed) do
-    if unparsed == "-" do
-      length(list)
-    else
-      case Integer.parse(unparsed) do
-        :error -> {:error, :invalid_index, unparsed}
-        {index, _} -> index
+    # ===== ===== PRIVATE ===== =====
+
+    # Error
+    defp do_add({:error, _, _} = error, _target, _path, _value), do: error
+
+    # Map
+    defp do_add({%{} = final_destination, last_fragment}, target, path, value) do
+      updated_final_destination = Map.put_new(final_destination, last_fragment, value)
+      Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)
+    end
+
+    # List
+    defp do_add({final_destination, last_fragment}, target, path, value)
+         when is_list(final_destination) do
+      case parse_index(final_destination, last_fragment) do
+        {:error, _, _} = error ->
+          error
+
+        index ->
+          updated_final_destination =
+            if last_fragment == "-" or length(final_destination) == index do
+              Enum.concat(final_destination, [value])
+            else
+              List.update_at(final_destination, index, fn _ -> value end)
+            end
+
+          Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)
+      end
+    end
+
+    defp parse_index(list, unparsed) do
+      if unparsed == "-" do
+        length(list)
+      else
+        case Integer.parse(unparsed) do
+          :error -> {:error, :invalid_index, unparsed}
+          {index, _} -> index
+        end
       end
     end
   end

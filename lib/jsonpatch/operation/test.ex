@@ -13,36 +13,36 @@ defmodule Jsonpatch.Operation.Test do
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
-end
 
-defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
-  @spec apply_op(Jsonpatch.Operation.Test.t(), map | Jsonpatch.error(), keyword()) :: map()
-  def apply_op(_, {:error, _, _} = error, _opts), do: error
+  defimpl Jsonpatch.Operation do
+    @spec apply_op(Jsonpatch.Operation.Test.t(), map | Jsonpatch.error(), keyword()) :: map()
+    def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-  def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target, opts) do
-    case Jsonpatch.PathUtil.get_final_destination(target, path, opts) |> do_test(value) do
-      true -> target
-      false -> {:error, :test_failed, "Expected value '#{value}' at '#{path}'"}
-      {:error, _, _} = error -> error
+    def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target, opts) do
+      case Jsonpatch.PathUtil.get_final_destination(target, path, opts) |> do_test(value) do
+        true -> target
+        false -> {:error, :test_failed, "Expected value '#{value}' at '#{path}'"}
+        {:error, _, _} = error -> error
+      end
     end
-  end
 
-  # ===== ===== PRIVATE ===== =====
+    # ===== ===== PRIVATE ===== =====
 
-  defp do_test({%{} = target, last_fragment}, value) do
-    Map.get(target, last_fragment) == value
-  end
+    defp do_test({%{} = target, last_fragment}, value) do
+      Map.get(target, last_fragment) == value
+    end
 
-  defp do_test({target, last_fragment}, value) when is_list(target) do
-    case Integer.parse(last_fragment) do
-      {index, _} ->
-        case Enum.fetch(target, index) do
-          {:ok, target_val} -> target_val == value
-          :error -> {:error, :invalid_index, last_fragment}
-        end
+    defp do_test({target, last_fragment}, value) when is_list(target) do
+      case Integer.parse(last_fragment) do
+        {index, _} ->
+          case Enum.fetch(target, index) do
+            {:ok, target_val} -> target_val == value
+            :error -> {:error, :invalid_index, last_fragment}
+          end
 
-      :error ->
-        {:error, :invalid_index, last_fragment}
+        :error ->
+          {:error, :invalid_index, last_fragment}
+      end
     end
   end
 end
