@@ -18,4 +18,10 @@ defmodule Jsonpatch.PathUtilTest do
     assert "unescape~me/" = PathUtil.unescape("unescape~0me~1")
     assert 1 = PathUtil.unescape(1)
   end
+
+  test "Convert into correct key types" do
+    assert ["foo", "bar"] = PathUtil.into_key_type(["foo", "bar"], :strings)
+    assert [:foo, :bar] = PathUtil.into_key_type(["foo", "bar"], :atoms)
+    assert [:foo, :bar] = PathUtil.into_key_type(["foo", "bar"], :atoms!)
+  end
 end
