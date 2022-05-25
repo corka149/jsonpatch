@@ -26,22 +26,22 @@ defmodule Jsonpatch.Operation.Add do
 
     def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target, opts) do
       Jsonpatch.PathUtil.get_final_destination(target, path, opts)
-      |> do_add(target, path, value)
+      |> do_add(target, path, value, opts)
     end
 
     # ===== ===== PRIVATE ===== =====
 
     # Error
-    defp do_add({:error, _, _} = error, _target, _path, _value), do: error
+    defp do_add({:error, _, _} = error, _target, _path, _value, _opts), do: error
 
     # Map
-    defp do_add({%{} = final_destination, last_fragment}, target, path, value) do
+    defp do_add({%{} = final_destination, last_fragment}, target, path, value, opts) do
       updated_final_destination = Map.put_new(final_destination, last_fragment, value)
-      Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)
+      Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path, opts)
     end
 
     # List
-    defp do_add({final_destination, last_fragment}, target, path, value)
+    defp do_add({final_destination, last_fragment}, target, path, value, opts)
          when is_list(final_destination) do
       case parse_index(final_destination, last_fragment) do
         {:error, _, _} = error ->
@@ -55,7 +55,12 @@ defmodule Jsonpatch.Operation.Add do
               List.update_at(final_destination, index, fn _ -> value end)
             end
 
-          Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)
+          Jsonpatch.PathUtil.update_final_destination(
+            target,
+            updated_final_destination,
+            path,
+            opts
+          )
       end
     end
 

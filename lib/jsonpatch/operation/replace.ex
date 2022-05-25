@@ -27,7 +27,12 @@ defmodule Jsonpatch.Operation.Replace do
           error
 
         updated_final_destination ->
-          Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path)
+          Jsonpatch.PathUtil.update_final_destination(
+            target,
+            updated_final_destination,
+            path,
+            opts
+          )
       end
     end
 

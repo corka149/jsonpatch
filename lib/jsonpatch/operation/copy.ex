@@ -54,8 +54,11 @@ defmodule Jsonpatch.Operation.Copy do
         |> do_add(copied_value, copy_path_end)
 
       case updated_value do
-        {:error, _, _} = error -> error
-        updated_value -> Jsonpatch.PathUtil.update_final_destination(target, updated_value, path)
+        {:error, _, _} = error ->
+          error
+
+        updated_value ->
+          Jsonpatch.PathUtil.update_final_destination(target, updated_value, path, opts)
       end
     end
 
