@@ -74,7 +74,7 @@ defmodule Jsonpatch do
     # > Operations are applied sequentially in the order they appear in the array.
     result =
       Enum.reduce_while(json_patch, target, fn patch, acc ->
-        case Jsonpatch.Operation.apply_op(patch, acc) do
+        case Jsonpatch.Operation.apply_op(patch, acc, opts) do
           {:error, _, _} = error -> {:halt, error}
           result -> {:cont, result}
         end
@@ -87,7 +87,7 @@ defmodule Jsonpatch do
   end
 
   def apply_patch(json_patch, %{} = target, opts) do
-    apply_patch([json_patch], target)
+    apply_patch([json_patch], target, opts)
   end
 
   @doc """
