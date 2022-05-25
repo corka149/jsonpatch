@@ -20,16 +20,16 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Move do
   alias Jsonpatch.Operation.Copy
   alias Jsonpatch.Operation.Remove
 
-  @spec apply_op(Jsonpatch.Operation.Move.t(), map | Jsonpatch.error()) ::
+  @spec apply_op(Jsonpatch.Operation.Move.t(), map | Jsonpatch.error(), keyword()) ::
           map()
-  def apply_op(_, {:error, _, _} = error), do: error
+  def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-  def apply_op(%Jsonpatch.Operation.Move{from: from, path: path}, target) do
+  def apply_op(%Jsonpatch.Operation.Move{from: from, path: path}, target, opts) do
     copy_patch = %Copy{from: from, path: path}
 
     case Operation.apply_op(copy_patch, target) do
       {:error, _, _} = error -> error
-      updated_target -> Operation.apply_op(%Remove{path: from}, updated_target)
+      updated_target -> Operation.apply_op(%Remove{path: from}, updated_target, opts)
     end
   end
 end

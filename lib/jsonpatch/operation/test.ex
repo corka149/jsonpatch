@@ -16,10 +16,10 @@ defmodule Jsonpatch.Operation.Test do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
-  @spec apply_op(Jsonpatch.Operation.Test.t(), map | Jsonpatch.error()) :: map()
-  def apply_op(_, {:error, _, _} = error), do: error
+  @spec apply_op(Jsonpatch.Operation.Test.t(), map | Jsonpatch.error(), keyword()) :: map()
+  def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-  def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target) do
+  def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target, opts) do
     case Jsonpatch.PathUtil.get_final_destination(target, path) |> do_test(value) do
       true -> target
       false -> {:error, :test_failed, "Expected value '#{value}' at '#{path}'"}

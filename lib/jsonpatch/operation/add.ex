@@ -22,10 +22,10 @@ defmodule Jsonpatch.Operation.Add do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
-  @spec apply_op(Jsonpatch.Operation.Add.t(), map | Jsonpatch.error()) :: map
-  def apply_op(_, {:error, _, _} = error), do: error
+  @spec apply_op(Jsonpatch.Operation.Add.t(), map | Jsonpatch.error(), keyword()) :: map
+  def apply_op(_, {:error, _, _} = error, _opt), do: error
 
-  def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target) do
+  def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target, opts) do
     Jsonpatch.PathUtil.get_final_destination(target, path)
     |> do_add(target, path, value)
   end

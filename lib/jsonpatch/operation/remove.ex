@@ -16,11 +16,11 @@ defmodule Jsonpatch.Operation.Remove do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
-  @spec apply_op(Jsonpatch.Operation.Remove.t(), map | Jsonpatch.error()) ::
+  @spec apply_op(Jsonpatch.Operation.Remove.t(), map | Jsonpatch.error(), keyword()) ::
           map()
-  def apply_op(_, {:error, _, _} = error), do: error
+  def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-  def apply_op(%Jsonpatch.Operation.Remove{path: path}, target) do
+  def apply_op(%Jsonpatch.Operation.Remove{path: path}, target, opts) do
     # The first element is always "" which is useless.
     [_ | fragments] = String.split(path, "/") |> Enum.map(&Jsonpatch.PathUtil.unescape/1)
     do_remove(target, fragments)

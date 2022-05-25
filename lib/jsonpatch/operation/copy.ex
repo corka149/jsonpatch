@@ -16,10 +16,10 @@ defmodule Jsonpatch.Operation.Copy do
 end
 
 defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
-  @spec apply_op(Jsonpatch.Operation.Copy.t(), map() | Jsonpatch.error()) :: map()
-  def apply_op(_, {:error, _, _} = error), do: error
+  @spec apply_op(Jsonpatch.Operation.Copy.t(), map() | Jsonpatch.error(), keyword()) :: map()
+  def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-  def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target) do
+  def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target, opts) do
     # %{"c" => "Bob"}
 
     updated_val =
