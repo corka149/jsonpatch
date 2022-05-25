@@ -31,11 +31,18 @@ defmodule Jsonpatch.PathUtil do
       iex> Jsonpatch.PathUtil.get_final_destination(target, path)
       {:error, :invalid_index, "42"}
   """
-  @spec get_final_destination(map, binary) ::
+  @spec get_final_destination(map, binary, keyword) ::
           {map, binary} | {list, binary} | Jsonpatch.error()
-  def get_final_destination(target, path) when is_bitstring(path) do
+  def get_final_destination(target, path, opts \\ []) when is_bitstring(path) do
+    key_type = wanted_key_type(opts)
+
     # The first element is always "" which is useless.
-    [_ | fragments] = String.split(path, "/") |> Enum.map(&unescape/1)
+    [_ | fragments] =
+      path
+      |> String.split("/")
+      |> Enum.map(&unescape/1)
+      |> into_key_type(key_type)
+
     find_final_destination(target, fragments)
   end
 
@@ -67,6 +74,27 @@ defmodule Jsonpatch.PathUtil do
 
   def unescape(fragment) do
     fragment
+  end
+
+  @spec wanted_key_type(keyword) :: atom()
+  def wanted_key_type(opts) do
+    Keyword.get(opts, :keys, :strings)
+  end
+
+  @doc """
+  Converts the given path fragements into the wanted key types.
+  """
+  @spec into_key_type(list(binary()), :atoms | :atoms! | :strings) :: list
+  def into_key_type(fragements, key_type) do
+    converter =
+      case key_type do
+        :strings -> fn fragement -> fragement end
+        :atoms -> &to_atom/1
+        :atoms! -> &to_existing_atom/1
+        unknown -> raise "Unknown key type '#{unknown}'"
+      end
+
+    Enum.map(fragements, converter)
   end
 
   # ===== ===== PRIVATE ===== =====
@@ -129,5 +157,27 @@ defmodule Jsonpatch.PathUtil do
     {index, _} = Integer.parse(fragment)
 
     List.update_at(target, index, &do_update_final_destination(&1, new_final_dest, tail))
+  end
+
+  defp to_atom(fragment) do
+    case is_number?(fragment) do
+      true -> fragment
+      false -> String.to_atom(fragment)
+    end
+  end
+
+  defp to_existing_atom(fragment) do
+    case is_number?(fragment) do
+      true -> fragment
+      false -> String.to_existing_atom(fragment)
+    end
+  end
+
+  defp is_number?(term) when is_binary(term) do
+    Regex.match?(~r/^\d+$/, term)
+  end
+
+  defp is_number?(_term) do
+    false
   end
 end

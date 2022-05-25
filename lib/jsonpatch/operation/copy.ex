@@ -24,9 +24,9 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
 
     updated_val =
       target
-      |> Jsonpatch.PathUtil.get_final_destination(from)
+      |> Jsonpatch.PathUtil.get_final_destination(from, opts)
       |> extract_copy_value()
-      |> do_copy(target, path)
+      |> do_copy(target, path, opts)
 
     case updated_val do
       {:error, _, _} = error -> error
@@ -36,11 +36,11 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
 
   # ===== ===== PRIVATE ===== =====
 
-  defp do_copy({:error, _, _} = error, _target, _path) do
+  defp do_copy({:error, _, _} = error, _target, _path, _opts) do
     error
   end
 
-  defp do_copy(copied_value, target, path) do
+  defp do_copy(copied_value, target, path, opts) do
     # copied_value = %{"c" => "Bob"}
 
     # "e"
@@ -50,7 +50,7 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Copy do
     updated_value =
       target
       # %{"b" => %{"c" => "Bob"}} is the "copy target"
-      |> Jsonpatch.PathUtil.get_final_destination(path)
+      |> Jsonpatch.PathUtil.get_final_destination(path, opts)
       # Add copied_value to "copy target"
       |> do_add(copied_value, copy_path_end)
 

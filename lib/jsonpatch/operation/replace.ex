@@ -20,7 +20,8 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Replace do
   def apply_op(_, {:error, _, _} = error, _opts), do: error
 
   def apply_op(%Jsonpatch.Operation.Replace{path: path, value: value}, %{} = target, opts) do
-    {final_destination, last_fragment} = Jsonpatch.PathUtil.get_final_destination(target, path)
+    {final_destination, last_fragment} =
+      Jsonpatch.PathUtil.get_final_destination(target, path, opts)
 
     case do_update(final_destination, last_fragment, value) do
       {:error, _, _} = error ->

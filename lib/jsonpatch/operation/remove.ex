@@ -21,8 +21,15 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
   def apply_op(_, {:error, _, _} = error, _opts), do: error
 
   def apply_op(%Jsonpatch.Operation.Remove{path: path}, target, opts) do
+    key_type = Jsonpatch.PathUtil.wanted_key_type(opts)
+
     # The first element is always "" which is useless.
-    [_ | fragments] = String.split(path, "/") |> Enum.map(&Jsonpatch.PathUtil.unescape/1)
+    [_ | fragments] =
+      path
+      |> String.split("/")
+      |> Enum.map(&Jsonpatch.PathUtil.unescape/1)
+      |> Jsonpatch.PathUtil.into_key_type(key_type)
+
     do_remove(target, fragments)
   end
 

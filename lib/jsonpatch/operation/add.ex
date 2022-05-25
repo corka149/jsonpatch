@@ -26,7 +26,7 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Add do
   def apply_op(_, {:error, _, _} = error, _opt), do: error
 
   def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target, opts) do
-    Jsonpatch.PathUtil.get_final_destination(target, path)
+    Jsonpatch.PathUtil.get_final_destination(target, path, opts)
     |> do_add(target, path, value)
   end
 

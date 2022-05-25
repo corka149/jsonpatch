@@ -20,7 +20,7 @@ defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Test do
   def apply_op(_, {:error, _, _} = error, _opts), do: error
 
   def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target, opts) do
-    case Jsonpatch.PathUtil.get_final_destination(target, path) |> do_test(value) do
+    case Jsonpatch.PathUtil.get_final_destination(target, path, opts) |> do_test(value) do
       true -> target
       false -> {:error, :test_failed, "Expected value '#{value}' at '#{path}'"}
       {:error, _, _} = error -> error
