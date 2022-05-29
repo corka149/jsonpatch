@@ -2,7 +2,7 @@
 
 
 check:
-	mix format
+	mix format --check-formatted
 	mix test
 	mix dialyzer
 	mix credo --strict

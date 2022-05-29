@@ -12,8 +12,8 @@ defmodule Jsonpatch.Operation.Move do
 
   alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Copy
-  alias Jsonpatch.Operation.Remove
   alias Jsonpatch.Operation.Move
+  alias Jsonpatch.Operation.Remove
 
   @enforce_keys [:from, :path]
   defstruct [:from, :path]
