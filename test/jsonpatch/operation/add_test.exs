@@ -53,11 +53,18 @@ defmodule Jsonpatch.Operation.AddTest do
     assert %{"a" => [0, 1, 3]} = Operation.apply_op(patch, target)
   end
 
-  test "Add a value to an empty array" do
+  test "Add a value to an empty array with binary key" do
     patch = %Add{path: "/a/0", value: 3}
     target = %{"a" => []}
 
     assert %{"a" => [3]} = Operation.apply_op(patch, target)
+  end
+
+  test "Add a value to an empty array with atom key" do
+    patch = %Add{path: "/a/0", value: 3}
+    target = %{a: []}
+
+    assert %{a: [3]} = Operation.apply_op(patch, target, keys: :atoms)
   end
 
   test "Add a value to an array with invalid index" do

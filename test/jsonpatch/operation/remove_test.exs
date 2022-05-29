@@ -54,7 +54,15 @@ defmodule RemoveTest do
     }
 
     remove_patch = %Remove{path: "/nameX"}
-    assert {:error, :invalid_path, "nameX"} = Jsonpatch.apply_patch(remove_patch, target)
+    assert {:error, :invalid_path, "nameX"} = Operation.apply_op(remove_patch, target)
+  end
+
+  test "Remove element in map with atom keys" do
+    target = %{name: "Ceasar", age: 66}
+
+    remove_patch = %Remove{path: "/age"}
+
+    assert %{name: "Ceasar"} = Operation.apply_op(remove_patch, target, keys: :atoms)
   end
 
   test "Remove element by invalid index" do
@@ -66,7 +74,7 @@ defmodule RemoveTest do
     }
 
     remove_patch = %Remove{path: "/hobbies/a"}
-    assert {:error, :invalid_index, "a"} = Jsonpatch.apply_patch(remove_patch, target)
+    assert {:error, :invalid_index, "a"} = Operation.apply_op(remove_patch, target)
 
     # Longer path
     target = %{
@@ -77,11 +85,11 @@ defmodule RemoveTest do
     }
 
     remove_patch = %Remove{path: "/hobbies/b/description"}
-    assert {:error, :invalid_index, "b"} = Jsonpatch.apply_patch(remove_patch, target)
+    assert {:error, :invalid_index, "b"} = Operation.apply_op(remove_patch, target)
 
     # Longer path, numeric - out of
     remove_patch = %Remove{path: "/hobbies/1/description"}
-    assert {:error, :invalid_index, "1"} = Jsonpatch.apply_patch(remove_patch, target)
+    assert {:error, :invalid_index, "1"} = Operation.apply_op(remove_patch, target)
   end
 
   test "Return error when patch error was provided to remove operation" do
