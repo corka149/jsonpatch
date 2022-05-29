@@ -193,7 +193,7 @@ defmodule JsonpatchTest do
                )
     end
 
-    test "Apply patch with multilple operations" do
+    test "Apply patch with multilple operations with binary keys" do
       patch = [
         %Jsonpatch.Operation.Remove{path: "/age"},
         %Jsonpatch.Operation.Add{path: "/age", value: 34},
@@ -204,6 +204,19 @@ defmodule JsonpatchTest do
       patched = Jsonpatch.apply_patch!(patch, target)
 
       assert %{"age" => 35} = patched
+    end
+
+    test "Apply patch with multilple operations with atom keys" do
+      patch = [
+        %Jsonpatch.Operation.Remove{path: "/age"},
+        %Jsonpatch.Operation.Add{path: "/age", value: 34},
+        %Jsonpatch.Operation.Replace{path: "/age", value: 35}
+      ]
+
+      target = %{age: "33"}
+      patched = Jsonpatch.apply_patch!(patch, target, keys: :atoms)
+
+      assert %{age: 35} = patched
     end
 
     test "Apply patch with invalid target source path and expect error" do

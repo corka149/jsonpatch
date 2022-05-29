@@ -95,10 +95,17 @@ defmodule Jsonpatch.PathUtil do
   def into_key_type(fragements, key_type) do
     converter =
       case key_type do
-        :strings -> fn fragement -> fragement end
-        :atoms -> &to_atom/1
-        :atoms! -> &to_existing_atom/1
-        unknown -> raise "Unknown key type '#{unknown}'"
+        :strings ->
+          fn fragement -> fragement end
+
+        :atoms ->
+          &to_atom/1
+
+        :atoms! ->
+          &to_existing_atom/1
+
+        unknown ->
+          raise JsonpatchException, {:error, :bad_api_usage, "Unknown key type '#{unknown}'"}
       end
 
     Enum.map(fragements, converter)
