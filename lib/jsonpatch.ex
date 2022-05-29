@@ -37,7 +37,7 @@ defmodule Jsonpatch do
 
   ## Options
     * `:keys` - controls how parts of paths are decoded. Possible values:
-      * `:strings` (default) - decodes keys as binary strings,
+      * `:strings` (default) - decodes parts of paths as binary strings,
       * `:atoms` - parts of paths are converted to atoms using `String.to_atom/1`,
       * `:atoms!` - parts of paths are converted to atoms using `String.to_existing_atom/1`
 

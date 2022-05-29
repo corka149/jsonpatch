@@ -5,27 +5,31 @@ defmodule Jsonpatch.Operation.Add do
 
   ## Examples
 
-      iex> add = %Jsonpatch.Operation.Add{path: "/a/b", value: 1}
+      iex> add = %Add{path: "/a/b", value: 1}
       iex> target = %{"a" => %{"c" => false}}
-      iex> Jsonpatch.Operation.apply_op(add, target)
+      iex> Operation.apply_op(add, target)
       %{"a" => %{"b" => 1, "c" => false}}
 
-      iex> add = %Jsonpatch.Operation.Add{path: "/a/-", value: "z"}
+      iex> add = %Add{path: "/a/-", value: "z"}
       iex> target = %{"a" => ["x", "y"]}
-      iex> Jsonpatch.Operation.apply_op(add, target)
+      iex> Operation.apply_op(add, target)
       %{"a" => ["x", "y", "z"]}
   """
+
+  alias Jsonpatch.Operation
+  alias Jsonpatch.Operation.Add
+  alias Jsonpatch.PathUtil
 
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
 
-  defimpl Jsonpatch.Operation do
-    @spec apply_op(Jsonpatch.Operation.Add.t(), map | Jsonpatch.error(), keyword()) :: map
+  defimpl Operation do
+    @spec apply_op(Add.t(), map | Jsonpatch.error(), keyword()) :: map
     def apply_op(_, {:error, _, _} = error, _opt), do: error
 
-    def apply_op(%Jsonpatch.Operation.Add{path: path, value: value}, %{} = target, opts) do
-      Jsonpatch.PathUtil.get_final_destination(target, path, opts)
+    def apply_op(%Add{path: path, value: value}, %{} = target, opts) do
+      PathUtil.get_final_destination(target, path, opts)
       |> do_add(target, path, value, opts)
     end
 
@@ -37,7 +41,7 @@ defmodule Jsonpatch.Operation.Add do
     # Map
     defp do_add({%{} = final_destination, last_fragment}, target, path, value, opts) do
       updated_final_destination = Map.put_new(final_destination, last_fragment, value)
-      Jsonpatch.PathUtil.update_final_destination(target, updated_final_destination, path, opts)
+      PathUtil.update_final_destination(target, updated_final_destination, path, opts)
     end
 
     # List
@@ -55,7 +59,7 @@ defmodule Jsonpatch.Operation.Add do
               List.update_at(final_destination, index, fn _ -> value end)
             end
 
-          Jsonpatch.PathUtil.update_final_destination(
+          PathUtil.update_final_destination(
             target,
             updated_final_destination,
             path,

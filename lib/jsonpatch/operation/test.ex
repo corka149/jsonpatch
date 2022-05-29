@@ -10,16 +10,20 @@ defmodule Jsonpatch.Operation.Test do
       %{"x" => %{"y" => "Bob"}}
   """
 
+  alias Jsonpatch.Operation
+  alias Jsonpatch.Operation.Test
+  alias Jsonpatch.PathUtil
+
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
 
-  defimpl Jsonpatch.Operation do
-    @spec apply_op(Jsonpatch.Operation.Test.t(), map | Jsonpatch.error(), keyword()) :: map()
+  defimpl Operation do
+    @spec apply_op(Test.t(), map | Jsonpatch.error(), keyword()) :: map()
     def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-    def apply_op(%Jsonpatch.Operation.Test{path: path, value: value}, %{} = target, opts) do
-      case Jsonpatch.PathUtil.get_final_destination(target, path, opts) |> do_test(value) do
+    def apply_op(%Test{path: path, value: value}, %{} = target, opts) do
+      case PathUtil.get_final_destination(target, path, opts) |> do_test(value) do
         true -> target
         false -> {:error, :test_failed, "Expected value '#{value}' at '#{path}'"}
         {:error, _, _} = error -> error

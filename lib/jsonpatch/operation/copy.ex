@@ -10,20 +10,24 @@ defmodule Jsonpatch.Operation.Copy do
       %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}
   """
 
+  alias Jsonpatch.Operation
+  alias Jsonpatch.Operation.Copy
+  alias Jsonpatch.PathUtil
+
   @enforce_keys [:from, :path]
   defstruct [:from, :path]
   @type t :: %__MODULE__{from: String.t(), path: String.t()}
 
-  defimpl Jsonpatch.Operation do
-    @spec apply_op(Jsonpatch.Operation.Copy.t(), map() | Jsonpatch.error(), keyword()) :: map()
+  defimpl Operation do
+    @spec apply_op(Copy.t(), map() | Jsonpatch.error(), keyword()) :: map()
     def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-    def apply_op(%Jsonpatch.Operation.Copy{from: from, path: path}, target, opts) do
+    def apply_op(%Copy{from: from, path: path}, target, opts) do
       # %{"c" => "Bob"}
 
       updated_val =
         target
-        |> Jsonpatch.PathUtil.get_final_destination(from, opts)
+        |> PathUtil.get_final_destination(from, opts)
         |> extract_copy_value()
         |> do_copy(target, path, opts)
 
@@ -49,7 +53,7 @@ defmodule Jsonpatch.Operation.Copy do
       updated_value =
         target
         # %{"b" => %{"c" => "Bob"}} is the "copy target"
-        |> Jsonpatch.PathUtil.get_final_destination(path, opts)
+        |> PathUtil.get_final_destination(path, opts)
         # Add copied_value to "copy target"
         |> do_add(copied_value, copy_path_end)
 
@@ -58,7 +62,7 @@ defmodule Jsonpatch.Operation.Copy do
           error
 
         updated_value ->
-          Jsonpatch.PathUtil.update_final_destination(target, updated_value, path, opts)
+          PathUtil.update_final_destination(target, updated_value, path, opts)
       end
     end
 

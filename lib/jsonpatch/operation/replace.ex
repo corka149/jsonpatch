@@ -10,24 +10,27 @@ defmodule Jsonpatch.Operation.Replace do
       %{"a" => %{"b" => 1}}
   """
 
+  alias Jsonpatch.Operation
+  alias Jsonpatch.Operation.Replace
+  alias Jsonpatch.PathUtil
+
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
 
-  defimpl Jsonpatch.Operation do
-    @spec apply_op(Jsonpatch.Operation.Replace.t(), map | Jsonpatch.error(), keyword()) :: map
+  defimpl Operation do
+    @spec apply_op(Replace.t(), map | Jsonpatch.error(), keyword()) :: map
     def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-    def apply_op(%Jsonpatch.Operation.Replace{path: path, value: value}, %{} = target, opts) do
-      {final_destination, last_fragment} =
-        Jsonpatch.PathUtil.get_final_destination(target, path, opts)
+    def apply_op(%Replace{path: path, value: value}, %{} = target, opts) do
+      {final_destination, last_fragment} = PathUtil.get_final_destination(target, path, opts)
 
       case do_update(final_destination, last_fragment, value) do
         {:error, _, _} = error ->
           error
 
         updated_final_destination ->
-          Jsonpatch.PathUtil.update_final_destination(
+          PathUtil.update_final_destination(
             target,
             updated_final_destination,
             path,

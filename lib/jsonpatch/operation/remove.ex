@@ -10,24 +10,28 @@ defmodule Jsonpatch.Operation.Remove do
       %{"a" => %{}, "d" => false}
   """
 
+  alias Jsonpatch.Operation
+  alias Jsonpatch.Operation.Remove
+  alias Jsonpatch.PathUtil
+
   @enforce_keys [:path]
   defstruct [:path]
   @type t :: %__MODULE__{path: String.t()}
 
-  defimpl Jsonpatch.Operation do
-    @spec apply_op(Jsonpatch.Operation.Remove.t(), map | Jsonpatch.error(), keyword()) ::
+  defimpl Operation do
+    @spec apply_op(Remove.t(), map | Jsonpatch.error(), keyword()) ::
             map()
     def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-    def apply_op(%Jsonpatch.Operation.Remove{path: path}, target, opts) do
-      key_type = Jsonpatch.PathUtil.wanted_key_type(opts)
+    def apply_op(%Remove{path: path}, target, opts) do
+      key_type = PathUtil.wanted_key_type(opts)
 
       # The first element is always "" which is useless.
       [_ | fragments] =
         path
         |> String.split("/")
-        |> Enum.map(&Jsonpatch.PathUtil.unescape/1)
-        |> Jsonpatch.PathUtil.into_key_type(key_type)
+        |> Enum.map(&PathUtil.unescape/1)
+        |> PathUtil.into_key_type(key_type)
 
       do_remove(target, fragments)
     end
