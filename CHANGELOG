@@ -1,3 +1,6 @@
+# 0.13.0
+- Allow usage of atoms for keys via `keys` option
+
 # 0.12.1
 - Generate diffs with correct order (thanks https://github.com/smartepsh)
 
