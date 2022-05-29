@@ -29,6 +29,14 @@ defmodule Jsonpatch.Operation.TestTest do
     assert ^target = Operation.apply_op(test_op, target)
   end
 
+  test "Test with atom as key" do
+    target = %{role: "Developer"}
+
+    test_op = %Test{path: "/role", value: "Developer"}
+
+    assert ^target = Operation.apply_op(test_op, target, keys: :atoms)
+  end
+
   test "Fail to test element with path with multiple indices" do
     target = %{
       "a" => %{

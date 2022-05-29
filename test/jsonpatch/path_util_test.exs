@@ -18,4 +18,26 @@ defmodule Jsonpatch.PathUtilTest do
     assert "unescape~me/" = PathUtil.unescape("unescape~0me~1")
     assert 1 = PathUtil.unescape(1)
   end
+
+  describe "Convert key types" do
+    test "With success" do
+      assert ["foo", "bar"] = PathUtil.into_key_type(["foo", "bar"], :strings)
+      assert [:foo, :bar] = PathUtil.into_key_type(["foo", "bar"], :atoms)
+      assert [:foo, "1"] = PathUtil.into_key_type(["foo", "1"], :atoms)
+      assert [:foo, :bar] = PathUtil.into_key_type(["foo", "bar"], :atoms!)
+      assert [:foo, "1"] = PathUtil.into_key_type(["foo", "1"], :atoms!)
+    end
+
+    test "Expect exception when :atoms! was provided but atom does not exist" do
+      assert_raise ArgumentError, fn ->
+        PathUtil.into_key_type(["does_not_", "exists_as_atom"], :atoms!)
+      end
+    end
+
+    test "Do not accept unknown key type" do
+      assert_raise JsonpatchException, fn ->
+        PathUtil.into_key_type(["does not matter"], :not_valid_type)
+      end
+    end
+  end
 end

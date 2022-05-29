@@ -32,6 +32,15 @@ defmodule Jsonpatch do
   when any path is invalid or any other error occured. When a list is provided, the operations are
   applied in the order as they appear in the list.
 
+  Atoms are never garbage collected. Therefore, `Jsonpatch` works by default only with maps
+  which used binary strings as key. This behaviour can be controlled via the `:keys` option.
+
+  ## Options
+    * `:keys` - controls how parts of paths are decoded. Possible values:
+      * `:strings` (default) - decodes parts of paths as binary strings,
+      * `:atoms` - parts of paths are converted to atoms using `String.to_atom/1`,
+      * `:atoms!` - parts of paths are converted to atoms using `String.to_existing_atom/1`
+
   ## Examples
       iex> patch = [
       ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
@@ -56,16 +65,16 @@ defmodule Jsonpatch do
       iex> Jsonpatch.apply_patch(patch, target)
       {:error, :test_failed, "Expected value 'Alice' at '/name'"}
   """
-  @spec apply_patch(Jsonpatch.t() | list(Jsonpatch.t()), map()) ::
+  @spec apply_patch(Jsonpatch.t() | list(Jsonpatch.t()), map(), keyword()) ::
           {:ok, map()} | Jsonpatch.error()
-  def apply_patch(json_patch, target)
+  def apply_patch(json_patch, target, opts \\ [])
 
-  def apply_patch(json_patch, %{} = target) when is_list(json_patch) do
+  def apply_patch(json_patch, %{} = target, opts) when is_list(json_patch) do
     # https://datatracker.ietf.org/doc/html/rfc6902#section-3
     # > Operations are applied sequentially in the order they appear in the array.
     result =
       Enum.reduce_while(json_patch, target, fn patch, acc ->
-        case Jsonpatch.Operation.apply_op(patch, acc) do
+        case Jsonpatch.Operation.apply_op(patch, acc, opts) do
           {:error, _, _} = error -> {:halt, error}
           result -> {:cont, result}
         end
@@ -77,8 +86,8 @@ defmodule Jsonpatch do
     end
   end
 
-  def apply_patch(json_patch, %{} = target) do
-    apply_patch([json_patch], target)
+  def apply_patch(json_patch, %{} = target, opts) do
+    apply_patch([json_patch], target, opts)
   end
 
   @doc """
@@ -88,11 +97,11 @@ defmodule Jsonpatch do
 
   (See Jsonpatch.apply_patch/2 for more details)
   """
-  @spec apply_patch!(Jsonpatch.t() | list(Jsonpatch.t()), map()) :: map()
-  def apply_patch!(json_patch, target)
+  @spec apply_patch!(Jsonpatch.t() | list(Jsonpatch.t()), map(), keyword()) :: map()
+  def apply_patch!(json_patch, target, opts \\ [])
 
-  def apply_patch!(json_patch, target) do
-    case apply_patch(json_patch, target) do
+  def apply_patch!(json_patch, target, opts) do
+    case apply_patch(json_patch, target, opts) do
       {:ok, patched} -> patched
       {:error, _, _} = error -> raise JsonpatchException, error
     end

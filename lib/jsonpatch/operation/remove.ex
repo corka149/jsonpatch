@@ -10,69 +10,80 @@ defmodule Jsonpatch.Operation.Remove do
       %{"a" => %{}, "d" => false}
   """
 
+  alias Jsonpatch.Operation
+  alias Jsonpatch.Operation.Remove
+  alias Jsonpatch.PathUtil
+
   @enforce_keys [:path]
   defstruct [:path]
   @type t :: %__MODULE__{path: String.t()}
-end
 
-defimpl Jsonpatch.Operation, for: Jsonpatch.Operation.Remove do
-  @spec apply_op(Jsonpatch.Operation.Remove.t(), map | Jsonpatch.error()) ::
-          map()
-  def apply_op(_, {:error, _, _} = error), do: error
+  defimpl Operation do
+    @spec apply_op(Remove.t(), map | Jsonpatch.error(), keyword()) ::
+            map()
+    def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-  def apply_op(%Jsonpatch.Operation.Remove{path: path}, target) do
-    # The first element is always "" which is useless.
-    [_ | fragments] = String.split(path, "/") |> Enum.map(&Jsonpatch.PathUtil.unescape/1)
-    do_remove(target, fragments)
-  end
+    def apply_op(%Remove{path: path}, target, opts) do
+      key_type = PathUtil.wanted_key_type(opts)
 
-  # ===== ===== PRIVATE ===== =====
+      # The first element is always "" which is useless.
+      [_ | fragments] =
+        path
+        |> String.split("/")
+        |> Enum.map(&PathUtil.unescape/1)
+        |> PathUtil.into_key_type(key_type)
 
-  defp do_remove(%{} = target, [fragment | []]) do
-    case Map.pop(target, fragment) do
-      {nil, _} -> {:error, :invalid_path, fragment}
-      {_, purged_map} -> purged_map
+      do_remove(target, fragments)
     end
-  end
 
-  defp do_remove(target, [fragment | []]) when is_list(target) do
-    case Integer.parse(fragment) do
-      :error ->
-        {:error, :invalid_index, fragment}
+    # ===== ===== PRIVATE ===== =====
 
-      {index, _} ->
-        case List.pop_at(target, index) do
-          {nil, _} -> {:error, :invalid_index, fragment}
-          {_, purged_list} -> purged_list
-        end
+    defp do_remove(%{} = target, [fragment | []]) do
+      case Map.pop(target, fragment) do
+        {nil, _} -> {:error, :invalid_path, fragment}
+        {_, purged_map} -> purged_map
+      end
     end
-  end
 
-  defp do_remove(%{} = target, [fragment | tail]) do
-    case Map.get(target, fragment) do
-      nil ->
-        {:error, :invalid_path, fragment}
+    defp do_remove(target, [fragment | []]) when is_list(target) do
+      case Integer.parse(fragment) do
+        :error ->
+          {:error, :invalid_index, fragment}
 
-      val ->
-        case do_remove(val, tail) do
-          {:error, _, _} = error -> error
-          new_val -> %{target | fragment => new_val}
-        end
+        {index, _} ->
+          case List.pop_at(target, index) do
+            {nil, _} -> {:error, :invalid_index, fragment}
+            {_, purged_list} -> purged_list
+          end
+      end
     end
-  end
 
-  defp do_remove(target, [fragment | tail]) when is_list(target) do
-    case Integer.parse(fragment) do
-      :error ->
-        {:error, :invalid_index, fragment}
+    defp do_remove(%{} = target, [fragment | tail]) do
+      case Map.get(target, fragment) do
+        nil ->
+          {:error, :invalid_path, fragment}
 
-      {index, _} ->
-        update_list = List.update_at(target, index, &do_remove(&1, tail))
+        val ->
+          case do_remove(val, tail) do
+            {:error, _, _} = error -> error
+            new_val -> %{target | fragment => new_val}
+          end
+      end
+    end
 
-        case List.pop_at(target, index) do
-          {nil, _} -> {:error, :invalid_index, fragment}
-          _ -> update_list
-        end
+    defp do_remove(target, [fragment | tail]) when is_list(target) do
+      case Integer.parse(fragment) do
+        :error ->
+          {:error, :invalid_index, fragment}
+
+        {index, _} ->
+          update_list = List.update_at(target, index, &do_remove(&1, tail))
+
+          case List.pop_at(target, index) do
+            {nil, _} -> {:error, :invalid_index, fragment}
+            _ -> update_list
+          end
+      end
     end
   end
 end
