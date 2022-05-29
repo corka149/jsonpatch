@@ -32,7 +32,7 @@ defmodule Jsonpatch do
   when any path is invalid or any other error occured. When a list is provided, the operations are
   applied in the order as they appear in the list.
 
-  Atoms are never garbage collected. Therefore, `Jsonpatch` only works by default only with maps
+  Atoms are never garbage collected. Therefore, `Jsonpatch` works by default only with maps
   which used binary strings as key. This behaviour can be controlled via the `:keys` option.
 
   ## Options
