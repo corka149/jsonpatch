@@ -216,14 +216,21 @@ defmodule Jsonpatch do
     Map.get(source, key)
   end
 
-  # Escape `/` to `~1 and `~` to `~`.
+  # Escape `/` to `~1 and `~` to `~0`.
   defp escape(subpath) when is_bitstring(subpath) do
     subpath
-    |> String.replace("~", "~0")
-    |> String.replace("/", "~1")
+    |> do_escape("~", "~0")
+    |> do_escape("/", "~1")
   end
 
   defp escape(subpath) do
     subpath
+  end
+
+  defp do_escape(subpath, pattern, replacement) do
+    case String.contains?(subpath, pattern) do
+      true -> String.replace(subpath, pattern, replacement)
+      false -> subpath
+    end
   end
 end
