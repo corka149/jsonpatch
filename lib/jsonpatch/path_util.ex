@@ -75,8 +75,8 @@ defmodule Jsonpatch.PathUtil do
   """
   def unescape(fragment) when is_bitstring(fragment) do
     fragment
-    |> String.replace("~1", "/")
-    |> String.replace("~0", "~")
+    |> do_unescape("~1", "/")
+    |> do_unescape("~0", "~")
   end
 
   def unescape(fragment) do
@@ -193,5 +193,16 @@ defmodule Jsonpatch.PathUtil do
 
   defp is_number?(_term) do
     false
+  end
+
+  defp do_unescape(fragment, pattern, replacement) when is_binary(fragment) do
+    case String.contains?(fragment, pattern) do
+      true -> String.replace(fragment, pattern, replacement)
+      false -> fragment
+    end
+  end
+
+  defp do_unescape(fragment, _pattern, _replacement) do
+    fragment
   end
 end
