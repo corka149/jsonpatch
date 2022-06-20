@@ -1,3 +1,6 @@
+# 1.0.0
+- Allow lists at top level of Jsonpatch.apply_patch
+
 # 0.13.1
 - Make Jsonpatch faster by (un)escaping conditional
 

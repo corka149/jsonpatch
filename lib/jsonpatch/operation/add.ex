@@ -25,10 +25,10 @@ defmodule Jsonpatch.Operation.Add do
   @type t :: %__MODULE__{path: String.t(), value: any}
 
   defimpl Operation do
-    @spec apply_op(Add.t(), map | Jsonpatch.error(), keyword()) :: map
+    @spec apply_op(Add.t(), list() | map() | Jsonpatch.error(), keyword()) :: map
     def apply_op(_, {:error, _, _} = error, _opt), do: error
 
-    def apply_op(%Add{path: path, value: value}, %{} = target, opts) do
+    def apply_op(%Add{path: path, value: value}, target, opts) do
       PathUtil.get_final_destination(target, path, opts)
       |> do_add(target, path, value, opts)
     end

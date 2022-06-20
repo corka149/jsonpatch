@@ -73,4 +73,18 @@ defmodule Jsonpatch.Operation.TestTest do
 
     assert {:error, :invalid_index, "b"} = Operation.apply_op(test, target)
   end
+
+  test "Test list at top level" do
+    test = %Test{path: "/1", value: "bar"}
+    target = ["foo", "bar", "ha"]
+
+    assert ^target = Operation.apply_op(test, target)
+  end
+
+  test "Test list at top level with error" do
+    test = %Test{path: "/2", value: 3}
+    target = [0, 1, 2]
+
+    assert {:error, :test_failed, "Expected value '3' at '/2'"} = Operation.apply_op(test, target)
+  end
 end

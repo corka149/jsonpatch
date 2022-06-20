@@ -7,6 +7,20 @@ defmodule JsonpatchTest do
 
   doctest Jsonpatch
 
+  test "Create diff from list and apply it" do
+    # Arrange
+    source = [1, 2, %{"drei" => 3}, 5, 6]
+    destination = [1, 2, %{"three" => 3}, 4, 5]
+
+    # Act
+    patch = Jsonpatch.diff(source, destination)
+
+    patched_source = Jsonpatch.apply_patch!(patch, source)
+
+    # Assert
+    assert ^destination = patched_source
+  end
+
   # ===== DIFF =====
   describe "Create diffs" do
     test "adding an Object Member" do

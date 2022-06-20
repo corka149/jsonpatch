@@ -20,7 +20,7 @@ defmodule Jsonpatch.Operation.Move do
   @type t :: %__MODULE__{from: String.t(), path: String.t()}
 
   defimpl Operation do
-    @spec apply_op(Move.t(), map | Jsonpatch.error(), keyword()) ::
+    @spec apply_op(Move.t(), list() | map() | Jsonpatch.error(), keyword()) ::
             map()
     def apply_op(_, {:error, _, _} = error, _opts), do: error
 

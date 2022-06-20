@@ -201,8 +201,4 @@ defmodule Jsonpatch.PathUtil do
       false -> fragment
     end
   end
-
-  defp do_unescape(fragment, _pattern, _replacement) do
-    fragment
-  end
 end

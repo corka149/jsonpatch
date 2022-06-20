@@ -69,7 +69,7 @@ defmodule Jsonpatch do
           {:ok, map()} | Jsonpatch.error()
   def apply_patch(json_patch, target, opts \\ [])
 
-  def apply_patch(json_patch, %{} = target, opts) when is_list(json_patch) do
+  def apply_patch(json_patch, target, opts) when is_list(json_patch) do
     # https://datatracker.ietf.org/doc/html/rfc6902#section-3
     # > Operations are applied sequentially in the order they appear in the array.
     result =
@@ -86,7 +86,7 @@ defmodule Jsonpatch do
     end
   end
 
-  def apply_patch(json_patch, %{} = target, opts) do
+  def apply_patch(json_patch, target, opts) do
     apply_patch([json_patch], target, opts)
   end
 

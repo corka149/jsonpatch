@@ -19,7 +19,7 @@ defmodule Jsonpatch.Operation.Remove do
   @type t :: %__MODULE__{path: String.t()}
 
   defimpl Operation do
-    @spec apply_op(Remove.t(), map | Jsonpatch.error(), keyword()) ::
+    @spec apply_op(Remove.t(), list() | map() | Jsonpatch.error(), keyword()) ::
             map()
     def apply_op(_, {:error, _, _} = error, _opts), do: error
 
