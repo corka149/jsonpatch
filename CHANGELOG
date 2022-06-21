@@ -1,5 +1,6 @@
 # 1.0.0
 - Allow lists at top level of Jsonpatch.apply_patch
+- Fix error message when removing non existing key in list
 
 # 0.13.1
 - Make Jsonpatch faster by (un)escaping conditional

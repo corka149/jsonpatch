@@ -38,6 +38,20 @@ defmodule Jsonpatch.Operation.Remove do
 
     # ===== ===== PRIVATE ===== =====
 
+    defp get_at(list, index) do
+      case Enum.at(list, index) do
+        nil -> {:error, :invalid_index, index}
+        ele -> {:ok, ele}
+      end
+    end
+
+    defp remove_in_list(list, val, index, subpath) do
+      case do_remove(val, subpath) do
+        {:error, _, _} = error -> error
+        new_val -> List.replace_at(list, index, new_val)
+      end
+    end
+
     defp do_remove(%{} = target, [fragment | []]) do
       case Map.pop(target, fragment) do
         {nil, _} -> {:error, :invalid_path, fragment}
@@ -77,11 +91,9 @@ defmodule Jsonpatch.Operation.Remove do
           {:error, :invalid_index, fragment}
 
         {index, _} ->
-          update_list = List.update_at(target, index, &do_remove(&1, tail))
-
-          case List.pop_at(target, index) do
-            {nil, _} -> {:error, :invalid_index, fragment}
-            _ -> update_list
+          case get_at(target, index) do
+            {:ok, new_val} -> remove_in_list(target, new_val, index, tail)
+            {:error, _, _} = error -> error
           end
       end
     end
