@@ -77,10 +77,7 @@ defmodule Jsonpatch.Operation.Remove do
           {:error, :invalid_index, fragment}
 
         {index, _} ->
-          case PathUtil.get_at(target, index) do
-            {:ok, new_val} -> PathUtil.update_at(target, index, new_val, tail, &do_remove/2)
-            {:error, _, _} = error -> error
-          end
+          PathUtil.update_at(target, index, tail, &do_remove/2)
       end
     end
   end

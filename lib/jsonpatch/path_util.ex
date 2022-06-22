@@ -116,23 +116,15 @@ defmodule Jsonpatch.PathUtil do
   In case uodate_fn returns an error then update_at will also return this error.
   When the update_fn succeeds it will return the list.
   """
-  @spec update_at(list(), integer(), any, list(binary()), (any, list(binary()) -> any)) ::
+  @spec update_at(list(), integer(), list(binary()), (any, list(binary()) -> any)) ::
           list | {:error, any, any}
-  def update_at(list, index, target, subpath, update_fn) do
-    case update_fn.(target, subpath) do
-      {:error, _, _} = error -> error
-      new_val -> List.replace_at(list, index, new_val)
-    end
-  end
+  def update_at(target, index, subpath, update_fn) do
+    case get_at(target, index) do
+      {:ok, old_val} ->
+        do_update_at(target, index, old_val, subpath, update_fn)
 
-  @spec get_at(any, integer) :: {:ok, any} | {:error, :invalid_index, integer}
-  @doc """
-  Returns the item at the index in the list or returns a Jsonpatch error tuple.
-  """
-  def get_at(list, index) do
-    case Enum.at(list, index) do
-      nil -> {:error, :invalid_index, index}
-      ele -> {:ok, ele}
+      {:error, _, _} = error ->
+        error
     end
   end
 
@@ -195,14 +187,8 @@ defmodule Jsonpatch.PathUtil do
        when is_list(target) do
     {index, _} = Integer.parse(fragment)
 
-    case get_at(target, index) do
-      {:ok, new_val} ->
-        update_fn = &do_update_final_destination(&1, new_final_dest, &2)
-        update_at(target, index, new_val, tail, update_fn)
-
-      {:error, _, _} = error ->
-        error
-    end
+    update_fn = &do_update_final_destination(&1, new_final_dest, &2)
+    update_at(target, index, tail, update_fn)
   end
 
   defp to_atom(fragment) do
@@ -231,6 +217,20 @@ defmodule Jsonpatch.PathUtil do
     case String.contains?(fragment, pattern) do
       true -> String.replace(fragment, pattern, replacement)
       false -> fragment
+    end
+  end
+
+  def get_at(list, index) do
+    case Enum.at(list, index) do
+      nil -> {:error, :invalid_index, index}
+      ele -> {:ok, ele}
+    end
+  end
+
+  def do_update_at(list, index, target, subpath, update_fn) do
+    case update_fn.(target, subpath) do
+      {:error, _, _} = error -> error
+      new_val -> List.replace_at(list, index, new_val)
     end
   end
 end
