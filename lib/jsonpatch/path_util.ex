@@ -111,6 +111,31 @@ defmodule Jsonpatch.PathUtil do
     Enum.map(fragements, converter)
   end
 
+  @doc """
+  Updates a list with the given update_fn while respecting Jsonpatch errors.
+  In case uodate_fn returns an error then update_at will also return this error.
+  When the update_fn succeeds it will return the list.
+  """
+  @spec update_at(list(), integer(), any, list(binary()), (any, list(binary()) -> any)) ::
+          list | {:error, any, any}
+  def update_at(list, index, target, subpath, update_fn) do
+    case update_fn.(target, subpath) do
+      {:error, _, _} = error -> error
+      new_val -> List.replace_at(list, index, new_val)
+    end
+  end
+
+  @spec get_at(any, integer) :: {:ok, any} | {:error, :invalid_index, integer}
+  @doc """
+  Returns the item at the index in the list or returns a Jsonpatch error tuple.
+  """
+  def get_at(list, index) do
+    case Enum.at(list, index) do
+      nil -> {:error, :invalid_index, index}
+      ele -> {:ok, ele}
+    end
+  end
+
   # ===== ===== PRIVATE ===== =====
 
   defp find_final_destination(%{} = target, [fragment | []]) do
@@ -170,7 +195,14 @@ defmodule Jsonpatch.PathUtil do
        when is_list(target) do
     {index, _} = Integer.parse(fragment)
 
-    List.update_at(target, index, &do_update_final_destination(&1, new_final_dest, tail))
+    case get_at(target, index) do
+      {:ok, new_val} ->
+        update_fn = &do_update_final_destination(&1, new_final_dest, &2)
+        update_at(target, index, new_val, tail, update_fn)
+
+      {:error, _, _} = error ->
+        error
+    end
   end
 
   defp to_atom(fragment) do
