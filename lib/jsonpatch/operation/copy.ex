@@ -98,7 +98,7 @@ defmodule Jsonpatch.Operation.Copy do
 
           {index, _} ->
             if index < length(copy_target) do
-              List.update_at(copy_target, index, fn _old -> copied_value end)
+              List.replace_at(copy_target, index, copied_value)
             else
               {:error, :invalid_index, copy_path_end}
             end

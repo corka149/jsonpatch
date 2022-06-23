@@ -56,7 +56,7 @@ defmodule Jsonpatch.Operation.Add do
             if last_fragment == "-" or length(final_destination) == index do
               Enum.concat(final_destination, [value])
             else
-              List.update_at(final_destination, index, fn _ -> value end)
+              List.replace_at(final_destination, index, value)
             end
 
           PathUtil.update_final_destination(
