@@ -19,10 +19,10 @@ defmodule Jsonpatch.Operation.Replace do
   @type t :: %__MODULE__{path: String.t(), value: any}
 
   defimpl Operation do
-    @spec apply_op(Replace.t(), map | Jsonpatch.error(), keyword()) :: map
+    @spec apply_op(Replace.t(), list() | map() | Jsonpatch.error(), keyword()) :: map
     def apply_op(_, {:error, _, _} = error, _opts), do: error
 
-    def apply_op(%Replace{path: path, value: value}, %{} = target, opts) do
+    def apply_op(%Replace{path: path, value: value}, target, opts) do
       {final_destination, last_fragment} = PathUtil.get_final_destination(target, path, opts)
 
       case do_update(final_destination, last_fragment, value) do

@@ -89,7 +89,7 @@ defmodule RemoveTest do
 
     # Longer path, numeric - out of
     remove_patch = %Remove{path: "/hobbies/1/description"}
-    assert {:error, :invalid_index, "1"} = Operation.apply_op(remove_patch, target)
+    assert {:error, :invalid_index, 1} = Operation.apply_op(remove_patch, target)
   end
 
   test "Return error when patch error was provided to remove operation" do
@@ -97,5 +97,29 @@ defmodule RemoveTest do
     error = {:error, :invalid_index, "4"}
 
     assert ^error = Operation.apply_op(patch, error)
+  end
+
+  test "Remove in list" do
+    # Arrange
+    source = [1, 2, %{"three" => 3}, 5, 6]
+    patch = %Remove{path: "/2/three"}
+
+    # Act
+    patched_source = Operation.apply_op(patch, source)
+
+    # Assert
+    assert [1, 2, %{}, 5, 6] = patched_source
+  end
+
+  test "Remove in list with wrong key" do
+    # Arrange
+    source = [1, 2, %{"three" => 3}, 5, 6]
+    patch = %Remove{path: "/2/four"}
+
+    # Act
+    patched_source = Operation.apply_op(patch, source)
+
+    # Assert
+    assert {:error, :invalid_path, "four"} = patched_source
   end
 end

@@ -19,7 +19,7 @@ defmodule Jsonpatch.Operation.Remove do
   @type t :: %__MODULE__{path: String.t()}
 
   defimpl Operation do
-    @spec apply_op(Remove.t(), map | Jsonpatch.error(), keyword()) ::
+    @spec apply_op(Remove.t(), list() | map() | Jsonpatch.error(), keyword()) ::
             map()
     def apply_op(_, {:error, _, _} = error, _opts), do: error
 
@@ -77,12 +77,7 @@ defmodule Jsonpatch.Operation.Remove do
           {:error, :invalid_index, fragment}
 
         {index, _} ->
-          update_list = List.update_at(target, index, &do_remove(&1, tail))
-
-          case List.pop_at(target, index) do
-            {nil, _} -> {:error, :invalid_index, fragment}
-            _ -> update_list
-          end
+          PathUtil.update_at(target, index, tail, &do_remove/2)
       end
     end
   end

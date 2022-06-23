@@ -19,7 +19,7 @@ defmodule Jsonpatch.Operation.Copy do
   @type t :: %__MODULE__{from: String.t(), path: String.t()}
 
   defimpl Operation do
-    @spec apply_op(Copy.t(), map() | Jsonpatch.error(), keyword()) :: map()
+    @spec apply_op(Copy.t(), list() | map() | Jsonpatch.error(), keyword()) :: map()
     def apply_op(_, {:error, _, _} = error, _opts), do: error
 
     def apply_op(%Copy{from: from, path: path}, target, opts) do
@@ -98,7 +98,7 @@ defmodule Jsonpatch.Operation.Copy do
 
           {index, _} ->
             if index < length(copy_target) do
-              List.update_at(copy_target, index, fn _old -> copied_value end)
+              List.replace_at(copy_target, index, copied_value)
             else
               {:error, :invalid_index, copy_path_end}
             end
