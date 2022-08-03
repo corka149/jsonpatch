@@ -160,7 +160,7 @@ defmodule Jsonpatch do
     acc =
       source
       |> flat()
-      |> Stream.map(fn {k, _} -> k end)
+      |> Stream.map(fn {k, _} -> escape(k) end)
       |> Stream.filter(fn k -> k not in checked_keys end)
       |> Stream.map(fn k -> %Remove{path: "#{ancestor_path}/#{k}"} end)
       |> Enum.reduce(acc, fn r, acc -> [r | acc] end)
