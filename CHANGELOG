@@ -1,3 +1,6 @@
+# 1.0.1 (provisional)
+- Escape remaining keys before comparing them to the (already escaped) keys from earlier in the diffing process when determining Remove operations
+
 # 1.0.0
 - Allow lists at top level of Jsonpatch.apply_patch
 - Fix error message when updating a non existing key in list
