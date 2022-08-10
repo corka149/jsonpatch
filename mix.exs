@@ -6,7 +6,7 @@ defmodule Jsonpatch.MixProject do
       app: :jsonpatch,
       name: "Jsonpatch",
       description: "Implementation of RFC 6902 in pure Elixir",
-      version: "1.0.0",
+      version: "1.0.1",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),

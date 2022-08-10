@@ -1,4 +1,4 @@
-# 1.0.1 (provisional)
+# 1.0.1
 - Escape remaining keys before comparing them to the (already escaped) keys from earlier in the diffing process when determining Remove operations
 
 # 1.0.0
