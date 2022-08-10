@@ -107,13 +107,32 @@ defmodule JsonpatchTest do
              ] = patch
     end
 
-    test "Create diff with escaped '~' and '/' in path" do
+    test "Create diff with escaped '~' and '/' in path when adding" do
       source = %{}
       destination = %{"escape/me~now" => "somnevalue"}
 
       actual_patch = Jsonpatch.diff(source, destination)
 
       assert [%Jsonpatch.Operation.Add{path: "/escape~1me~0now", value: "somnevalue"}] =
+               actual_patch
+    end
+
+    test "Create diff with escaped '~' and '/' in path when removing" do
+      source = %{"escape/me~now" => "somnevalue"}
+      destination = %{}
+
+      actual_patch = Jsonpatch.diff(source, destination)
+
+      assert [%Jsonpatch.Operation.Remove{path: "/escape~1me~0now"}] = actual_patch
+    end
+
+    test "Create diff with escaped '~' and '/' in path when replacing" do
+      source = %{"escape/me~now" => "somnevalue"}
+      destination = %{"escape/me~now" => "othervalue"}
+
+      actual_patch = Jsonpatch.diff(source, destination)
+
+      assert [%Jsonpatch.Operation.Replace{path: "/escape~1me~0now", value: "othervalue"}] =
                actual_patch
     end
 
