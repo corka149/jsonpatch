@@ -2,7 +2,7 @@
 ![Elixir CI](https://github.com/corka149/jsonpatch/workflows/Elixir%20CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/corka149/jsonpatch/badge.svg?branch=master)](https://coveralls.io/github/corka149/jsonpatch?branch=master)
 [![Generic badge](https://img.shields.io/badge/Mutation-Tested-success.svg)](https://shields.io/)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/corka149/jsonpatch/graphs/commit-activity)
 [![Hex.pm Version](https://img.shields.io/hexpm/v/jsonpatch.svg?style=flat-square)](https://hex.pm/packages/jsonpatch)
 
 A implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elixir.
