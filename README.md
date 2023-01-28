@@ -5,7 +5,7 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/corka149/jsonpatch/graphs/commit-activity)
 [![Hex.pm Version](https://img.shields.io/hexpm/v/jsonpatch.svg?style=flat-square)](https://hex.pm/packages/jsonpatch)
 
-A implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elixir.
+An implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elixir.
 
 
 Features:
