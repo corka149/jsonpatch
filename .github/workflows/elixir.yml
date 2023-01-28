@@ -15,8 +15,8 @@ jobs:
     name: Test - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: ["23.x", "24.x", "25.x"]
-        elixir: ["1.12.x", "1.13.x", "1.14.x"]
+        otp: ["23.3", "24.3", "25.2"]
+        elixir: ["1.12.3", "1.13.4", "1.14.3"]
     steps:
       - uses: actions/checkout@v2
       - name: Setup elixir
@@ -40,8 +40,8 @@ jobs:
       - name: Setup elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: 25.x
-          elixir-version: 1.14.x
+          otp-version: "25.2"
+          elixir-version: "1.14.3"
       - run: mix deps.get
       - run: mix muzak --min-coverage 95.0
 
@@ -51,8 +51,8 @@ jobs:
     name: Analyze - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
-        otp: ["23.x", "24.x", "25.x"]
-        elixir: ["1.12.x", "1.13.x", "1.14.x"]
+        otp: ["23.3", "24.3", "25.2"]
+        elixir: ["1.12.3", "1.13.4", "1.14.3"]
     steps:
       - uses: actions/checkout@v2
       - name: Setup elixir
@@ -76,7 +76,7 @@ jobs:
       - name: Setup elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: 25.x
-          elixir-version: 1.14.3
+          otp-version: "25.2"
+          elixir-version: "1.14.3"
       - run: mix deps.get
       - run: mix coveralls.github
