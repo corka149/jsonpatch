@@ -50,6 +50,10 @@ defmodule JsonpatchTest do
       assert [%Remove{path: "/baz"}] = patch
     end
 
+    test "Create no diff on unexpected input" do
+      assert [] = Jsonpatch.diff("unexpected", 1)
+    end
+
     test "A.4. Removing an Array Element" do
       source = %{"a" => %{"b" => ["c", "d"]}}
       destination = %{"a" => %{"b" => ["c"]}}

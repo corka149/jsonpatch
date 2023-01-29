@@ -205,12 +205,8 @@ defmodule Jsonpatch.PathUtil do
     end
   end
 
-  defp is_number?(term) when is_binary(term) do
-    Regex.match?(~r/^\d+$/, term)
-  end
-
-  defp is_number?(_term) do
-    false
+  defp is_number?(term) do
+    is_binary(term) and Regex.match?(~r/^\d+$/, term)
   end
 
   defp do_unescape(fragment, pattern, replacement) when is_binary(fragment) do
