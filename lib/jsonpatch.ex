@@ -175,7 +175,7 @@ defmodule Jsonpatch do
     acc =
       case get(source, key) do
         # Key is not present in source
-        nil ->
+        :__jsonpatch_lib__missing_value__ ->
           [%Add{path: current_path, value: val} | acc]
 
         # Source has a different value but both (destination and source) value are lists or a maps
@@ -209,11 +209,11 @@ defmodule Jsonpatch do
 
   # Unified access to lists or maps
   defp get(source, key) when is_list(source) do
-    Enum.at(source, key)
+    Enum.at(source, key, :__jsonpatch_lib__missing_value__)
   end
 
   defp get(source, key) when is_map(source) do
-    Map.get(source, key)
+    Map.get(source, key, :__jsonpatch_lib__missing_value__)
   end
 
   # Escape `/` to `~1 and `~` to `~0`.
