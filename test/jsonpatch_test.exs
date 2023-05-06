@@ -50,6 +50,19 @@ defmodule JsonpatchTest do
       assert [%Remove{path: "/baz"}] = patch
     end
 
+    test "Create no diff on unchanged nil object value" do
+      source = %{"id" => nil}
+      destination = %{"id" => nil}
+      assert [] = Jsonpatch.diff(source, destination)
+    end
+
+    test "Create no diff on unchanged array value" do
+      source = [nil]
+      destination = [nil]
+
+      assert [] = Jsonpatch.diff(source, destination)
+    end
+
     test "Create no diff on unexpected input" do
       assert [] = Jsonpatch.diff("unexpected", 1)
     end
