@@ -1,7 +1,6 @@
 defmodule Jsonpatch.Operation.ReplaceTest do
   use ExUnit.Case
 
-  alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Replace
 
   doctest Replace
@@ -26,9 +25,7 @@ defmodule Jsonpatch.Operation.ReplaceTest do
 
     replace_op = %Replace{path: path, value: true}
 
-    patched_target = Operation.apply_op(replace_op, target)
-
-    excpected_target = %{
+    expected_target = %{
       "a" => %{
         "b" => [
           1,
@@ -43,7 +40,7 @@ defmodule Jsonpatch.Operation.ReplaceTest do
       }
     }
 
-    assert ^excpected_target = patched_target
+    assert {:ok, ^expected_target} = Replace.apply(replace_op, target, [])
   end
 
   test "Replace element to path with index out of range and expect error" do
@@ -59,9 +56,7 @@ defmodule Jsonpatch.Operation.ReplaceTest do
 
     replace_op = %Replace{path: path, value: 2}
 
-    patched_target = Operation.apply_op(replace_op, target)
-
-    assert {:error, :invalid_index, "2"} = patched_target
+    assert {:error, {:invalid_path, ["a", "b", "2"]}} = Replace.apply(replace_op, target, [])
   end
 
   test "Replace element to path with invalid index and expect error" do
@@ -77,15 +72,20 @@ defmodule Jsonpatch.Operation.ReplaceTest do
 
     replace_op = %Replace{path: path, value: 2}
 
-    patched_target = Operation.apply_op(replace_op, target)
-
-    assert {:error, :invalid_index, "c"} = patched_target
+    assert {:error, {:invalid_path, ["a", "b", "c"]}} = Replace.apply(replace_op, target, [])
   end
 
-  test "Return error when patch error was provided to replace operation" do
-    patch = %Replace{path: "/a", value: true}
-    error = {:error, :invalid_index, "4"}
+  test "Replace in not existing path" do
+    path = "/a/b/c"
 
-    assert ^error = Operation.apply_op(patch, error)
+    target = %{
+      "a" => %{
+        "b" => 1
+      }
+    }
+
+    replace_op = %Replace{path: path, value: 2}
+
+    assert {:error, {:invalid_path, ["a", "b", "c"]}} = Replace.apply(replace_op, target, [])
   end
 end

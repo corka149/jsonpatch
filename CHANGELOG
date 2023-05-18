@@ -1,3 +1,20 @@
+# 2.0.0
+- precisare discorso riguardo structs
+- rimosso modulo Jsonpatch.Mapper in favore fi apply_patch() piu' flessibile
+- increased code coverage
+- Jsonpatch.apply_patch signature
+  accetta map che rappresentano jsonpatch (key string or atom) e Jsonpath.Operation._ structs
+  restituisce {:error, %Jsonpatch.Error{}}
+- %Jsonpatch.Error{} reports the patch index, the path and the reason that caused the error
+- rimossa JsonpatchException
+- review generale delle Map.get con relativo errore di test assenza chiave su base nil
+- rimosso protocol Jsonpatch.Operation
+- ADD behaviour aderente a specifica -> insert or update
+- COPY operation based on ADD operation (as per RFC)
+- MOVE operation based on COPY+REMOVE operation (as per RFC)
+- REPLACE operation based on REMOVE+ADD operation (as per RFC)
+- Introduced new appl_patch option `keys: {:custom, convert_fn}` to convert path fragments with a user specific logic
+
 # 1.0.1
 - Escape remaining keys before comparing them to the (already escaped) keys from earlier in the diffing process when determining Remove operations
 

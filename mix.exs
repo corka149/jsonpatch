@@ -6,14 +6,21 @@ defmodule Jsonpatch.MixProject do
       app: :jsonpatch,
       name: "Jsonpatch",
       description: "Implementation of RFC 6902 in pure Elixir",
-      version: "1.0.1",
+      version: "2.0.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       test_coverage: [tool: ExCoveralls],
       package: package(),
       source_url: "https://github.com/corka149/jsonpatch",
-      preferred_cli_env: [muzak: :test],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.github": :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        docs: :dev
+      ],
       docs: [
         main: "readme",
         extras: ["README.md"]
@@ -21,31 +28,19 @@ defmodule Jsonpatch.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # REQUIRED
-
-      # DEV
-      ## testing with real json files
-      {:poison, "~> 4.0", only: [:test]},
-      ## code test coverage
-      {:excoveralls, "~> 0.15.3", only: [:test]},
-      ## linting
-      {:credo, "~> 1.6.0", only: [:dev, :test], runtime: false},
-      ## type checking
+      {:jason, "~> 1.0", only: [:dev, :test]},
+      {:excoveralls, "~> 0.15", only: [:test]},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.2", only: [:dev], runtime: false},
-      ## Docs
-      {:ex_doc, "~> 0.29", only: [:dev], runtime: false},
-      ## Mutation testing
-      {:muzak, "~> 1.1.1", only: :mutation}
+      {:ex_doc, "~> 0.29", only: [:dev], runtime: false}
     ]
   end
 
