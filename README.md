@@ -1,4 +1,5 @@
 # Jsonpatch
+
 ![Elixir CI](https://github.com/corka149/jsonpatch/workflows/Elixir%20CI/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/corka149/jsonpatch/badge.svg?branch=master)](https://coveralls.io/github/corka149/jsonpatch?branch=master)
 [![Generic badge](https://img.shields.io/badge/Mutation-Tested-success.svg)](https://shields.io/)
@@ -7,21 +8,18 @@
 
 An implementation of [RFC 6902](https://tools.ietf.org/html/rfc6902) in pure Elixir.
 
-
 Features:
 
-1. Creating a patch by comparing to maps and structs
-2. Apply patches to maps and structs - supports operations:
+- Creating a patch by comparing to maps and lists
+- Apply patches to maps and lists - supports operations:
     - add
     - replace
     - remove
     - copy
     - move
     - test
-3. De/Encoding and mapping
-4. Escaping of "`/`" (by "`~1`") and "`~`" (by "`~0`")
-5. Allow usage of `-` for appending things to list (Add and Copy operation)
-
+- Escaping of "`/`" (by "`~1`") and "`~`" (by "`~0`")
+- Allow usage of `-` for appending things to list (Add and Copy operation)
 
 ## Getting started
 
@@ -54,24 +52,6 @@ iex> Jsonpatch.diff(source, destination)
 ]}
 ```
 
-### Mapping for de- and encoding
-
-Map a JSON patch struct to a regular map.
-
-```elixir
-iex> add_patch_map = %Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
-iex> Jsonpatch.Mapper.to_map(add_patch_map)
-%{op: "add", path: "/name", value: "Alice"}
-```
-
-Map a regular map to a JSON patch struct.
-
-```elixir
-iex> add_patch_map = %{"op" => "add", "path" => "/name", "value" => "Alice"}
-iex> Jsonpatch.Mapper.from_map(add_patch_map)
-%Jsonpatch.Operation.Add{path: "/name", value: "Alice"}
-```
-
 ### Apply patches
 
 ```elixir
@@ -85,28 +65,6 @@ iex> patch = [
 iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"]}
 iex> Jsonpatch.apply_patch(patch, target)
 {:ok, %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}}
-```
-
-### In an `exs` script
-
-With `Mix.install` small scripts can be written to create JSON patches.
-```elixir
-Mix.install([:jsonpatch, :poison])
-
-source =
-  File.read!("foo.json")
-  |> Poison.Parser.parse!(%{})
-
-destination =
-  File.read!("bar.json")
-  |> Poison.Parser.parse!(%{})
-
-patch =
-  source
-  |> Jsonpatch.diff(destination)
-  |> Jsonpatch.Mapper.to_map()
-
-IO.inspect(patch, label: :patch)
 ```
 
 ## Important sources

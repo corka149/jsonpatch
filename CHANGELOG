@@ -1,3 +1,19 @@
+# 2.0.0
+- Bugfix - ADD behaviour to be compliant with RFC (insert or update)
+- Bugfix - allow usage of nil values, previous implementation used `Map.get` with default `nil` to if a key was not present
+- Change - COPY operation to be based on ADD operation (as per RFC)
+- Change - MOVE operation to be based on on COPY+REMOVE operation (as per RFC)
+- Change - REPLACE operation to be based on on REMOVE+ADD operation (as per RFC)
+- Change - `Jsonpatch.apply_patch()` signature changes:
+  - patches can be defined as `Jsonpatch.Operation.Add/Copy/Remove/...` structs or with plain map conforming to the jsonpatch schema
+  - error reason is now defined with a `{:error, %Jsonpatch.Error{}}` tuple.
+    %Jsonpatch.Error{patch_index: _, path: _, reason: _} reports the patch index, the path and the reason that caused the error.
+- Removed - `Jsonpatch.Mapper` module, in favour of new Jsonpatch.apply_patch signature
+- Removed - `JsonpatchException` exception
+- Removed - `Jsonpatch.Operation` protocol
+- Feature - introduced new `Jasonpatch.apply_patch()` option `keys: {:custom, convert_fn}` to convert path fragments with a user specific logic
+- Improvements - increased test coverage
+
 # 1.0.1
 - Escape remaining keys before comparing them to the (already escaped) keys from earlier in the diffing process when determining Remove operations
 

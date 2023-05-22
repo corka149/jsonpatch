@@ -1,7 +1,6 @@
 defmodule Jsonpatch.Operation.TestTest do
   use ExUnit.Case
 
-  alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Test
 
   doctest Test
@@ -23,18 +22,18 @@ defmodule Jsonpatch.Operation.TestTest do
     }
 
     test_op = %Test{path: "/a/b/1/c/2/f", value: false}
-    assert ^target = Operation.apply_op(test_op, target)
+    assert {:ok, ^target} = Test.apply(test_op, target, [])
 
     test_op = %Test{path: "/a/b/1/c/0", value: 1}
-    assert ^target = Operation.apply_op(test_op, target)
+    assert {:ok, ^target} = Test.apply(test_op, target, [])
   end
 
   test "Test with atom as key" do
-    target = %{role: "Developer"}
+    target = %{"role" => "Developer"}
 
     test_op = %Test{path: "/role", value: "Developer"}
 
-    assert ^target = Operation.apply_op(test_op, target, keys: :atoms)
+    assert {:ok, ^target} = Test.apply(test_op, target, [])
   end
 
   test "Fail to test element with path with multiple indices" do
@@ -55,36 +54,35 @@ defmodule Jsonpatch.Operation.TestTest do
 
     test_op = %Test{path: "/a/b/1/c/1", value: 42}
 
-    patched_target = Operation.apply_op(test_op, target)
-
-    assert {:error, :test_failed, "Expected value '42' at '/a/b/1/c/1'"} = patched_target
+    assert {:error, {:test_failed, "Expected value '42' at '/a/b/1/c/1'"}} =
+             Test.apply(test_op, target, [])
   end
 
   test "Test list with index out of range" do
     test = %Test{path: "/m/2", value: "foo"}
     target = %{"m" => [0, 1]}
 
-    assert {:error, :invalid_index, "2"} = Operation.apply_op(test, target)
+    assert {:error, {:invalid_path, ["m", "2"]}} = Test.apply(test, target, [])
   end
 
   test "Test list with invalid index" do
     test = %Test{path: "/m/b", value: "foo"}
     target = %{"m" => [0, 1]}
 
-    assert {:error, :invalid_index, "b"} = Operation.apply_op(test, target)
+    assert {:error, {:invalid_path, ["m", "b"]}} = Test.apply(test, target, [])
   end
 
   test "Test list at top level" do
     test = %Test{path: "/1", value: "bar"}
     target = ["foo", "bar", "ha"]
 
-    assert ^target = Operation.apply_op(test, target)
+    assert {:ok, ^target} = Test.apply(test, target, [])
   end
 
   test "Test list at top level with error" do
     test = %Test{path: "/2", value: 3}
     target = [0, 1, 2]
 
-    assert {:error, :test_failed, "Expected value '3' at '/2'"} = Operation.apply_op(test, target)
+    assert {:error, {:test_failed, "Expected value '3' at '/2'"}} = Test.apply(test, target, [])
   end
 end

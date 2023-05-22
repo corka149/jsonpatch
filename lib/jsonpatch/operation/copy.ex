@@ -4,110 +4,41 @@ defmodule Jsonpatch.Operation.Copy do
 
   ## Examples
 
-      iex> copy = %Jsonpatch.Operation.Copy{from: "/a/b", path: "/a/e"}
-      iex> target = %{"a" => %{"b" => %{"c" => "Bob"}}, "d" => false}
-      iex> Jsonpatch.Operation.apply_op(copy, target)
-      %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}
+    iex> copy = %Jsonpatch.Operation.Copy{from: "/a/b", path: "/a/e"}
+    iex> target = %{"a" => %{"b" => %{"c" => "Bob"}}, "d" => false}
+    iex> Jsonpatch.Operation.Copy.apply(copy, target, [])
+    {:ok, %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}}
   """
 
-  alias Jsonpatch.Operation
-  alias Jsonpatch.Operation.Copy
-  alias Jsonpatch.PathUtil
+  alias Jsonpatch.Types
+  alias Jsonpatch.Operation.{Add, Copy}
+  alias Jsonpatch.Utils
 
   @enforce_keys [:from, :path]
   defstruct [:from, :path]
   @type t :: %__MODULE__{from: String.t(), path: String.t()}
 
-  defimpl Operation do
-    @spec apply_op(Copy.t(), list() | map() | Jsonpatch.error(), keyword()) :: map()
-    def apply_op(_, {:error, _, _} = error, _opts), do: error
-
-    def apply_op(%Copy{from: from, path: path}, target, opts) do
-      # %{"c" => "Bob"}
-
-      updated_val =
-        target
-        |> PathUtil.get_final_destination(from, opts)
-        |> extract_copy_value()
-        |> do_copy(target, path, opts)
-
-      case updated_val do
-        {:error, _, _} = error -> error
-        updated_val -> updated_val
-      end
+  @spec apply(Jsonpatch.t(), target :: Types.json_container(), Types.opts()) ::
+          {:ok, Types.json_container()} | Types.error()
+  def apply(%Copy{from: from, path: path}, target, opts) do
+    with {:ok, destination} <- Utils.get_destination(target, from),
+         {:ok, from_fragments} = Utils.split_path(from),
+         {:ok, copy_value} <- extract_copy_value(destination, from_fragments) do
+      Add.apply(%Add{value: copy_value, path: path}, target, opts)
     end
+  end
 
-    # ===== ===== PRIVATE ===== =====
-
-    defp do_copy({:error, _, _} = error, _target, _path, _opts) do
-      error
+  defp extract_copy_value({%{} = destination, fragment}, from_path) do
+    case destination do
+      %{^fragment => val} -> {:ok, val}
+      _ -> {:error, {:invalid_path, from_path}}
     end
+  end
 
-    defp do_copy(copied_value, target, path, opts) do
-      # copied_value = %{"c" => "Bob"}
-
-      # "e"
-      copy_path_end = String.split(path, "/") |> List.last()
-
-      # %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}
-      updated_value =
-        target
-        # %{"b" => %{"c" => "Bob"}} is the "copy target"
-        |> PathUtil.get_final_destination(path, opts)
-        # Add copied_value to "copy target"
-        |> do_add(copied_value, copy_path_end)
-
-      case updated_value do
-        {:error, _, _} = error ->
-          error
-
-        updated_value ->
-          PathUtil.update_final_destination(target, updated_value, path, opts)
-      end
-    end
-
-    defp extract_copy_value({%{} = final_destination, fragment}) do
-      Map.get(final_destination, fragment, {:error, :invalid_path, fragment})
-    end
-
-    defp extract_copy_value({final_destination, fragment}) when is_list(final_destination) do
-      case Integer.parse(fragment) do
-        :error ->
-          {:error, :invalid_index, fragment}
-
-        {index, _} ->
-          case Enum.fetch(final_destination, index) do
-            :error -> {:error, :invalid_index, fragment}
-            {:ok, val} -> val
-          end
-      end
-    end
-
-    defp do_add({%{} = copy_target, _last_fragment}, copied_value, copy_path_end) do
-      Map.put(copy_target, copy_path_end, copied_value)
-    end
-
-    defp do_add({copy_target, _last_fragment}, copied_value, copy_path_end)
-         when is_list(copy_target) do
-      if copy_path_end == "-" do
-        List.insert_at(copy_target, length(copy_target), copied_value)
-      else
-        case Integer.parse(copy_path_end) do
-          :error ->
-            {:error, :invalid_index, copy_path_end}
-
-          {index, _} ->
-            if index < length(copy_target) do
-              List.replace_at(copy_target, index, copied_value)
-            else
-              {:error, :invalid_index, copy_path_end}
-            end
-        end
-      end
-    end
-
-    defp do_add({:error, _, _} = error, _, _) do
-      error
+  defp extract_copy_value({destination, index}, from_path) when is_list(destination) do
+    case Utils.fetch(destination, index) do
+      {:ok, _} = ok -> ok
+      {:error, :invalid_path} -> {:error, {:invalid_path, from_path}}
     end
   end
 end
