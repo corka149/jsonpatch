@@ -9,9 +9,8 @@
   - error reason is now defined with a `{:error, %Jsonpatch.Error{}}` tuple.
     %Jsonpatch.Error{patch_index: _, path: _, reason: _} reports the patch index, the path and the reason that caused the error.
 - Removed - `Jsonpatch.Mapper` module, in favour of new Jsonpatch.apply_patch signature
-- Removed - `JsonpatchException` exception
 - Removed - `Jsonpatch.Operation` protocol
-- Feature - introduced new `Jasonpatch.apply_patch()` option `keys: {:custom, convert_fn}` to convert path fragments with a user specific logic
+- Feature - introduced new `Jsonpatch.apply_patch()` option `keys: {:custom, convert_fn}` to convert path fragments with a user specific logic
 - Improvements - increased test coverage
 
 # 1.0.1

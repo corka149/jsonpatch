@@ -137,7 +137,7 @@ defmodule Jsonpatch do
   def apply_patch!(json_patch, target, opts \\ []) do
     case apply_patch(json_patch, target, opts) do
       {:ok, patched} -> patched
-      {:error, _} = error -> raise RuntimeError, inspect(error)
+      {:error, _} = error -> raise JsonpatchException, error
     end
   end
 

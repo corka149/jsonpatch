@@ -36,7 +36,6 @@ defmodule Jsonpatch.MixProject do
 
   defp deps do
     [
-      {:jason, "~> 1.0", only: [:dev, :test]},
       {:excoveralls, "~> 0.15", only: [:test]},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.2", only: [:dev], runtime: false},

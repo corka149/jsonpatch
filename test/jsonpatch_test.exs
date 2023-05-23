@@ -401,7 +401,7 @@ defmodule JsonpatchTest do
       patch = %Jsonpatch.Operation.Replace{path: "/surname", value: "Misty"}
       target = %{"name" => "Alice", "age" => 44}
 
-      assert_raise RuntimeError, fn -> Jsonpatch.apply_patch!(patch, target) end
+      assert_raise JsonpatchException, fn -> Jsonpatch.apply_patch!(patch, target) end
     end
 
     test "Apply patch with a path containing an empty key" do
