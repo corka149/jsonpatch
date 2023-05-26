@@ -1,9 +1,9 @@
 # 2.0.0
-- Bugfix - ADD behaviour to be compliant with RFC (insert or update)
-- Bugfix - allow usage of nil values, previous implementation used `Map.get` with default `nil` to if a key was not present
+- Bugfix - ADD behaviour is now compliant with RFC (insert or update)
+- Bugfix - allow usage of nil values, previous implementation used `Map.get` with default `nil` to detect if a key was not present
 - Change - COPY operation to be based on ADD operation (as per RFC)
-- Change - MOVE operation to be based on on COPY+REMOVE operation (as per RFC)
-- Change - REPLACE operation to be based on on REMOVE+ADD operation (as per RFC)
+- Change - MOVE operation to be based on COPY+REMOVE operation (as per RFC)
+- Change - REPLACE operation to be based on REMOVE+ADD operation (as per RFC)
 - Change - `Jsonpatch.apply_patch()` signature changes:
   - patches can be defined as `Jsonpatch.Operation.Add/Copy/Remove/...` structs or with plain map conforming to the jsonpatch schema
   - error reason is now defined with a `{:error, %Jsonpatch.Error{}}` tuple.
