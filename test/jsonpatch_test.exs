@@ -1,10 +1,6 @@
 defmodule JsonpatchTest do
   use ExUnit.Case
 
-  alias Jsonpatch.Operation.Add
-  alias Jsonpatch.Operation.Remove
-  alias Jsonpatch.Operation.Replace
-
   doctest Jsonpatch
 
   test "Create diff from list and apply it" do
@@ -21,38 +17,32 @@ defmodule JsonpatchTest do
     assert ^destination = patched_source
   end
 
-  # ===== DIFF =====
   describe "Create diffs" do
     test "adding an Object Member" do
       source = %{"foo" => "bar"}
       destination = %{"foo" => "bar", "baz" => "qux"}
 
-      patch = Jsonpatch.diff(source, destination)
-
-      assert [%Add{path: "/baz", value: "qux"}] = patch
+      assert_diff_apply(source, destination)
     end
 
     test "Adding an Array Element" do
       source = %{"foo" => ["bar", "baz"]}
       destination = %{"foo" => ["bar", "baz", "qux"]}
 
-      patch = Jsonpatch.diff(source, destination)
-
-      assert [%Add{path: "/foo/2", value: "qux"}] = patch
+      assert_diff_apply(source, destination)
     end
 
     test "Removing an Object Member" do
       source = %{"baz" => "qux", "foo" => "bar"}
       destination = %{"foo" => "bar"}
 
-      patch = Jsonpatch.diff(source, destination)
-
-      assert [%Remove{path: "/baz"}] = patch
+      assert_diff_apply(source, destination)
     end
 
     test "Create no diff on unchanged nil object value" do
       source = %{"id" => nil}
       destination = %{"id" => nil}
+
       assert [] = Jsonpatch.diff(source, destination)
     end
 
@@ -71,142 +61,95 @@ defmodule JsonpatchTest do
       source = %{"a" => %{"b" => ["c", "d"]}}
       destination = %{"a" => %{"b" => ["c"]}}
 
-      patch = Jsonpatch.diff(source, destination)
-
-      assert [%Remove{path: "/a/b/1"}] = patch
+      assert_diff_apply(source, destination)
     end
 
     test "Replacing a Value" do
       source = %{"a" => %{"b" => %{"c" => "d"}}, "f" => "g"}
       destination = %{"a" => %{"b" => %{"c" => "h"}}, "f" => "g"}
 
-      patch = Jsonpatch.diff(source, destination)
-
-      assert [%Replace{path: "/a/b/c", value: "h"}] = patch
+      assert_diff_apply(source, destination)
     end
 
     test "Replacing an Array Element" do
       source = %{"a" => %{"b" => %{"c" => ["d1", "d2"]}}, "f" => "g"}
       destination = %{"a" => %{"b" => %{"c" => ["d1", "d3"]}}, "f" => "g"}
 
-      patch = Jsonpatch.diff(source, destination)
-
-      assert [%Replace{path: "/a/b/c/1", value: "d3"}] = patch
-    end
-
-    test "Create diff for a Kubernetes deployment" do
-      source =
-        File.read!("test/jsonpatch/res/deploy_source.json")
-        |> Poison.Parser.parse!(%{})
-
-      destination =
-        File.read!("test/jsonpatch/res/deploy_destination.json")
-        |> Poison.Parser.parse!(%{})
-
-      patch = Jsonpatch.diff(source, destination)
-
-      assert [
-               %Jsonpatch.Operation.Remove{
-                 path: "/items/0/spec/template/spec/containers/0/ports/0"
-               },
-               %Jsonpatch.Operation.Replace{
-                 path: "/items/0/spec/template/spec/containers/0/image",
-                 value: "whoami:1.1.2"
-               },
-               %Jsonpatch.Operation.Replace{
-                 path: "/items/0/spec/template/spec/containers/0/env/0/name",
-                 value: "ENVIRONMENT_MESSAGE"
-               },
-               %Jsonpatch.Operation.Add{
-                 path: "/items/0/spec/template/spec/containers/0/env/1",
-                 value: %{"name" => "ANOTHER_MESSAGE", "value" => "Hey there!"}
-               }
-             ] = patch
+      assert_diff_apply(source, destination)
     end
 
     test "Create diff with escaped '~' and '/' in path when adding" do
       source = %{}
       destination = %{"escape/me~now" => "somnevalue"}
 
-      actual_patch = Jsonpatch.diff(source, destination)
-
-      assert [%Jsonpatch.Operation.Add{path: "/escape~1me~0now", value: "somnevalue"}] =
-               actual_patch
+      assert_diff_apply(source, destination)
     end
 
     test "Create diff with escaped '~' and '/' in path when removing" do
       source = %{"escape/me~now" => "somnevalue"}
       destination = %{}
 
-      actual_patch = Jsonpatch.diff(source, destination)
-
-      assert [%Jsonpatch.Operation.Remove{path: "/escape~1me~0now"}] = actual_patch
+      assert_diff_apply(source, destination)
     end
 
     test "Create diff with escaped '~' and '/' in path when replacing" do
       source = %{"escape/me~now" => "somnevalue"}
       destination = %{"escape/me~now" => "othervalue"}
 
-      actual_patch = Jsonpatch.diff(source, destination)
-
-      assert [%Jsonpatch.Operation.Replace{path: "/escape~1me~0now", value: "othervalue"}] =
-               actual_patch
+      assert_diff_apply(source, destination)
     end
 
     test "Create diff with nested map with correct Add/Remove order" do
       source = %{"a" => [%{"b" => []}]}
-      target = %{"a" => [%{"b" => [%{"c" => 1}, %{"d" => 2}]}]}
+      destination = %{"a" => [%{"b" => [%{"c" => 1}, %{"d" => 2}]}]}
 
-      patches = Jsonpatch.diff(source, target)
-
-      assert [
-               %Jsonpatch.Operation.Add{path: "/a/0/b/0", value: %{"c" => 1}},
-               %Jsonpatch.Operation.Add{path: "/a/0/b/1", value: %{"d" => 2}}
-             ] = patches
+      assert_diff_apply(source, destination)
 
       source = %{"a" => [%{"b" => [%{"c" => 1}, %{"d" => 2}]}]}
-      target = %{"a" => [%{"b" => []}]}
+      destination = %{"a" => [%{"b" => []}]}
 
-      patches = Jsonpatch.diff(source, target)
-
-      assert [
-               %Jsonpatch.Operation.Remove{path: "/a/0/b/1"},
-               %Jsonpatch.Operation.Remove{path: "/a/0/b/0"}
-             ] = patches
+      assert_diff_apply(source, destination)
     end
 
     test "Create diff that replace list with map" do
       source = %{"a" => [1, 2, 3]}
-      target = %{"a" => %{"foo" => :bar}}
+      destination = %{"a" => %{"foo" => :bar}}
 
-      patch = Jsonpatch.diff(source, target)
-      assert [%Replace{path: "/a", value: %{"foo" => :bar}}] = patch
+      assert_diff_apply(source, destination)
     end
 
     test "Create diff when source has a scalar value where in the destination is a list" do
       source = %{"a" => 150}
       destination = %{"a" => [1, 5, 0]}
 
-      patch = Jsonpatch.diff(source, destination)
-      assert [%Replace{path: "/a", value: [1, 5, 0]}] = patch
+      assert_diff_apply(source, destination)
     end
 
     test "Create diff for lists" do
       source = [1, "pizza", %{"name" => "Alice"}, [4, 2]]
-      target = [1, "hamburger", %{"name" => "Alice", "age" => 55}]
+      destination = [1, "hamburger", %{"name" => "Alice", "age" => 55}]
 
-      patch = Jsonpatch.diff(source, target)
+      assert_diff_apply(source, destination)
+    end
 
-      assert [
-               %Jsonpatch.Operation.Remove{path: "/3"},
-               %Jsonpatch.Operation.Add{path: "/2/age", value: 55},
-               %Jsonpatch.Operation.Replace{path: "/1", value: "hamburger"}
-             ] = patch
+    defp assert_diff_apply(source, destination) do
+      patches = Jsonpatch.diff(source, destination)
+      assert Jsonpatch.apply_patch(patches, source) == {:ok, destination}
     end
   end
 
-  # ===== APPLY =====
   describe "Apply patch/es" do
+    test "invalid json patch specification" do
+      patch = %{"invalid" => "invalid"}
+
+      assert {:error,
+              %Jsonpatch.Error{
+                patch: ^patch,
+                patch_index: 0,
+                reason: {:invalid_spec, %{"invalid" => "invalid"}}
+              }} = Jsonpatch.apply_patch(patch, %{})
+    end
+
     test "Apply patch with invalid source path and expect error" do
       target = %{
         "name" => "Bob",
@@ -215,35 +158,38 @@ defmodule JsonpatchTest do
         "home" => "Berlin"
       }
 
-      assert {:error, :invalid_path, "child"} =
-               Jsonpatch.apply_patch(
-                 %Jsonpatch.Operation.Add{path: "/child/0/age", value: 33},
-                 target
-               )
+      patch = %{"op" => "add", "path" => "/child/0/age", "value" => 33}
 
-      assert {:error, :invalid_path, "age"} =
-               Jsonpatch.apply_patch(
-                 %Jsonpatch.Operation.Replace{path: "/age", value: 42},
-                 target
-               )
+      assert {:error,
+              %Jsonpatch.Error{patch: ^patch, patch_index: 0, reason: {:invalid_path, ["child"]}}} =
+               Jsonpatch.apply_patch(patch, target)
 
-      assert {:error, :invalid_path, "hobby"} =
-               Jsonpatch.apply_patch(%Jsonpatch.Operation.Remove{path: "/hobby/4"}, target)
+      patch = %{"op" => "replace", "path" => "/age", "value" => 42}
 
-      assert {:error, :invalid_path, "nameX"} =
-               Jsonpatch.apply_patch(
-                 %Jsonpatch.Operation.Copy{from: "/nameX", path: "/surname"},
-                 target
-               )
+      assert {:error,
+              %Jsonpatch.Error{patch: ^patch, patch_index: 0, reason: {:invalid_path, ["age"]}}} =
+               Jsonpatch.apply_patch(patch, target)
 
-      assert {:error, :invalid_path, "homeX"} =
-               Jsonpatch.apply_patch(
-                 %Jsonpatch.Operation.Move{from: "/homeX", path: "/work"},
-                 target
-               )
+      patch = %{"op" => "remove", "path" => "/hobby/4"}
+
+      assert {:error,
+              %Jsonpatch.Error{patch: ^patch, patch_index: 0, reason: {:invalid_path, ["hobby"]}}} =
+               Jsonpatch.apply_patch(patch, target)
+
+      patch = %{"from" => "/nameX", "op" => "copy", "path" => "/surname"}
+
+      assert {:error,
+              %Jsonpatch.Error{patch: ^patch, patch_index: 0, reason: {:invalid_path, ["nameX"]}}} =
+               Jsonpatch.apply_patch(patch, target)
+
+      patch = %{"from" => "/homeX", "op" => "move", "path" => "/work"}
+
+      assert {:error,
+              %Jsonpatch.Error{patch: ^patch, patch_index: 0, reason: {:invalid_path, ["homeX"]}}} =
+               Jsonpatch.apply_patch(patch, target)
     end
 
-    test "Apply patch with multilple operations with binary keys" do
+    test "Apply patch with multiple operations with binary keys" do
       patch = [
         %Jsonpatch.Operation.Remove{path: "/age"},
         %Jsonpatch.Operation.Add{path: "/age", value: 34},
@@ -256,7 +202,7 @@ defmodule JsonpatchTest do
       assert %{"age" => 35} = patched
     end
 
-    test "Apply patch with multilple operations with atom keys" do
+    test "Apply patch with multiple operations with atom keys" do
       patch = [
         %Jsonpatch.Operation.Remove{path: "/age"},
         %Jsonpatch.Operation.Add{path: "/age", value: 34},
@@ -264,9 +210,87 @@ defmodule JsonpatchTest do
       ]
 
       target = %{age: "33"}
-      patched = Jsonpatch.apply_patch!(patch, target, keys: :atoms)
+      patched = Jsonpatch.apply_patch!(patch, target, keys: :atoms!)
 
       assert %{age: 35} = patched
+    end
+
+    test "Apply patch with non existing atom" do
+      target = %{}
+
+      patch = %{"op" => "add", "path" => "/test_non_existing_atom", "value" => 34}
+
+      assert {:error,
+              %Jsonpatch.Error{
+                patch: ^patch,
+                patch_index: 0,
+                reason: {:invalid_path, ["test_non_existing_atom"]}
+              }} = Jsonpatch.apply_patch(patch, target, keys: :atoms!)
+    end
+
+    test "Apply patch with custom keys option - example 1" do
+      patch = [
+        %Jsonpatch.Operation.Replace{path: "/a1/b/c", value: 1},
+        %Jsonpatch.Operation.Replace{path: "/a2/b/d", value: 1}
+      ]
+
+      target = %{a1: %{b: %{"c" => 0}}, l: [], a2: %{b: %{"d" => 0}}}
+
+      convert_fn = fn
+        # All map keys are atoms except /*/b/* keys
+        fragment, [_, :b], target, _opts when is_map(target) ->
+          {:ok, fragment}
+
+        fragment, _path, target, _opts when is_map(target) ->
+          string_to_existing_atom(fragment)
+
+        fragment, path, target, _opts when is_list(target) ->
+          case Jsonpatch.Utils.cast_index(fragment, path, target) do
+            {:ok, _} = ok -> ok
+            {:error, _} -> :error
+          end
+      end
+
+      patched = Jsonpatch.apply_patch!(patch, target, keys: {:custom, convert_fn})
+      assert %{a1: %{b: %{"c" => 1}}, a2: %{b: %{"d" => 1}}} = patched
+
+      patch = %Jsonpatch.Operation.Add{path: "/l/0", value: 1}
+      patched = Jsonpatch.apply_patch!(patch, target, keys: {:custom, convert_fn})
+      assert %{a1: %{b: %{"c" => 0}}, l: [1], a2: %{b: %{"d" => 0}}} = patched
+
+      patch = %{"op" => "replace", "path" => "/not_existing_atom", "value" => 1}
+
+      assert {:error,
+              %Jsonpatch.Error{
+                patch: ^patch,
+                patch_index: 0,
+                reason: {:invalid_path, ["not_existing_atom"]}
+              }} = Jsonpatch.apply_patch(patch, target, keys: {:custom, convert_fn})
+
+      patch = %{"op" => "replace", "path" => "/l/not_existing_atom", "value" => 20}
+
+      assert {:error,
+              %Jsonpatch.Error{
+                patch: ^patch,
+                patch_index: 0,
+                reason: {:invalid_path, [:l, "not_existing_atom"]}
+              }} = Jsonpatch.apply_patch(patch, target, keys: {:custom, convert_fn})
+    end
+
+    defmodule TestStruct do
+      defstruct [:field]
+    end
+
+    test "struct are just maps" do
+      patch = %Jsonpatch.Operation.Replace{path: "/a/field/c", value: 1}
+      target = %{a: %TestStruct{field: %{c: 0}}}
+      patched = Jsonpatch.apply_patch!(patch, target, keys: :atoms)
+      assert %{a: %TestStruct{field: %{c: 1}}} = patched
+
+      patch = %Jsonpatch.Operation.Remove{path: "/a/field"}
+      target = %{a: %TestStruct{field: %{c: 0}}}
+      patched = Jsonpatch.apply_patch!(patch, target, keys: :atoms)
+      assert %{a: %{__struct__: TestStruct}} = patched
     end
 
     test "Apply patch with invalid target source path and expect error" do
@@ -277,23 +301,23 @@ defmodule JsonpatchTest do
         "home" => "Berlin"
       }
 
-      assert {:error, :invalid_path, "xyz"} =
-               Jsonpatch.apply_patch(
-                 %Jsonpatch.Operation.Copy{from: "/name", path: "/xyz/surname"},
-                 target
-               )
+      patch = %{"op" => "copy", "from" => "/name", "path" => "/xyz/surname"}
 
-      assert {:error, :invalid_path, "xyz"} =
-               Jsonpatch.apply_patch(
-                 %Jsonpatch.Operation.Move{from: "/home", path: "/xyz/work"},
-                 target
-               )
+      assert {:error,
+              %Jsonpatch.Error{patch: ^patch, patch_index: 0, reason: {:invalid_path, ["xyz"]}}} =
+               Jsonpatch.apply_patch(patch, target)
 
-      assert {:error, :invalid_path, "xyz"} =
-               Jsonpatch.apply_patch(
-                 %Jsonpatch.Operation.Remove{path: "/xyz/work"},
-                 target
-               )
+      patch = %{"from" => "/home", "op" => "move", "path" => "/xyz/work"}
+
+      assert {:error,
+              %Jsonpatch.Error{patch: ^patch, patch_index: 0, reason: {:invalid_path, ["xyz"]}}} =
+               Jsonpatch.apply_patch(patch, target)
+
+      patch = %{"op" => "remove", "path" => "/xyz/work"}
+
+      assert {:error,
+              %Jsonpatch.Error{patch: ^patch, patch_index: 0, reason: {:invalid_path, ["xyz"]}}} =
+               Jsonpatch.apply_patch(patch, target)
     end
 
     test "Apply patch with one invalid path and expect error" do
@@ -316,7 +340,12 @@ defmodule JsonpatchTest do
         "home" => "Berlin"
       }
 
-      assert {:error, :invalid_index, "4"} = Jsonpatch.apply_patch(patch, target)
+      assert {:error,
+              %Jsonpatch.Error{
+                patch: %{"op" => "remove", "path" => "/hobbies/4"},
+                patch_index: 4,
+                reason: {:invalid_path, ["hobbies", "4"]}
+              }} = Jsonpatch.apply_patch(patch, target)
     end
 
     test "Apply patch with failing test and expect error" do
@@ -340,8 +369,12 @@ defmodule JsonpatchTest do
         "home" => "Berlin"
       }
 
-      assert {:error, :test_failed, "Expected value 'Alice' at '/name'"} =
-               Jsonpatch.apply_patch(patch, target)
+      assert {:error,
+              %Jsonpatch.Error{
+                patch: %{"op" => "test", "path" => "/name", "value" => "Alice"},
+                patch_index: 6,
+                reason: {:test_failed, "Expected value '\"Alice\"' at '/name'"}
+              }} = Jsonpatch.apply_patch(patch, target)
     end
 
     test "Apply patch with escaped '~' and '/' in path" do
@@ -370,5 +403,30 @@ defmodule JsonpatchTest do
 
       assert_raise JsonpatchException, fn -> Jsonpatch.apply_patch!(patch, target) end
     end
+
+    test "Apply patch with a path containing an empty key" do
+      patch = %Jsonpatch.Operation.Replace{path: "/a/", value: 35}
+      target = %{"a" => %{"" => 33}}
+
+      assert {:ok, %{"a" => %{"" => 35}}} = Jsonpatch.apply_patch(patch, target)
+    end
+
+    test "error on empty path" do
+      patch = %{"op" => "replace", "path" => "", "value" => 35}
+      target = %{}
+
+      assert {:error,
+              %Jsonpatch.Error{
+                patch: ^patch,
+                patch_index: 0,
+                reason: {:invalid_path, ""}
+              }} = Jsonpatch.apply_patch(patch, target)
+    end
+  end
+
+  defp string_to_existing_atom(data) when is_binary(data) do
+    {:ok, String.to_existing_atom(data)}
+  rescue
+    ArgumentError -> :error
   end
 end

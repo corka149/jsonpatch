@@ -6,59 +6,26 @@ defmodule Jsonpatch.Operation.Replace do
 
       iex> add = %Jsonpatch.Operation.Replace{path: "/a/b", value: 1}
       iex> target = %{"a" => %{"b" => 2}}
-      iex> Jsonpatch.Operation.apply_op(add, target)
-      %{"a" => %{"b" => 1}}
+      iex> Jsonpatch.Operation.Replace.apply(add, target, [])
+      {:ok, %{"a" => %{"b" => 1}}}
   """
 
-  alias Jsonpatch.Operation
-  alias Jsonpatch.Operation.Replace
-  alias Jsonpatch.PathUtil
+  alias Jsonpatch.Types
+  alias Jsonpatch.Operation.{Add, Remove, Replace}
 
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
 
-  defimpl Operation do
-    @spec apply_op(Replace.t(), list() | map() | Jsonpatch.error(), keyword()) :: map
-    def apply_op(_, {:error, _, _} = error, _opts), do: error
+  @spec apply(Jsonpatch.t(), target :: Types.json_container(), Types.opts()) ::
+          {:ok, Types.json_container()} | Types.error()
+  def apply(%Replace{path: path, value: value}, target, opts) do
+    remove_patch = %Remove{path: path}
+    add_patch = %Add{value: value, path: path}
 
-    def apply_op(%Replace{path: path, value: value}, target, opts) do
-      {final_destination, last_fragment} = PathUtil.get_final_destination(target, path, opts)
-
-      case do_update(final_destination, last_fragment, value) do
-        {:error, _, _} = error ->
-          error
-
-        updated_final_destination ->
-          PathUtil.update_final_destination(
-            target,
-            updated_final_destination,
-            path,
-            opts
-          )
-      end
-    end
-
-    # ===== ===== PRIVATE ===== =====
-
-    defp do_update(%{} = final_destination, last_fragment, value) do
-      case final_destination do
-        %{^last_fragment => _} -> %{final_destination | last_fragment => value}
-        _ -> {:error, :invalid_path, last_fragment}
-      end
-    end
-
-    defp do_update(final_destination, last_fragment, value) when is_list(final_destination) do
-      case Integer.parse(last_fragment) do
-        :error ->
-          {:error, :invalid_index, last_fragment}
-
-        {index, _} ->
-          case List.pop_at(final_destination, index) do
-            {nil, _} -> {:error, :invalid_index, last_fragment}
-            _ -> List.replace_at(final_destination, index, value)
-          end
-      end
+    with {:ok, res} <- Remove.apply(remove_patch, target, opts),
+         {:ok, res} <- Add.apply(add_patch, res, opts) do
+      {:ok, res}
     end
   end
 end

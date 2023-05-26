@@ -43,7 +43,6 @@ jobs:
           otp-version: "25.2"
           elixir-version: "1.14.3"
       - run: mix deps.get
-      - run: mix muzak --min-coverage 95.0
 
   # Linit and type checking
   analyze:

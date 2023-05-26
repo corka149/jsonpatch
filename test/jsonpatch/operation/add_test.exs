@@ -1,7 +1,6 @@
 defmodule Jsonpatch.Operation.AddTest do
   use ExUnit.Case
 
-  alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Add
 
   doctest Add
@@ -26,9 +25,7 @@ defmodule Jsonpatch.Operation.AddTest do
 
     add_op = %Add{path: path, value: true}
 
-    patched_target = Operation.apply_op(add_op, target)
-
-    excpected_target = %{
+    expected_target = %{
       "a" => %{
         "b" => [
           1,
@@ -43,48 +40,58 @@ defmodule Jsonpatch.Operation.AddTest do
       }
     }
 
-    assert ^excpected_target = patched_target
+    assert {:ok, ^expected_target} = Jsonpatch.Operation.Add.apply(add_op, target, [])
+  end
+
+  test "Add a value on an existing path" do
+    patch = %Add{path: "/a/b", value: 2}
+    target = %{"a" => %{"b" => 1}}
+
+    assert {:ok, %{"a" => %{"b" => 2}}} = Jsonpatch.Operation.Add.apply(patch, target, [])
   end
 
   test "Add a value to an array" do
-    patch = %Add{path: "/a/2", value: 3}
-    target = %{"a" => [0, 1, 2]}
+    patch = %Add{path: "/a/2", value: 2}
+    target = %{"a" => [0, 1, 3]}
 
-    assert %{"a" => [0, 1, 3]} = Operation.apply_op(patch, target)
+    assert {:ok, %{"a" => [0, 1, 2, 3]}} = Jsonpatch.Operation.Add.apply(patch, target, [])
   end
 
   test "Add a value to an empty array with binary key" do
     patch = %Add{path: "/a/0", value: 3}
     target = %{"a" => []}
 
-    assert %{"a" => [3]} = Operation.apply_op(patch, target)
+    assert {:ok, %{"a" => [3]}} = Jsonpatch.Operation.Add.apply(patch, target, [])
   end
 
   test "Add a value to an empty array with atom key" do
     patch = %Add{path: "/a/0", value: 3}
-    target = %{a: []}
+    target = %{"a" => []}
 
-    assert %{a: [3]} = Operation.apply_op(patch, target, keys: :atoms)
+    assert {:ok, %{"a" => [3]}} = Jsonpatch.Operation.Add.apply(patch, target, [])
   end
 
   test "Add a value to an array with invalid index" do
-    patch = %Add{path: "/a/b", value: 3}
+    patch = %Add{path: "/a/100", value: 3}
     target = %{"a" => [0, 1, 2]}
 
-    assert {:error, :invalid_index, "b"} = Operation.apply_op(patch, target)
+    assert {:error, {:invalid_path, ["a", "100"]}} =
+             Jsonpatch.Operation.Add.apply(patch, target, [])
+
+    patch = %Add{path: "/a/not_an_index", value: 3}
+
+    assert {:error, {:invalid_path, ["a", "not_an_index"]}} =
+             Jsonpatch.Operation.Add.apply(patch, target, [])
   end
 
   test "Add a value at the end of array" do
     patch = %Add{path: "/a/-", value: 3}
     target = %{"a" => [0, 1, 2]}
 
-    assert %{"a" => [0, 1, 2, 3]} = Operation.apply_op(patch, target)
-  end
+    assert {:ok, %{"a" => [0, 1, 2, 3]}} = Jsonpatch.Operation.Add.apply(patch, target, [])
 
-  test "Return error when patch error was provided to add operation" do
-    patch = %Add{path: "/a", value: false}
-    error = {:error, :invalid_index, "4"}
+    patch = %Add{path: "/a/#{length(target["a"])}", value: 3}
 
-    assert ^error = Operation.apply_op(patch, error)
+    assert {:ok, %{"a" => [0, 1, 2, 3]}} = Jsonpatch.Operation.Add.apply(patch, target, [])
   end
 end

@@ -4,49 +4,50 @@ defmodule Jsonpatch.Operation.Test do
 
   ## Examples
 
-      iex> test = %Jsonpatch.Operation.Test{path: "/x/y", value: "Bob"}
-      iex> target = %{"x" => %{"y" => "Bob"}}
-      iex> Jsonpatch.Operation.apply_op(test, target)
-      %{"x" => %{"y" => "Bob"}}
+    iex> test = %Jsonpatch.Operation.Test{path: "/x/y", value: "Bob"}
+    iex> target = %{"x" => %{"y" => "Bob"}}
+    iex> Jsonpatch.Operation.Test.apply(test, target, [])
+    {:ok, %{"x" => %{"y" => "Bob"}}}
   """
 
-  alias Jsonpatch.Operation
   alias Jsonpatch.Operation.Test
-  alias Jsonpatch.PathUtil
+  alias Jsonpatch.Types
+  alias Jsonpatch.Utils
 
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
   @type t :: %__MODULE__{path: String.t(), value: any}
 
-  defimpl Operation do
-    @spec apply_op(Test.t(), list() | map() | Jsonpatch.error(), keyword()) :: map()
-    def apply_op(_, {:error, _, _} = error, _opts), do: error
+  @spec apply(Jsonpatch.t(), target :: Types.json_container(), Types.opts()) ::
+          {:ok, Types.json_container()} | Types.error()
+  def apply(%Test{path: path, value: value}, target, opts) do
+    with {:ok, destination} <- Utils.get_destination(target, path, opts),
+         {:ok, test_path} = Utils.split_path(path),
+         {:ok, true} <- do_test(destination, value, test_path) do
+      {:ok, target}
+    else
+      {:ok, false} ->
+        {:error, {:test_failed, "Expected value '#{inspect(value)}' at '#{path}'"}}
 
-    def apply_op(%Test{path: path, value: value}, target, opts) do
-      case PathUtil.get_final_destination(target, path, opts) |> do_test(value) do
-        true -> target
-        false -> {:error, :test_failed, "Expected value '#{value}' at '#{path}'"}
-        {:error, _, _} = error -> error
-      end
+      {:error, _} = error ->
+        error
     end
+  end
 
-    # ===== ===== PRIVATE ===== =====
-
-    defp do_test({%{} = target, last_fragment}, value) do
-      Map.get(target, last_fragment) == value
+  defp do_test({%{} = target, last_fragment}, value, _path) do
+    case target do
+      %{^last_fragment => ^value} -> {:ok, true}
+      %{} -> {:ok, false}
     end
+  end
 
-    defp do_test({target, last_fragment}, value) when is_list(target) do
-      case Integer.parse(last_fragment) do
-        {index, _} ->
-          case Enum.fetch(target, index) do
-            {:ok, target_val} -> target_val == value
-            :error -> {:error, :invalid_index, last_fragment}
-          end
+  defp do_test({target, index}, value, path) when is_list(target) do
+    case Utils.fetch(target, index) do
+      {:ok, fetched_value} ->
+        {:ok, fetched_value == value}
 
-        :error ->
-          {:error, :invalid_index, last_fragment}
-      end
+      {:error, :invalid_path} ->
+        {:error, {:invalid_path, path}}
     end
   end
 end
