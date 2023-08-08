@@ -150,11 +150,11 @@ defmodule Jsonpatch do
       iex> destination = %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
       iex> Jsonpatch.diff(source, destination)
       [
-        %Jsonpatch.Operation.Replace{path: "/married", value: true},
-        %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
-        %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
-        %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
-        %Jsonpatch.Operation.Add{path: "/age", value: 33}
+        %{path: "/married", value: true, op: "replace"},
+        %{path: "/hobbies/2", op: "remove"},
+        %{path: "/hobbies/1", op: "remove"},
+        %{path: "/hobbies/0", value: "Elixir!", op: "replace"},
+        %{path: "/age", value: 33, op: "add"}
       ]
   """
   @spec diff(Types.json_container(), Types.json_container()) :: [Jsonpatch.t()]
@@ -190,7 +190,7 @@ defmodule Jsonpatch do
     |> flat()
     |> Stream.map(fn {k, _} -> escape(k) end)
     |> Stream.filter(fn k -> k not in checked_keys end)
-    |> Stream.map(fn k -> %Remove{path: "#{ancestor_path}/#{k}"} end)
+    |> Stream.map(fn k -> %{op: "remove", path: "#{ancestor_path}/#{k}"} end)
     |> Enum.reduce(patches, fn remove_patch, patches -> [remove_patch | patches] end)
   end
 
@@ -201,7 +201,7 @@ defmodule Jsonpatch do
       case Utils.fetch(source, key) do
         # Key is not present in source
         {:error, _} ->
-          [%Add{path: current_path, value: val} | patches]
+          [%{op: "add", path: current_path, value: val} | patches]
 
         # Source has a different value but both (destination and source) value are lists or a maps
         {:ok, source_val} when are_unequal_lists(source_val, val) ->
@@ -213,7 +213,7 @@ defmodule Jsonpatch do
 
         # Scalar source val that is not equal
         {:ok, source_val} when source_val != val ->
-          [%Replace{path: current_path, value: val} | patches]
+          [%{op: "replace", path: current_path, value: val} | patches]
 
         _ ->
           patches

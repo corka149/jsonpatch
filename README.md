@@ -43,13 +43,13 @@ The docs can be found at [https://hexdocs.pm/jsonpatch](https://hexdocs.pm/jsonp
 iex> source = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"]}
 iex> destination = %{"name" => "Bob", "married" => true, "hobbies" => ["Elixir!"], "age" => 33}
 iex> Jsonpatch.diff(source, destination)
-{:ok, [
+[
   %Jsonpatch.Operation.Add{path: "/age", value: 33},
   %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
   %Jsonpatch.Operation.Replace{path: "/married", value: true},
   %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
   %Jsonpatch.Operation.Remove{path: "/hobbies/2"}
-]}
+]
 ```
 
 ### Apply patches
