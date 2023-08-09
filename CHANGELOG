@@ -1,3 +1,6 @@
+# 2.1.0
+- Create diffs as pure maps and do not use Jsonpatch structs
+
 # 2.0.0
 - Bugfix - ADD behaviour is now compliant with RFC (insert or update)
 - Bugfix - allow usage of nil values, previous implementation used `Map.get` with default `nil` to detect if a key was not present

@@ -6,7 +6,7 @@ defmodule Jsonpatch.MixProject do
       app: :jsonpatch,
       name: "Jsonpatch",
       description: "Implementation of RFC 6902 in pure Elixir",
-      version: "2.0.0",
+      version: "2.1.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -36,10 +36,10 @@ defmodule Jsonpatch.MixProject do
 
   defp deps do
     [
-      {:excoveralls, "~> 0.15", only: [:test]},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.2", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.29", only: [:dev], runtime: false}
+      {:excoveralls, "~> 0.16", only: [:test]},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.30", only: [:dev], runtime: false}
     ]
   end
 
