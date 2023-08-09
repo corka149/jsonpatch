@@ -80,12 +80,12 @@ defmodule Jsonpatch do
 
     op =
       case struct_mod do
-        Jsonpatch.Operation.Add -> "add"
-        Jsonpatch.Operation.Remove -> "remove"
-        Jsonpatch.Operation.Replace -> "replace"
-        Jsonpatch.Operation.Copy -> "copy"
-        Jsonpatch.Operation.Move -> "move"
-        Jsonpatch.Operation.Test -> "test"
+        Add -> "add"
+        Remove -> "remove"
+        Replace -> "replace"
+        Copy -> "copy"
+        Move -> "move"
+        Test -> "test"
       end
 
     json_patch = Map.put(json_patch, "op", op)
@@ -98,27 +98,27 @@ defmodule Jsonpatch do
   end
 
   defp do_apply_patch(%{"op" => "add", "path" => path, "value" => value}, target, opts) do
-    Jsonpatch.Operation.Add.apply(%Add{path: path, value: value}, target, opts)
+    Add.apply(%Add{path: path, value: value}, target, opts)
   end
 
   defp do_apply_patch(%{"op" => "remove", "path" => path}, target, opts) do
-    Jsonpatch.Operation.Remove.apply(%Remove{path: path}, target, opts)
+    Remove.apply(%Remove{path: path}, target, opts)
   end
 
   defp do_apply_patch(%{"op" => "replace", "path" => path, "value" => value}, target, opts) do
-    Jsonpatch.Operation.Replace.apply(%Replace{path: path, value: value}, target, opts)
+    Replace.apply(%Replace{path: path, value: value}, target, opts)
   end
 
   defp do_apply_patch(%{"op" => "copy", "from" => from, "path" => path}, target, opts) do
-    Jsonpatch.Operation.Copy.apply(%Copy{from: from, path: path}, target, opts)
+    Copy.apply(%Copy{from: from, path: path}, target, opts)
   end
 
   defp do_apply_patch(%{"op" => "move", "from" => from, "path" => path}, target, opts) do
-    Jsonpatch.Operation.Move.apply(%Move{from: from, path: path}, target, opts)
+    Move.apply(%Move{from: from, path: path}, target, opts)
   end
 
   defp do_apply_patch(%{"op" => "test", "path" => path, "value" => value}, target, opts) do
-    Jsonpatch.Operation.Test.apply(%Test{path: path, value: value}, target, opts)
+    Test.apply(%Test{path: path, value: value}, target, opts)
   end
 
   defp do_apply_patch(json_patch, _target, _opts) do
