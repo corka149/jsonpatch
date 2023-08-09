@@ -29,14 +29,14 @@ defmodule Jsonpatch do
 
   ## Examples
       iex> patch = [
-      ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
-      ...> %Jsonpatch.Operation.Replace{path: "/hobbies/0", value: "Elixir!"},
-      ...> %Jsonpatch.Operation.Replace{path: "/married", value: true},
-      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/2"},
-      ...> %Jsonpatch.Operation.Remove{path: "/hobbies/1"},
-      ...> %Jsonpatch.Operation.Copy{from: "/name", path: "/surname"},
-      ...> %Jsonpatch.Operation.Move{from: "/home", path: "/work"},
-      ...> %Jsonpatch.Operation.Test{path: "/name", value: "Bob"}
+      ...> %{op: "add", path: "/age", value: 33},
+      ...> %{op: "replace", path: "/hobbies/0", value: "Elixir!"},
+      ...> %{op: "replace", path: "/married", value: true},
+      ...> %{op: "remove", path: "/hobbies/2"},
+      ...> %{op: "remove", path: "/hobbies/1"},
+      ...> %{op: "copy", from: "/name", path: "/surname"},
+      ...> %{op: "move", from: "/home", path: "/work"},
+      ...> %{op: "test", path: "/name", value: "Bob"}
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
@@ -44,8 +44,8 @@ defmodule Jsonpatch do
 
       iex> # Patch will not be applied if test fails. The target will not be changed.
       iex> patch = [
-      ...> %Jsonpatch.Operation.Add{path: "/age", value: 33},
-      ...> %Jsonpatch.Operation.Test{path: "/name", value: "Alice"}
+      ...> %{op: "add", path: "/age", value: 33},
+      ...> %{op: "test", path: "/name", value: "Alice"}
       ...> ]
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
