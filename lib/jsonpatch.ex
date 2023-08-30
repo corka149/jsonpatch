@@ -50,12 +50,23 @@ defmodule Jsonpatch do
       iex> target = %{"name" => "Bob", "married" => false, "hobbies" => ["Sport", "Elixir", "Football"], "home" => "Berlin"}
       iex> Jsonpatch.apply_patch(patch, target)
       {:error, %Jsonpatch.Error{patch: %{"op" => "test", "path" => "/name", "value" => "Alice"}, patch_index: 1, reason: {:test_failed, "Expected value '\\"Alice\\"' at '/name'"}}}
+
+      iex> # Patch will succeed, not applying invalid path operations.
+      iex> patch = [
+      ...> %{op: "replace", path: "/name", value: "Alice"},
+      ...> %{op: "replace", path: "/age", value: 42}
+      ...> ]
+      iex> target = %{"name" => "Bob"} # No age in target
+      iex> Jsonpatch.apply_patch(patch, target, ignore_invalid_paths: true)
+      {:ok, %{"name" => "Alice"}}
   """
   @spec apply_patch(t() | [t()], target :: Types.json_container(), Types.opts()) ::
           {:ok, Types.json_container()} | {:error, Jsonpatch.Error.t()}
   def apply_patch(json_patch, target, opts \\ []) do
     # https://datatracker.ietf.org/doc/html/rfc6902#section-3
     # > Operations are applied sequentially in the order they appear in the array.
+    {ignore_invalid_paths, opts} = Keyword.pop(opts, :ignore_invalid_paths, false)
+
     json_patch
     |> List.wrap()
     |> Enum.with_index()
@@ -63,9 +74,13 @@ defmodule Jsonpatch do
       patch = cast_to_op_map(patch)
 
       case do_apply_patch(patch, acc, opts) do
-        {:error, reason} ->
-          error = %Jsonpatch.Error{patch: patch, patch_index: patch_index, reason: reason}
-          {:halt, {:error, error}}
+        {:error, {error, _} = reason} ->
+          if ignore_invalid_paths && error == :invalid_path do
+            {:cont, {:ok, acc}}
+          else
+            error = %Jsonpatch.Error{patch: patch, patch_index: patch_index, reason: reason}
+            {:halt, {:error, error}}
+          end
 
         {:ok, res} ->
           {:cont, {:ok, res}}
