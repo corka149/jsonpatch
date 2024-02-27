@@ -422,6 +422,14 @@ defmodule JsonpatchTest do
                 reason: {:invalid_path, ""}
               }} = Jsonpatch.apply_patch(patch, target)
     end
+
+    # https://github.com/json-patch/json-patch-tests/blob/master/tests.json
+    test "tests of son-patch/json-patch-tests" do
+      for %{"comment" => comment, "doc" => target, "expected" => expected, "patch" => patch} <-
+            File.read!("./test/json-patch-tests.json") |> Jason.decode!() do
+        assert ^expected = Jsonpatch.apply_patch(patch, target), comment
+      end
+    end
   end
 
   defp string_to_existing_atom(data) when is_binary(data) do
