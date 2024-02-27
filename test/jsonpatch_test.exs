@@ -423,11 +423,16 @@ defmodule JsonpatchTest do
               }} = Jsonpatch.apply_patch(patch, target)
     end
 
-    # https://github.com/json-patch/json-patch-tests/blob/master/tests.json
-    test "tests of son-patch/json-patch-tests" do
-      for %{"comment" => comment, "doc" => target, "expected" => expected, "patch" => patch} <-
-            File.read!("./test/json-patch-tests.json") |> Jason.decode!() do
-        assert ^expected = Jsonpatch.apply_patch(patch, target), comment
+    for %{"comment" => comment, "doc" => target, "expected" => expected, "patch" => patch} <-
+          File.read!("./test/json-patch-tests.json") |> Jason.decode!() do
+      @data %{target: target, expected: expected, patch: patch}
+
+      test comment do
+        expected = @data.expected
+        patch = @data.patch
+        target = @data.target
+
+        assert {:ok, ^expected} = Jsonpatch.apply_patch(patch, target)
       end
     end
   end
