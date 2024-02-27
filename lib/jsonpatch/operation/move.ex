@@ -20,6 +20,14 @@ defmodule Jsonpatch.Operation.Move do
   @spec apply(Jsonpatch.t(), target :: Types.json_container(), Types.opts()) ::
           {:ok, Types.json_container()} | Types.error()
   def apply(%Move{from: from, path: path}, target, opts) do
+    if from != path do
+      do_move(from, path, target, opts)
+    else
+      {:ok, target}
+    end
+  end
+
+  defp do_move(from, path, target, opts) do
     copy_patch = %Copy{from: from, path: path}
     remove_patch = %Remove{path: from}
 
