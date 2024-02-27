@@ -423,8 +423,14 @@ defmodule JsonpatchTest do
               }} = Jsonpatch.apply_patch(patch, target)
     end
 
-    for %{"comment" => comment, "doc" => target, "expected" => expected, "patch" => patch} <-
-          File.read!("./test/json-patch-tests.json") |> Jason.decode!() do
+    for %{
+          "comment" => comment,
+          "doc" => target,
+          "expected" => expected,
+          "patch" => patch
+        } = test_case <-
+          File.read!("./test/json-patch-tests.json") |> Jason.decode!(),
+        !test_case["disabled"] do
       @data %{target: target, expected: expected, patch: patch}
 
       test comment do
