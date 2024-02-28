@@ -429,6 +429,13 @@ defmodule JsonpatchTest do
         assert {:ok, ^expected} = Jsonpatch.apply_patch(patch, target)
       end
     end
+
+    test "ignore invalid paths when asked to" do
+      patch = %{"op" => "replace", "path" => "/inexistent", "value" => 42}
+      target = %{"foo" => "bar"}
+
+      assert {:ok, %{"foo" => "bar"}} = Jsonpatch.apply_patch(patch, target, ignore_invalid_paths: true)
+    end
   end
 
   defp string_to_existing_atom(data) when is_binary(data) do
