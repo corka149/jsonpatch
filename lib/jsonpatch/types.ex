@@ -23,7 +23,8 @@ defmodule Jsonpatch.Types do
   - `:atoms!` - path fragments are converted to existing atoms
   - `{:custom, convert_fn}` - path fragments are converted with `convert_fn`
   """
-  @type opt_keys :: :strings | :atoms | {:custom, convert_fn()} | {:ignore_invalid_paths, :boolean}
+  @type opt_keys ::
+          :strings | :atoms | {:custom, convert_fn()} | {:ignore_invalid_paths, :boolean}
 
   @typedoc """
   Types options:

@@ -434,7 +434,8 @@ defmodule JsonpatchTest do
       patch = %{"op" => "replace", "path" => "/inexistent", "value" => 42}
       target = %{"foo" => "bar"}
 
-      assert {:ok, %{"foo" => "bar"}} = Jsonpatch.apply_patch(patch, target, ignore_invalid_paths: true)
+      assert {:ok, %{"foo" => "bar"}} =
+               Jsonpatch.apply_patch(patch, target, ignore_invalid_paths: true)
     end
   end
 

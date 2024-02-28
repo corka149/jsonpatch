@@ -65,7 +65,7 @@ defmodule Jsonpatch do
   def apply_patch(json_patch, target, opts \\ []) do
     # https://datatracker.ietf.org/doc/html/rfc6902#section-3
     # > Operations are applied sequentially in the order they appear in the array.
-    {ignore_invalid_paths, opts} = Keyword.pop(opts, :ignore_invalid_paths, false)
+    {ignore_invalid_paths?, opts} = Keyword.pop(opts, :ignore_invalid_paths, false)
 
     json_patch
     |> List.wrap()
@@ -73,19 +73,24 @@ defmodule Jsonpatch do
     |> Enum.reduce_while({:ok, target}, fn {patch, patch_index}, {:ok, acc} ->
       patch = cast_to_op_map(patch)
 
-      case do_apply_patch(patch, acc, opts) do
-        {:error, {error, _} = reason} ->
-          if ignore_invalid_paths && error == :invalid_path do
-            {:cont, {:ok, acc}}
-          else
-            error = %Jsonpatch.Error{patch: patch, patch_index: patch_index, reason: reason}
-            {:halt, {:error, error}}
-          end
-
-        {:ok, res} ->
-          {:cont, {:ok, res}}
-      end
+      do_apply_patch(patch, acc, opts)
+      |> handle_patch_result(acc, patch, patch_index, ignore_invalid_paths?)
     end)
+  end
+
+  defp handle_patch_result(result, acc, patch, patch_index, ignore_invalid_paths?) do
+    case result do
+      {:error, {error, _} = reason} ->
+        if ignore_invalid_paths? && error == :invalid_path do
+          {:cont, {:ok, acc}}
+        else
+          error = %Jsonpatch.Error{patch: patch, patch_index: patch_index, reason: reason}
+          {:halt, {:error, error}}
+        end
+
+      {:ok, res} ->
+        {:cont, {:ok, res}}
+    end
   end
 
   defp cast_to_op_map(%struct_mod{} = json_patch) do
