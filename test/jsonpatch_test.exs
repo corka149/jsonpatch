@@ -411,16 +411,23 @@ defmodule JsonpatchTest do
       assert {:ok, %{"a" => %{"" => 35}}} = Jsonpatch.apply_patch(patch, target)
     end
 
-    test "error on empty path" do
-      patch = %{"op" => "replace", "path" => "", "value" => 35}
-      target = %{}
+    for %{
+          "comment" => comment,
+          "doc" => target,
+          "expected" => expected,
+          "patch" => patch
+        } = test_case <-
+          File.read!("./test/json-patch-tests.json") |> Jason.decode!(),
+        !test_case["disabled"] do
+      @data %{target: target, expected: expected, patch: patch}
 
-      assert {:error,
-              %Jsonpatch.Error{
-                patch: ^patch,
-                patch_index: 0,
-                reason: {:invalid_path, ""}
-              }} = Jsonpatch.apply_patch(patch, target)
+      test comment do
+        expected = @data.expected
+        patch = @data.patch
+        target = @data.target
+
+        assert {:ok, ^expected} = Jsonpatch.apply_patch(patch, target)
+      end
     end
   end
 
