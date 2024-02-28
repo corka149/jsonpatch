@@ -30,7 +30,7 @@ The package can be installed by adding `jsonpatch` to your list of dependencies 
 ```elixir
 def deps do
   [
-    {:jsonpatch, "~> 1.0.1"}
+    {:jsonpatch, "~> 2.2"}
   ]
 end
 ```
