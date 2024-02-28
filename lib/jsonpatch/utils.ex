@@ -14,7 +14,7 @@ defmodule Jsonpatch.Utils do
     iex> Jsonpatch.Utils.split_path(path)
     {:ok, ["a", "b", "c"]}
   """
-  @spec split_path(String.t()) :: {:ok, [String.t(), ...]} | Types.error()
+  @spec split_path(String.t()) :: {:ok, [String.t(), ...] | :root} | Types.error()
   def split_path("/" <> path) do
     fragments =
       path
@@ -23,6 +23,8 @@ defmodule Jsonpatch.Utils do
 
     {:ok, fragments}
   end
+
+  def split_path(""), do: {:ok, :root}
 
   def split_path(path), do: {:error, {:invalid_path, path}}
 
@@ -144,7 +146,13 @@ defmodule Jsonpatch.Utils do
         ) ::
           {:ok, {Types.json_container(), last_fragment :: Types.casted_fragment()}}
           | Types.error()
-  def get_destination(target, path, opts \\ []) do
+  def get_destination(target, path, opts \\ [])
+
+  def get_destination(target, "", _opts) do
+    {:ok, {target, :root}}
+  end
+
+  def get_destination(target, path, opts) do
     with {:ok, fragments} <- split_path(path) do
       find_destination(target, [], fragments, opts)
     end
@@ -296,6 +304,10 @@ defmodule Jsonpatch.Utils do
       val = Enum.fetch!(target, index)
       find_destination(val, path ++ [fragment], tail, opts)
     end
+  end
+
+  defp do_update_destination(_target, value, _path, :root, _opts) do
+    {:ok, value}
   end
 
   defp do_update_destination(_target, value, _path, [_fragment], _opts) do

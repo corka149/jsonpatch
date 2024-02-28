@@ -38,6 +38,10 @@ defmodule Jsonpatch.Operation.Add do
     end
   end
 
+  defp do_add({_destination, :root}, value, _opts) do
+    {:ok, value}
+  end
+
   defp do_add({%{} = destination, last_fragment}, value, _opts) do
     {:ok, Map.put(destination, last_fragment, value)}
   end

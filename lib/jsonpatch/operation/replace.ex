@@ -19,6 +19,10 @@ defmodule Jsonpatch.Operation.Replace do
 
   @spec apply(Jsonpatch.t(), target :: Types.json_container(), Types.opts()) ::
           {:ok, Types.json_container()} | Types.error()
+  def apply(%Replace{path: "", value: value}, _target, _opts) do
+    {:ok, value}
+  end
+
   def apply(%Replace{path: path, value: value}, target, opts) do
     remove_patch = %Remove{path: path}
     add_patch = %Add{value: value, path: path}
