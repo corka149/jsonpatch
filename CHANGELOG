@@ -1,3 +1,9 @@
+# 2.2.1
+- Bugfix - Fix diffing when map contain atoms as key
+
+# 2.2.0
+- Change - Allow to replace the entire root
+
 # 2.1.0
 - Create diffs as pure maps and do not use Jsonpatch structs
 
