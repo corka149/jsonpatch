@@ -132,6 +132,14 @@ defmodule JsonpatchTest do
       assert_diff_apply(source, destination)
     end
 
+    test "Create diff for map with atoms as key" do
+      source = %{atom: [1, 2]}
+      destination = %{atom: [1, 2, 3]}
+
+      patches = Jsonpatch.diff(source, destination)
+      assert Jsonpatch.apply_patch(patches, source, keys: :atoms) == {:ok, destination}
+    end
+
     defp assert_diff_apply(source, destination) do
       patches = Jsonpatch.diff(source, destination)
       assert Jsonpatch.apply_patch(patches, source) == {:ok, destination}

@@ -251,5 +251,5 @@ defmodule Jsonpatch do
     do: Map.to_list(val)
 
   defp escape(fragment) when is_binary(fragment), do: Utils.escape(fragment)
-  defp escape(fragment) when is_integer(fragment), do: fragment
+  defp escape(fragment), do: fragment
 end
