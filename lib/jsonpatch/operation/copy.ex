@@ -21,7 +21,7 @@ defmodule Jsonpatch.Operation.Copy do
   @spec apply(Jsonpatch.t(), target :: Types.json_container(), Types.opts()) ::
           {:ok, Types.json_container()} | Types.error()
   def apply(%Copy{from: from, path: path}, target, opts) do
-    with {:ok, destination} <- Utils.get_destination(target, from),
+    with {:ok, destination} <- Utils.get_destination(target, from, opts),
          {:ok, from_fragments} = Utils.split_path(from),
          {:ok, copy_value} <- extract_copy_value(destination, from_fragments) do
       Add.apply(%Add{value: copy_value, path: path}, target, opts)
