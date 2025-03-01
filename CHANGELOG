@@ -1,3 +1,6 @@
+# 2.2.2
+- Bugfix - Resolves an issues preventing move working with keys: :atoms
+
 # 2.2.1
 - Bugfix - Fix diffing when map contain atoms as key
 
