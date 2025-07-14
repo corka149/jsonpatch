@@ -181,74 +181,99 @@ defmodule Jsonpatch do
   def diff(source, destination)
 
   def diff(%{} = source, %{} = destination) do
-    flat(destination)
-    |> do_diff(source, "")
+    do_map_diff(destination, source)
   end
 
   def diff(source, destination) when is_list(source) and is_list(destination) do
-    flat(destination)
-    |> do_diff(source, "")
+    do_list_diff(destination, source)
   end
 
   def diff(_, _) do
     []
   end
 
-  defguardp are_unequal_maps(val1, val2)
-            when val1 != val2 and is_map(val2) and is_map(val1)
+  defguardp are_unequal_maps(val1, val2) when val1 != val2 and is_map(val2) and is_map(val1)
+  defguardp are_unequal_lists(val1, val2) when val1 != val2 and is_list(val2) and is_list(val1)
 
-  defguardp are_unequal_lists(val1, val2)
-            when val1 != val2 and is_list(val2) and is_list(val1)
-
-  # Diff reduce loop
-  defp do_diff(destination, source, ancestor_path, acc \\ [], checked_keys \\ [])
-
-  defp do_diff([], source, ancestor_path, patches, checked_keys) do
-    # The complete desination was check. Every key that is not in the list of
-    # checked keys, must be removed.
-    source
-    |> flat()
-    |> Stream.map(fn {k, _} -> escape(k) end)
-    |> Stream.filter(fn k -> k not in checked_keys end)
-    |> Stream.map(fn k -> %{op: "remove", path: "#{ancestor_path}/#{k}"} end)
-    |> Enum.reduce(patches, fn remove_patch, patches -> [remove_patch | patches] end)
+  defp do_diff(dest, source, path, key, patches) when are_unequal_lists(dest, source) do
+    # uneqal lists, let's use a specialized function for that
+    do_list_diff(dest, source, "#{path}/#{key}", patches)
   end
 
-  defp do_diff([{key, val} | tail], source, ancestor_path, patches, checked_keys) do
-    current_path = "#{ancestor_path}/#{escape(key)}"
+  defp do_diff(dest, source, path, key, patches) when are_unequal_maps(dest, source) do
+    # uneqal maps, let's use a specialized function for that
+    do_map_diff(dest, source, "#{path}/#{key}", patches)
+  end
 
+  defp do_diff(dest, source, path, key, patches) when dest != source do
+    # scalar values or change of type (map -> list etc), let's just make a replace patch
+    [%{op: "replace", path: "#{path}/#{key}", value: dest} | patches]
+  end
+
+  defp do_diff(_dest, _source, _path, _key, patches) do
+    # no changes, return patches as is
+    patches
+  end
+
+  defp do_map_diff(%{} = destination, %{} = source, ancestor_path \\ "", patches \\ []) do
+    # entrypoint for map diff, let's convert the map to a list of {k, v} tuples
+    destination
+    |> Map.to_list()
+    |> do_map_diff(source, ancestor_path, patches, [])
+  end
+
+  defp do_map_diff([], source, ancestor_path, patches, checked_keys) do
+    # The complete desination was check. Every key that is not in the list of
+    # checked keys, must be removed.
+    Enum.reduce(source, patches, fn {k, _}, patches ->
+      if k not in checked_keys do
+        [%{op: "remove", path: "#{ancestor_path}/#{escape(k)}"} | patches]
+      else
+        patches
+      end
+    end)
+  end
+
+  defp do_map_diff([{key, val} | rest], source, ancestor_path, patches, checked_keys) do
+    # normal iteration through list of map {k, v} tuples. We track seen keys to later remove not seen keys.
     patches =
-      case Utils.fetch(source, key) do
-        # Key is not present in source
-        {:error, _} ->
-          [%{op: "add", path: current_path, value: val} | patches]
+      case Map.fetch(source, key) do
+        {:ok, source_val} ->
+          do_diff(val, source_val, ancestor_path, escape(key), patches)
 
-        # Source has a different value but both (destination and source) value are lists or a maps
-        {:ok, source_val} when are_unequal_lists(source_val, val) ->
-          val |> flat() |> Enum.reverse() |> do_diff(source_val, current_path, patches, [])
-
-        {:ok, source_val} when are_unequal_maps(source_val, val) ->
-          # Enter next level - set check_keys to empty list because it is a different level
-          val |> flat() |> do_diff(source_val, current_path, patches, [])
-
-        # Scalar source val that is not equal
-        {:ok, source_val} when source_val != val ->
-          [%{op: "replace", path: current_path, value: val} | patches]
-
-        _ ->
-          patches
+        :error ->
+          [%{op: "add", path: "#{ancestor_path}/#{escape(key)}", value: val} | patches]
       end
 
     # Diff next value of same level
-    do_diff(tail, source, ancestor_path, patches, [escape(key) | checked_keys])
+    do_map_diff(rest, source, ancestor_path, patches, [key | checked_keys])
   end
 
-  # Transforms a map into a tuple list and a list also into a tuple list with indizes
-  defp flat(val) when is_list(val),
-    do: Stream.with_index(val) |> Enum.map(fn {v, k} -> {k, v} end)
+  defp do_list_diff(destination, source, ancestor_path \\ "", patches \\ [], idx \\ 0)
 
-  defp flat(val) when is_map(val),
-    do: Map.to_list(val)
+  defp do_list_diff([], [], _path, patches, _idx), do: patches
+
+  defp do_list_diff([], [_item | source_rest], ancestor_path, patches, idx) do
+    # if we find any leftover items in source, we have to remove them
+    patches = [%{op: "remove", path: "#{ancestor_path}/#{idx}"} | patches]
+    do_list_diff([], source_rest, ancestor_path, patches, idx + 1)
+  end
+
+  defp do_list_diff(items, [], ancestor_path, patches, idx) do
+    # we have to do it without recursion, because we have to keep the order of the items
+    items
+    |> Enum.map_reduce(idx, fn val, idx ->
+      {%{op: "add", path: "#{ancestor_path}/#{idx}", value: val}, idx + 1}
+    end)
+    |> elem(0)
+    |> Kernel.++(patches)
+  end
+
+  defp do_list_diff([val | rest], [source_val | source_rest], ancestor_path, patches, idx) do
+    # case when there's an item in both desitation and source. Let's just compare them
+    patches = do_diff(val, source_val, ancestor_path, idx, patches)
+    do_list_diff(rest, source_rest, ancestor_path, patches, idx + 1)
+  end
 
   defp escape(fragment) when is_binary(fragment), do: Utils.escape(fragment)
   defp escape(fragment), do: fragment
