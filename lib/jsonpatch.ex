@@ -12,7 +12,6 @@ defmodule Jsonpatch do
 
   alias Jsonpatch.Types
   alias Jsonpatch.Operation.{Add, Copy, Move, Remove, Replace, Test}
-  alias Jsonpatch.Utils
 
   @typedoc """
   A valid Jsonpatch operation by RFC 6902
@@ -197,17 +196,17 @@ defmodule Jsonpatch do
 
   defp do_diff(dest, source, path, key, patches) when are_unequal_lists(dest, source) do
     # uneqal lists, let's use a specialized function for that
-    do_list_diff(dest, source, "#{path}/#{key}", patches)
+    do_list_diff(dest, source, "#{path}/#{escape(key)}", patches)
   end
 
   defp do_diff(dest, source, path, key, patches) when are_unequal_maps(dest, source) do
     # uneqal maps, let's use a specialized function for that
-    do_map_diff(dest, source, "#{path}/#{key}", patches)
+    do_map_diff(dest, source, "#{path}/#{escape(key)}", patches)
   end
 
   defp do_diff(dest, source, path, key, patches) when dest != source do
     # scalar values or change of type (map -> list etc), let's just make a replace patch
-    [%{op: "replace", path: "#{path}/#{key}", value: dest} | patches]
+    [%{op: "replace", path: "#{path}/#{escape(key)}", value: dest} | patches]
   end
 
   defp do_diff(_dest, _source, _path, _key, patches) do
@@ -238,11 +237,8 @@ defmodule Jsonpatch do
     # normal iteration through list of map {k, v} tuples. We track seen keys to later remove not seen keys.
     patches =
       case Map.fetch(source, key) do
-        {:ok, source_val} ->
-          do_diff(val, source_val, ancestor_path, escape(key), patches)
-
-        :error ->
-          [%{op: "add", path: "#{ancestor_path}/#{escape(key)}", value: val} | patches]
+        {:ok, source_val} -> do_diff(val, source_val, ancestor_path, key, patches)
+        :error -> [%{op: "add", path: "#{ancestor_path}/#{escape(key)}", value: val} | patches]
       end
 
     # Diff next value of same level
@@ -275,6 +271,18 @@ defmodule Jsonpatch do
     do_list_diff(rest, source_rest, ancestor_path, patches, idx + 1)
   end
 
-  defp escape(fragment) when is_binary(fragment), do: Utils.escape(fragment)
+  @compile {:inline, escape: 1}
+
+  defp escape(fragment) when is_binary(fragment) do
+    fragment =
+      if :binary.match(fragment, "~") != :nomatch,
+        do: String.replace(fragment, "~", "~0"),
+        else: fragment
+
+    if :binary.match(fragment, "/") != :nomatch,
+      do: String.replace(fragment, "/", "~1"),
+      else: fragment
+  end
+
   defp escape(fragment), do: fragment
 end
