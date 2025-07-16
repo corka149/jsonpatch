@@ -11,6 +11,11 @@ defmodule Jsonpatch.Types do
 
   @type json_container :: map() | list()
 
+  @type opts :: [
+          {:keys, opt_keys()}
+          | {:object_hash, (term() -> term())}
+        ]
+
   @type convert_fn ::
           (fragment :: term(), target_path :: [term()], target :: json_container(), opts() ->
              {:ok, converted_fragment :: term()} | :error)
@@ -30,8 +35,8 @@ defmodule Jsonpatch.Types do
   Types options:
 
   - `:keys` - controls how path fragments are decoded.
+  - `:object_hash` - function to extract unique identifier from list items for optimized diffing.
   """
-  @type opts :: [{:keys, opt_keys()}]
 
   @type casted_array_index :: :- | non_neg_integer()
   @type casted_object_key :: atom() | String.t()
