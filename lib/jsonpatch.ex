@@ -204,10 +204,12 @@ defmodule Jsonpatch do
   @spec diff(Types.json_container(), Types.json_container(), Types.opts_diff()) :: [Jsonpatch.t()]
   def diff(source, destination, opts \\ []) do
     opts =
-      Keyword.validate!(opts,
+      opts
+      |> Keyword.update(:object_hash, nil, &make_safe_hash_fn/1)
+      |> Keyword.validate!(
         ancestor_path: "",
-        # by default, a no-op
-        prepare_map: fn map -> map end
+        prepare_map: fn struct -> struct end,
+        object_hash: nil
       )
 
     cond do
@@ -290,17 +292,29 @@ defmodule Jsonpatch do
     do_map_diff(rest, source, ancestor_path, patches, [key | checked_keys], opts)
   end
 
-  defp do_list_diff(destination, source, ancestor_path, patches, idx, opts)
-
-  defp do_list_diff([], [], _path, patches, _idx, _opts), do: patches
-
-  defp do_list_diff([], [_item | source_rest], ancestor_path, patches, idx, opts) do
-    # if we find any leftover items in source, we have to remove them
-    patches = [%{op: "remove", path: "#{ancestor_path}/#{idx}"} | patches]
-    do_list_diff([], source_rest, ancestor_path, patches, idx + 1, opts)
+  defp do_list_diff(destination, source, ancestor_path, patches, idx, opts) do
+    if opts[:object_hash] do
+      do_hash_list_diff(destination, source, ancestor_path, patches, opts)
+    else
+      do_pairwise_list_diff(destination, source, ancestor_path, patches, idx, opts)
+    end
+  catch
+    # happens if we've got a nil hash or we tried to hash a non-map
+    :hash_not_implemented ->
+      do_pairwise_list_diff(destination, source, ancestor_path, patches, idx, opts)
   end
 
-  defp do_list_diff(items, [], ancestor_path, patches, idx, opts) do
+  defp do_pairwise_list_diff(destination, source, ancestor_path, patches, idx, opts)
+
+  defp do_pairwise_list_diff([], [], _path, patches, _idx, _opts), do: patches
+
+  defp do_pairwise_list_diff([], [_item | source_rest], ancestor_path, patches, idx, opts) do
+    # if we find any leftover items in source, we have to remove them
+    patches = [%{op: "remove", path: "#{ancestor_path}/#{idx}"} | patches]
+    do_pairwise_list_diff([], source_rest, ancestor_path, patches, idx + 1, opts)
+  end
+
+  defp do_pairwise_list_diff(items, [], ancestor_path, patches, idx, opts) do
     # we have to do it without recursion, because we have to keep the order of the items
     items
     |> Enum.map_reduce(idx, fn val, idx ->
@@ -311,12 +325,163 @@ defmodule Jsonpatch do
     |> Kernel.++(patches)
   end
 
-  defp do_list_diff([val | rest], [source_val | source_rest], ancestor_path, patches, idx, opts) do
+  defp do_pairwise_list_diff(
+         [val | rest],
+         [source_val | source_rest],
+         ancestor_path,
+         patches,
+         idx,
+         opts
+       ) do
     # case when there's an item in both desitation and source. Let's just compare them
     patches = do_diff(val, source_val, ancestor_path, idx, patches, opts)
-    do_list_diff(rest, source_rest, ancestor_path, patches, idx + 1, opts)
+    do_pairwise_list_diff(rest, source_rest, ancestor_path, patches, idx + 1, opts)
   end
 
+  defp do_hash_list_diff(destination, source, ancestor_path, patches, opts) do
+    hash_fn = Keyword.fetch!(opts, :object_hash)
+
+    {additions, modifications, removals} =
+      greedy_find_additions_modifications_removals(
+        List.to_tuple(destination),
+        List.to_tuple(source),
+        index_by(destination, hash_fn),
+        index_by(source, hash_fn),
+        hash_fn,
+        ancestor_path,
+        opts
+      )
+
+    List.flatten([removals, additions, modifications, patches])
+  end
+
+  # credo:disable-for-next-line
+  defp greedy_find_additions_modifications_removals(
+         dest,
+         source,
+         dest_map,
+         source_map,
+         hash_fn,
+         path,
+         opts,
+         dest_idx \\ 0,
+         source_idx \\ 0,
+         additions \\ [],
+         modifications \\ [],
+         removals \\ []
+       ) do
+    cond do
+      tuple_size(dest) == dest_idx ->
+        # we're at the end of the destination tuple, let's remove all remaining source items
+        removals = add_removals(source_idx, tuple_size(source) - 1, path, removals)
+        {Enum.reverse(additions), modifications, removals}
+
+      tuple_size(source) == source_idx ->
+        # we're at the end of the source tuple, let's add all remaining destination items
+        additions = add_additions(dest_idx, tuple_size(dest) - 1, path, dest, additions, opts)
+        {Enum.reverse(additions), modifications, removals}
+
+      true ->
+        # we're in the middle of the tuples, let's find the next matching items
+        dest_item = elem(dest, dest_idx)
+        source_item = elem(source, source_idx)
+
+        source_hash = hash_fn.(source_item)
+        dest_hash = hash_fn.(dest_item)
+
+        if source_hash == dest_hash do
+          # same items, let's diff recursively and bump both indexes
+          modifications = do_diff(dest_item, source_item, path, dest_idx, modifications, opts)
+
+          greedy_find_additions_modifications_removals(
+            dest,
+            source,
+            dest_map,
+            source_map,
+            hash_fn,
+            path,
+            opts,
+            dest_idx + 1,
+            source_idx + 1,
+            additions,
+            modifications,
+            removals
+          )
+        else
+          # different items, let's find index of destination item in source and vice versa
+          {next_dest_idx, next_source_idx} =
+            determine_next_idx(
+              dest_idx,
+              source_idx,
+              Map.get(dest_map, source_hash),
+              Map.get(source_map, dest_hash)
+            )
+
+          removals = add_removals(source_idx, next_source_idx - 1, path, removals)
+          additions = add_additions(dest_idx, next_dest_idx - 1, path, dest, additions, opts)
+
+          greedy_find_additions_modifications_removals(
+            dest,
+            source,
+            dest_map,
+            source_map,
+            hash_fn,
+            path,
+            opts,
+            next_dest_idx,
+            next_source_idx,
+            additions,
+            modifications,
+            removals
+          )
+        end
+    end
+  end
+
+  # credo:disable-for-next-line
+  defp determine_next_idx(d_idx, s_idx, next_d_idx, next_s_idx) do
+    dest_found = next_d_idx != nil and next_d_idx > d_idx
+    source_found = next_s_idx != nil and next_s_idx > s_idx
+    source_closer = dest_found and source_found and next_s_idx - s_idx < next_d_idx - d_idx
+
+    cond do
+      # in case when we can jump to either of them, we want to jump to the closer one
+      source_closer -> {d_idx, next_s_idx}
+      # only source is found ahead, we have to do source jump
+      next_d_idx == nil and source_found -> {d_idx, next_s_idx}
+      # only dest is found ahead, we have to do dest jump
+      next_s_idx == nil and dest_found -> {next_d_idx, s_idx}
+      # neither is found ahead, we have to advance both indexes
+      true -> {d_idx + 1, s_idx + 1}
+    end
+  end
+
+  @compile {:inline, index_by: 2}
+  defp index_by(list, hash_fn) do
+    list
+    |> Enum.reduce({%{}, 0}, fn item, {map, idx} ->
+      # if we have a hash collision, we throw an error and handle as if the hash is not implemented
+      {Map.update(map, hash_fn.(item), idx, fn _ -> throw(:hash_not_implemented) end), idx + 1}
+    end)
+    |> elem(0)
+  end
+
+  @compile {:inline, add_removals: 4}
+  defp add_removals(from_idx, to_idx, path, removals) do
+    Enum.reduce(from_idx..to_idx//1, removals, fn idx, removals ->
+      [%{op: "remove", path: "#{path}/#{idx}"} | removals]
+    end)
+  end
+
+  @compile {:inline, add_additions: 6}
+  defp add_additions(from_idx, to_idx, path, dest_tuple, additions, opts) do
+    Enum.reduce(from_idx..to_idx//1, additions, fn idx, additions ->
+      value = dest_tuple |> elem(idx) |> maybe_prepare_map(opts)
+      [%{op: "add", path: "#{path}/#{idx}", value: value} | additions]
+    end)
+  end
+
+  @compile {:inline, maybe_prepare_map: 2}
   defp maybe_prepare_map(value, opts) when is_map(value) do
     prepare_fn = Keyword.fetch!(opts, :prepare_map)
     prepare_fn.(value)
@@ -325,7 +490,6 @@ defmodule Jsonpatch do
   defp maybe_prepare_map(value, _opts), do: value
 
   @compile {:inline, escape: 1}
-
   defp escape(fragment) when is_binary(fragment) do
     fragment =
       if :binary.match(fragment, "~") != :nomatch,
@@ -338,4 +502,19 @@ defmodule Jsonpatch do
   end
 
   defp escape(fragment), do: fragment
+
+  defp make_safe_hash_fn(hash_fn) do
+    # we want to compare only maps, and returning nil should mean
+    # we should compare lists pairwise instead
+    fn
+      %{} = item ->
+        case hash_fn.(item) do
+          nil -> throw(:hash_not_implemented)
+          hash -> hash
+        end
+
+      _item ->
+        throw(:hash_not_implemented)
+    end
+  end
 end

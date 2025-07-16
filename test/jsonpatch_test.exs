@@ -343,6 +343,433 @@ defmodule JsonpatchTest do
       patches = Jsonpatch.diff(source, destination)
       assert Jsonpatch.apply_patch(patches, source) == {:ok, destination}
     end
+
+    test "Create diff with object_hash for list items - simple insertion" do
+      original = [
+        %{id: 1, name: "test1"},
+        %{id: 2, name: "test2"},
+        %{id: 3, name: "test3"}
+      ]
+
+      updated = List.insert_at(original, 0, %{id: 123, name: "test123"})
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+
+      # Should only have one add operation instead of multiple replace operations
+      assert patches == [
+               %{value: %{id: 123, name: "test123"}, path: "/0", op: "add"}
+             ]
+    end
+
+    test "Create diff with object_hash for list items - simple insertion with prepare_map" do
+      original = []
+
+      updated = [
+        %{id: 1, name: "test1"}
+      ]
+
+      patches =
+        Jsonpatch.diff(original, updated,
+          object_hash: fn %{id: id} -> id end,
+          prepare_map: fn %{id: id} -> %{id: id} end
+        )
+
+      expected_patches = [
+        %{value: %{id: 1}, path: "/0", op: "add"}
+      ]
+
+      # Apply the patch and verify it works
+      assert_equal_patches(patches, expected_patches)
+    end
+
+    test "Create diff with object_hash for list items - reordering" do
+      original = [
+        %{id: 1, name: "test1"},
+        %{id: 2, name: "test2"},
+        %{id: 3, name: "test3"}
+      ]
+
+      updated = [
+        %{id: 3, name: "test3"},
+        %{id: 1, name: "test1"},
+        %{id: 2, name: "test2"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      # Apply the patch and verify it works
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash for list items - removal" do
+      original = [
+        %{id: 1, name: "test1"},
+        %{id: 2, name: "test2"},
+        %{id: 3, name: "test3"}
+      ]
+
+      updated = [
+        %{id: 1, name: "test1"},
+        %{id: 3, name: "test3"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+
+      # Should only have one remove operation
+      assert patches == [
+               %{path: "/1", op: "remove"}
+             ]
+    end
+
+    @tag :wip
+    test "Create diff with object_hash for list items - modification" do
+      original = [
+        %{id: 1, name: "test1"},
+        %{id: 2, name: "test2"}
+      ]
+
+      updated = [
+        %{id: 1, name: "modified1"},
+        %{id: 2, name: "test2"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+
+      # Should only modify the changed field
+      assert patches == [
+               %{value: "modified1", path: "/0/name", op: "replace"}
+             ]
+    end
+
+    test "Create diff with object_hash validates opts" do
+      original = [%{id: 1, name: "test1"}]
+      updated = [%{id: 1, name: "test1"}]
+
+      # Should raise when invalid opts are provided
+      assert_raise ArgumentError, fn ->
+        Jsonpatch.diff(original, updated, invalid_option: "value")
+      end
+    end
+
+    test "Create diff with object_hash falls back to index-based when function not provided" do
+      original = [%{id: 1, name: "test1"}]
+      updated = [%{id: 2, name: "test2"}]
+
+      # Should work the same as before when no object_hash is provided
+      patches_with_opts = Jsonpatch.diff(original, updated, [])
+      patches_without_opts = Jsonpatch.diff(original, updated)
+
+      assert patches_with_opts == patches_without_opts
+    end
+
+    test "Create diff with object_hash - inserting at the beginning" do
+      original = [
+        %{id: 1, name: "test1"},
+        %{id: 2, name: "test2"}
+      ]
+
+      updated = [
+        %{id: 3, name: "test3"},
+        %{id: 1, name: "test1"},
+        %{id: 2, name: "test2"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert patches == [%{op: "add", path: "/0", value: %{id: 3, name: "test3"}}]
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - inserting in the middle" do
+      original = [
+        %{id: 1, name: "test1"},
+        %{id: 2, name: "test2"}
+      ]
+
+      updated = [
+        %{id: 1, name: "test1"},
+        %{id: 3, name: "test3"},
+        %{id: 2, name: "test2"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert patches == [%{op: "add", path: "/1", value: %{id: 3, name: "test3"}}]
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - removing in the middle" do
+      original = [
+        %{id: 1, name: "test1"},
+        %{id: 2, name: "test2"},
+        %{id: 3, name: "test3"}
+      ]
+
+      updated = [
+        %{id: 1, name: "test1"},
+        %{id: 3, name: "test3"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert patches == [%{op: "remove", path: "/1"}]
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - complex reordering with modifications" do
+      original = [
+        %{id: 1, name: "first", status: "active"},
+        %{id: 2, name: "second", status: "inactive"},
+        %{id: 3, name: "third", status: "active"},
+        %{id: 4, name: "fourth", status: "pending"}
+      ]
+
+      updated = [
+        # moved from end, status changed
+        %{id: 4, name: "fourth", status: "active"},
+        # moved and name changed
+        %{id: 2, name: "second-modified", status: "inactive"},
+        # moved and status changed
+        %{id: 1, name: "first", status: "inactive"},
+        # moved, no changes
+        %{id: 3, name: "third", status: "active"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - simultaneous add, remove, move, and modify" do
+      original = [
+        %{id: 1, name: "keep1", value: 10},
+        %{id: 2, name: "remove_me", value: 20},
+        %{id: 3, name: "move_me", value: 30},
+        %{id: 4, name: "modify_me", value: 40}
+      ]
+
+      updated = [
+        # new item at start
+        %{id: 5, name: "new_item", value: 50},
+        # modified and moved
+        %{id: 4, name: "modified", value: 45},
+        # unchanged
+        %{id: 1, name: "keep1", value: 10},
+        # moved but unchanged
+        %{id: 3, name: "move_me", value: 30},
+        # new item at end
+        %{id: 6, name: "another_new", value: 60}
+      ]
+
+      # id: 2 is removed
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - multiple insertions at different positions" do
+      original = [
+        %{id: 1, name: "first"},
+        %{id: 3, name: "third"},
+        %{id: 5, name: "fifth"}
+      ]
+
+      updated = [
+        # insert at beginning
+        %{id: 0, name: "zero"},
+        %{id: 1, name: "first"},
+        # insert in middle
+        %{id: 2, name: "second"},
+        %{id: 3, name: "third"},
+        # insert in middle
+        %{id: 4, name: "fourth"},
+        %{id: 5, name: "fifth"},
+        # insert at end
+        %{id: 6, name: "sixth"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, ^updated} = Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - multiple removals at different positions" do
+      original = [
+        %{id: 1, name: "first"},
+        %{id: 2, name: "second"},
+        %{id: 3, name: "third"},
+        %{id: 4, name: "fourth"},
+        %{id: 5, name: "fifth"},
+        %{id: 6, name: "sixth"}
+      ]
+
+      updated = [
+        # removed first
+        %{id: 2, name: "second"},
+        # removed third and fifth
+        %{id: 4, name: "fourth"},
+        # removed sixth would be here but it's kept
+        %{id: 6, name: "sixth"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - reverse order" do
+      original = [
+        %{id: 1},
+        %{id: 2},
+        %{id: 3}
+      ]
+
+      updated = [
+        %{id: 3},
+        %{id: 2},
+        %{id: 1}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, ^updated} = Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - reverse order with modifications" do
+      original = [
+        %{id: 1, name: "first", count: 1},
+        %{id: 2, name: "second", count: 2},
+        %{id: 3, name: "third", count: 3}
+      ]
+
+      updated = [
+        # reversed and modified
+        %{id: 3, name: "third-modified", count: 30},
+        # reversed and count modified
+        %{id: 2, name: "second", count: 20},
+        # reversed and name modified
+        %{id: 1, name: "first-new", count: 1}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, ^updated} = Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - empty to populated list" do
+      original = []
+
+      updated = [
+        %{id: 1, name: "first"},
+        %{id: 2, name: "second"},
+        %{id: 3, name: "third"}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, ^updated} = Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - populated to empty list" do
+      original = [
+        %{id: 1, name: "first"},
+        %{id: 2, name: "second"},
+        %{id: 3, name: "third"}
+      ]
+
+      updated = []
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, ^updated} = Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - duplicate hash values handled gracefully" do
+      original = [
+        %{id: 1, name: "first", group: "A"},
+        %{id: 2, name: "second", group: "A"},
+        %{id: 3, name: "third", group: "B"}
+      ]
+
+      updated = [
+        %{id: 1, name: "first-modified", group: "A"},
+        %{id: 3, name: "third", group: "B"},
+        %{id: 2, name: "second", group: "A"}
+      ]
+
+      # Using group as hash (which has duplicates) should still work
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{group: group} -> group end)
+      assert {:ok, ^updated} = Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - nested objects with modifications" do
+      original = [
+        %{id: 1, user: %{name: "Alice", age: 30}, tags: ["admin"]},
+        %{id: 2, user: %{name: "Bob", age: 25}, tags: ["user"]},
+        %{id: 3, user: %{name: "Charlie", age: 35}, tags: ["user", "premium"]}
+      ]
+
+      updated = [
+        # moved, age and tags changed
+        %{id: 2, user: %{name: "Bob", age: 26}, tags: ["user", "active"]},
+        # moved, tags changed
+        %{id: 1, user: %{name: "Alice", age: 30}, tags: ["admin", "senior"]},
+        # new item
+        %{id: 4, user: %{name: "David", age: 28}, tags: ["user"]},
+        # moved, tags changed
+        %{id: 3, user: %{name: "Charlie", age: 35}, tags: ["premium"]}
+      ]
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - mixed data types in list" do
+      original = [
+        %{id: 1, name: "object1"},
+        %{id: 2, name: "object2"},
+        %{id: 3, name: "object3"}
+      ]
+
+      updated = [
+        %{id: 2, name: "object2-modified"},
+        %{id: 1, name: "object1"},
+        # new item
+        %{id: 4, name: "object4"}
+      ]
+
+      # id: 3 removed
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - large list reordering" do
+      # Create a larger list to test performance characteristics
+      original = Enum.map(1..10, fn i -> %{id: i, name: "item#{i}", value: i * 10} end)
+
+      # Reverse the order and modify every 5th item
+      updated = original |> tl |> Enum.reverse()
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
+
+    test "Create diff with object_hash - interleaved additions and removals" do
+      original = [
+        %{id: 1, name: "keep1"},
+        %{id: 2, name: "remove1"},
+        %{id: 3, name: "keep2"},
+        %{id: 4, name: "remove2"},
+        %{id: 5, name: "keep3"}
+      ]
+
+      updated = [
+        %{id: 1, name: "keep1"},
+        # new
+        %{id: 10, name: "add1"},
+        %{id: 3, name: "keep2"},
+        # new
+        %{id: 11, name: "add2"},
+        %{id: 5, name: "keep3"},
+        # new
+        %{id: 12, name: "add3"}
+      ]
+
+      # removed id: 2 and 4
+
+      patches = Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+      assert {:ok, updated} == Jsonpatch.apply_patch(patches, original, keys: :atoms)
+    end
   end
 
   describe "Apply patch/es" do
