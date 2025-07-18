@@ -225,10 +225,10 @@ defmodule Jsonpatch do
     # The complete desination was check. Every key that is not in the list of
     # checked keys, must be removed.
     Enum.reduce(source, patches, fn {k, _}, patches ->
-      if k not in checked_keys do
-        [%{op: "remove", path: "#{ancestor_path}/#{escape(k)}"} | patches]
-      else
+      if k in checked_keys do
         patches
+      else
+        [%{op: "remove", path: "#{ancestor_path}/#{escape(k)}"} | patches]
       end
     end)
   end

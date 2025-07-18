@@ -196,7 +196,7 @@ defmodule JsonpatchBenchmark do
                   "host" => "db.example.com",
                   "port" => 5432,
                   "name" => "myapp_production",
-                  "pool" => %{"size" => 20, "timeout" => 10000, "idle_timeout" => 30000}
+                  "pool" => %{"size" => 20, "timeout" => 10_000, "idle_timeout" => 30_000}
                 },
                 "cache" => %{
                   "host" => "redis.example.com",
