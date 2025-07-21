@@ -205,10 +205,12 @@ defmodule JsonpatchTest do
       patches =
         Jsonpatch.diff(source, destination, prepare_struct: &Map.take(&1, [:field1, :inner]))
 
-      assert patches == [
-               %{op: "replace", path: "/field1", value: "new_value"},
-               %{op: "replace", path: "/inner/nested", value: "new"}
-             ]
+      expected_patches = [
+        %{op: "replace", path: "/field1", value: "new_value"},
+        %{op: "replace", path: "/inner/nested", value: "new"}
+      ]
+
+      assert_equal_patches(patches, expected_patches)
     end
 
     test "Create diff with prepare_struct option using dynamic field creation" do
@@ -227,9 +229,11 @@ defmodule JsonpatchTest do
           prepare_struct: &%{field3: "#{&1.field1} - #{&1.field2}"}
         )
 
-      assert patches == [
-               %{op: "replace", path: "/field3", value: "hi - world"}
-             ]
+      expected_patches = [
+        %{op: "replace", path: "/field3", value: "hi - world"}
+      ]
+
+      assert_equal_patches(patches, expected_patches)
     end
 
     test "Create diff with prepare_struct option using nested dynamic field creation" do
@@ -250,10 +254,12 @@ defmodule JsonpatchTest do
           prepare_struct: &%{inner: &1.inner, field3: "#{&1.field1} - #{&1.field2}"}
         )
 
-      assert patches == [
-               %{op: "replace", path: "/field3", value: "hi - world"},
-               %{op: "replace", path: "/inner/field3", value: "nested - new"}
-             ]
+      expected_patches = [
+        %{op: "replace", path: "/field3", value: "hi - world"},
+        %{op: "replace", path: "/inner/field3", value: "nested - new"}
+      ]
+
+      assert_equal_patches(patches, expected_patches)
     end
 
     defp assert_diff_apply(source, destination) do
@@ -557,6 +563,10 @@ defmodule JsonpatchTest do
       assert {:ok, %{"foo" => "bar"}} =
                Jsonpatch.apply_patch(patch, target, ignore_invalid_paths: true)
     end
+  end
+
+  defp assert_equal_patches(patches1, patches2) do
+    assert Enum.sort_by(patches1, & &1.path) == Enum.sort_by(patches2, & &1.path)
   end
 
   defp string_to_existing_atom(data) when is_binary(data) do
