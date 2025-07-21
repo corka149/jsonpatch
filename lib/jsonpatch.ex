@@ -190,7 +190,7 @@ defmodule Jsonpatch do
         %{path: "/nested/a", value: 3, op: "replace"}
       ]
   """
-  @spec diff(Types.json_container(), Types.json_container(), Types.opts()) :: [Jsonpatch.t()]
+  @spec diff(Types.json_container(), Types.json_container(), Types.opts_diff()) :: [Jsonpatch.t()]
   def diff(source, destination, opts \\ []) do
     opts = Keyword.validate!(opts, ancestor_path: "")
 
