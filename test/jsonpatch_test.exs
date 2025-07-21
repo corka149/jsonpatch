@@ -3,6 +3,10 @@ defmodule JsonpatchTest do
 
   doctest Jsonpatch
 
+  defmodule TestStruct do
+    defstruct [:field1, :field2, :inner, :field]
+  end
+
   test "Create diff from list and apply it" do
     # Arrange
     source = [1, 2, %{"drei" => 3}, 5, 6]
@@ -178,11 +182,78 @@ defmodule JsonpatchTest do
 
       patches = Jsonpatch.diff(source, destination, ancestor_path: "/escape~1me~0now")
 
-      expected_patches = [
-        %{op: "replace", path: "/escape~1me~0now/a", value: 2}
-      ]
+      assert patches == [
+               %{op: "replace", path: "/escape~1me~0now/a", value: 2}
+             ]
+    end
 
-      assert patches == expected_patches
+    test "Create diff with prepare_struct option using subset of fields" do
+      source = %TestStruct{
+        field1: "value1",
+        field2: "value2",
+        inner: %{nested: "old"},
+        field: "ignored"
+      }
+
+      destination = %TestStruct{
+        field1: "new_value",
+        field2: "value2",
+        inner: %{nested: "new"},
+        field: "also_ignored"
+      }
+
+      patches =
+        Jsonpatch.diff(source, destination, prepare_struct: &Map.take(&1, [:field1, :inner]))
+
+      assert patches == [
+               %{op: "replace", path: "/field1", value: "new_value"},
+               %{op: "replace", path: "/inner/nested", value: "new"}
+             ]
+    end
+
+    test "Create diff with prepare_struct option using dynamic field creation" do
+      source = %TestStruct{
+        field1: "hello",
+        field2: "world"
+      }
+
+      destination = %TestStruct{
+        field1: "hi",
+        field2: "world"
+      }
+
+      patches =
+        Jsonpatch.diff(source, destination,
+          prepare_struct: &%{field3: "#{&1.field1} - #{&1.field2}"}
+        )
+
+      assert patches == [
+               %{op: "replace", path: "/field3", value: "hi - world"}
+             ]
+    end
+
+    test "Create diff with prepare_struct option using nested dynamic field creation" do
+      source = %TestStruct{
+        field1: "hello",
+        field2: "world",
+        inner: %TestStruct{field1: "nested", field2: "old"}
+      }
+
+      destination = %TestStruct{
+        field1: "hi",
+        field2: "world",
+        inner: %TestStruct{field1: "nested", field2: "new"}
+      }
+
+      patches =
+        Jsonpatch.diff(source, destination,
+          prepare_struct: &%{inner: &1.inner, field3: "#{&1.field1} - #{&1.field2}"}
+        )
+
+      assert patches == [
+               %{op: "replace", path: "/field3", value: "hi - world"},
+               %{op: "replace", path: "/inner/field3", value: "nested - new"}
+             ]
     end
 
     defp assert_diff_apply(source, destination) do
@@ -330,18 +401,14 @@ defmodule JsonpatchTest do
               }} = Jsonpatch.apply_patch(patch, target, keys: {:custom, convert_fn})
     end
 
-    defmodule TestStruct do
-      defstruct [:field]
-    end
-
     test "struct are just maps" do
-      patch = %Jsonpatch.Operation.Replace{path: "/a/field/c", value: 1}
-      target = %{a: %TestStruct{field: %{c: 0}}}
+      patch = %Jsonpatch.Operation.Replace{path: "/a/field1/c", value: 1}
+      target = %{a: %TestStruct{field1: %{c: 0}}}
       patched = Jsonpatch.apply_patch!(patch, target, keys: :atoms)
-      assert %{a: %TestStruct{field: %{c: 1}}} = patched
+      assert %{a: %TestStruct{field1: %{c: 1}}} = patched
 
-      patch = %Jsonpatch.Operation.Remove{path: "/a/field"}
-      target = %{a: %TestStruct{field: %{c: 0}}}
+      patch = %Jsonpatch.Operation.Remove{path: "/a/field1"}
+      target = %{a: %TestStruct{field1: %{c: 0}}}
       patched = Jsonpatch.apply_patch!(patch, target, keys: :atoms)
       assert %{a: %{__struct__: TestStruct}} = patched
     end

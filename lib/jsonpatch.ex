@@ -192,14 +192,18 @@ defmodule Jsonpatch do
   """
   @spec diff(Types.json_container(), Types.json_container(), Types.opts_diff()) :: [Jsonpatch.t()]
   def diff(source, destination, opts \\ []) do
-    opts = Keyword.validate!(opts, ancestor_path: "")
+    opts =
+      Keyword.validate!(opts,
+        ancestor_path: "",
+        prepare_struct: fn struct -> Map.from_struct(struct) end
+      )
 
     cond do
       is_map(source) and is_map(destination) ->
-        do_map_diff(destination, source, opts[:ancestor_path])
+        do_map_diff(destination, source, opts[:ancestor_path], [], opts)
 
       is_list(source) and is_list(destination) ->
-        do_list_diff(destination, source, opts[:ancestor_path])
+        do_list_diff(destination, source, opts[:ancestor_path], [], 0, opts)
 
       true ->
         []
@@ -209,34 +213,38 @@ defmodule Jsonpatch do
   defguardp are_unequal_maps(val1, val2) when val1 != val2 and is_map(val2) and is_map(val1)
   defguardp are_unequal_lists(val1, val2) when val1 != val2 and is_list(val2) and is_list(val1)
 
-  defp do_diff(dest, source, path, key, patches) when are_unequal_lists(dest, source) do
+  defp do_diff(dest, source, path, key, patches, opts) when are_unequal_lists(dest, source) do
     # uneqal lists, let's use a specialized function for that
-    do_list_diff(dest, source, "#{path}/#{escape(key)}", patches)
+    do_list_diff(dest, source, "#{path}/#{escape(key)}", patches, 0, opts)
   end
 
-  defp do_diff(dest, source, path, key, patches) when are_unequal_maps(dest, source) do
+  defp do_diff(dest, source, path, key, patches, opts) when are_unequal_maps(dest, source) do
     # uneqal maps, let's use a specialized function for that
-    do_map_diff(dest, source, "#{path}/#{escape(key)}", patches)
+    do_map_diff(dest, source, "#{path}/#{escape(key)}", patches, opts)
   end
 
-  defp do_diff(dest, source, path, key, patches) when dest != source do
+  defp do_diff(dest, source, path, key, patches, _opts) when dest != source do
     # scalar values or change of type (map -> list etc), let's just make a replace patch
     [%{op: "replace", path: "#{path}/#{escape(key)}", value: dest} | patches]
   end
 
-  defp do_diff(_dest, _source, _path, _key, patches) do
+  defp do_diff(_dest, _source, _path, _key, patches, _opts) do
     # no changes, return patches as is
     patches
   end
 
-  defp do_map_diff(%{} = destination, %{} = source, ancestor_path, patches \\ []) do
+  defp do_map_diff(%{} = destination, %{} = source, ancestor_path, patches, opts) do
+    # Convert structs to maps if prepare_struct function is provided
+    destination = maybe_prepare_struct(destination, opts)
+    source = maybe_prepare_struct(source, opts)
+
     # entrypoint for map diff, let's convert the map to a list of {k, v} tuples
     destination
     |> Map.to_list()
-    |> do_map_diff(source, ancestor_path, patches, [])
+    |> do_map_diff(source, ancestor_path, patches, [], opts)
   end
 
-  defp do_map_diff([], source, ancestor_path, patches, checked_keys) do
+  defp do_map_diff([], source, ancestor_path, patches, checked_keys, _opts) do
     # The complete desination was check. Every key that is not in the list of
     # checked keys, must be removed.
     Enum.reduce(source, patches, fn {k, _}, patches ->
@@ -248,29 +256,29 @@ defmodule Jsonpatch do
     end)
   end
 
-  defp do_map_diff([{key, val} | rest], source, ancestor_path, patches, checked_keys) do
+  defp do_map_diff([{key, val} | rest], source, ancestor_path, patches, checked_keys, opts) do
     # normal iteration through list of map {k, v} tuples. We track seen keys to later remove not seen keys.
     patches =
       case Map.fetch(source, key) do
-        {:ok, source_val} -> do_diff(val, source_val, ancestor_path, key, patches)
+        {:ok, source_val} -> do_diff(val, source_val, ancestor_path, key, patches, opts)
         :error -> [%{op: "add", path: "#{ancestor_path}/#{escape(key)}", value: val} | patches]
       end
 
     # Diff next value of same level
-    do_map_diff(rest, source, ancestor_path, patches, [key | checked_keys])
+    do_map_diff(rest, source, ancestor_path, patches, [key | checked_keys], opts)
   end
 
-  defp do_list_diff(destination, source, ancestor_path, patches \\ [], idx \\ 0)
+  defp do_list_diff(destination, source, ancestor_path, patches, idx, opts)
 
-  defp do_list_diff([], [], _path, patches, _idx), do: patches
+  defp do_list_diff([], [], _path, patches, _idx, _opts), do: patches
 
-  defp do_list_diff([], [_item | source_rest], ancestor_path, patches, idx) do
+  defp do_list_diff([], [_item | source_rest], ancestor_path, patches, idx, opts) do
     # if we find any leftover items in source, we have to remove them
     patches = [%{op: "remove", path: "#{ancestor_path}/#{idx}"} | patches]
-    do_list_diff([], source_rest, ancestor_path, patches, idx + 1)
+    do_list_diff([], source_rest, ancestor_path, patches, idx + 1, opts)
   end
 
-  defp do_list_diff(items, [], ancestor_path, patches, idx) do
+  defp do_list_diff(items, [], ancestor_path, patches, idx, _opts) do
     # we have to do it without recursion, because we have to keep the order of the items
     items
     |> Enum.map_reduce(idx, fn val, idx ->
@@ -280,11 +288,18 @@ defmodule Jsonpatch do
     |> Kernel.++(patches)
   end
 
-  defp do_list_diff([val | rest], [source_val | source_rest], ancestor_path, patches, idx) do
+  defp do_list_diff([val | rest], [source_val | source_rest], ancestor_path, patches, idx, opts) do
     # case when there's an item in both desitation and source. Let's just compare them
-    patches = do_diff(val, source_val, ancestor_path, idx, patches)
-    do_list_diff(rest, source_rest, ancestor_path, patches, idx + 1)
+    patches = do_diff(val, source_val, ancestor_path, idx, patches, opts)
+    do_list_diff(rest, source_rest, ancestor_path, patches, idx + 1, opts)
   end
+
+  defp maybe_prepare_struct(value, opts) when is_struct(value) do
+    prepare_fn = Keyword.fetch!(opts, :prepare_struct)
+    prepare_fn.(value)
+  end
+
+  defp maybe_prepare_struct(value, _opts), do: value
 
   @compile {:inline, escape: 1}
 
