@@ -167,6 +167,17 @@ defmodule Jsonpatch do
 
     * `:ancestor_path` - Sets the initial ancestor path for the diff operation.
       Defaults to `""` (root). Useful when you need to diff starting from a nested path.
+    * `:prepare_struct` - A function that converts structs to maps before diffing.
+      Defaults to `fn struct -> struct end` (no-op). Useful when you need to customize
+      how structs are handled during the diff process. Example:
+
+      ```elixir
+      fn
+        %Struct{field1: value1, field2: value2} -> %{field1: "\#{value1} - \#{value2}"}
+        %OtherStruct{} = struct -> Map.take(struct, [:field1])
+        struct -> struct
+      end
+      ```
 
   ## Examples
 
@@ -195,7 +206,8 @@ defmodule Jsonpatch do
     opts =
       Keyword.validate!(opts,
         ancestor_path: "",
-        prepare_struct: fn struct -> Map.from_struct(struct) end
+        # by default, a no-op
+        prepare_struct: fn struct -> struct end
       )
 
     cond do
