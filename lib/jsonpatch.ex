@@ -163,6 +163,11 @@ defmodule Jsonpatch do
   @doc """
   Creates a patch from the difference of a source map to a destination map or list.
 
+  ## Options
+
+    * `:ancestor_path` - Sets the initial ancestor path for the diff operation.
+      Defaults to `""` (root). Useful when you need to diff starting from a nested path.
+
   ## Examples
 
       iex> source = %{"name" => "Bob", "married" => false, "hobbies" => ["Elixir", "Sport", "Football"]}
@@ -175,20 +180,30 @@ defmodule Jsonpatch do
         %{path: "/hobbies/0", value: "Elixir!", op: "replace"},
         %{path: "/age", value: 33, op: "add"}
       ]
+
+      iex> source = %{"a" => 1, "b" => 2}
+      iex> destination = %{"a" => 3, "c" => 4}
+      iex> Jsonpatch.diff(source, destination, ancestor_path: "/nested")
+      [
+        %{path: "/nested/b", op: "remove"},
+        %{path: "/nested/c", value: 4, op: "add"},
+        %{path: "/nested/a", value: 3, op: "replace"}
+      ]
   """
-  @spec diff(Types.json_container(), Types.json_container()) :: [Jsonpatch.t()]
-  def diff(source, destination)
+  @spec diff(Types.json_container(), Types.json_container(), Types.opts()) :: [Jsonpatch.t()]
+  def diff(source, destination, opts \\ []) do
+    opts = Keyword.validate!(opts, ancestor_path: "")
 
-  def diff(%{} = source, %{} = destination) do
-    do_map_diff(destination, source)
-  end
+    cond do
+      is_map(source) and is_map(destination) ->
+        do_map_diff(destination, source, opts[:ancestor_path])
 
-  def diff(source, destination) when is_list(source) and is_list(destination) do
-    do_list_diff(destination, source)
-  end
+      is_list(source) and is_list(destination) ->
+        do_list_diff(destination, source, opts[:ancestor_path])
 
-  def diff(_, _) do
-    []
+      true ->
+        []
+    end
   end
 
   defguardp are_unequal_maps(val1, val2) when val1 != val2 and is_map(val2) and is_map(val1)
@@ -214,7 +229,7 @@ defmodule Jsonpatch do
     patches
   end
 
-  defp do_map_diff(%{} = destination, %{} = source, ancestor_path \\ "", patches \\ []) do
+  defp do_map_diff(%{} = destination, %{} = source, ancestor_path, patches \\ []) do
     # entrypoint for map diff, let's convert the map to a list of {k, v} tuples
     destination
     |> Map.to_list()
@@ -245,7 +260,7 @@ defmodule Jsonpatch do
     do_map_diff(rest, source, ancestor_path, patches, [key | checked_keys])
   end
 
-  defp do_list_diff(destination, source, ancestor_path \\ "", patches \\ [], idx \\ 0)
+  defp do_list_diff(destination, source, ancestor_path, patches \\ [], idx \\ 0)
 
   defp do_list_diff([], [], _path, patches, _idx), do: patches
 
