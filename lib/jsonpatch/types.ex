@@ -32,7 +32,7 @@ defmodule Jsonpatch.Types do
   - `:keys` - controls how path fragments are decoded.
   """
   @type opts :: [{:keys, opt_keys()}]
-  @type opts_diff :: [{:ancestor_path, String.t()}]
+  @type opts_diff :: [{:ancestor_path, String.t()} | {:prepare_struct, (struct() -> map())}]
 
   @type casted_array_index :: :- | non_neg_integer()
   @type casted_object_key :: atom() | String.t()
