@@ -235,9 +235,10 @@ defmodule Jsonpatch do
     do_map_diff(dest, source, "#{path}/#{escape(key)}", patches, opts)
   end
 
-  defp do_diff(dest, source, path, key, patches, _opts) when dest != source do
+  defp do_diff(dest, source, path, key, patches, opts) when dest != source do
     # scalar values or change of type (map -> list etc), let's just make a replace patch
-    [%{op: "replace", path: "#{path}/#{escape(key)}", value: dest} | patches]
+    value = maybe_prepare_struct(dest, opts)
+    [%{op: "replace", path: "#{path}/#{escape(key)}", value: value} | patches]
   end
 
   defp do_diff(_dest, _source, _path, _key, patches, _opts) do
@@ -272,8 +273,12 @@ defmodule Jsonpatch do
     # normal iteration through list of map {k, v} tuples. We track seen keys to later remove not seen keys.
     patches =
       case Map.fetch(source, key) do
-        {:ok, source_val} -> do_diff(val, source_val, ancestor_path, key, patches, opts)
-        :error -> [%{op: "add", path: "#{ancestor_path}/#{escape(key)}", value: val} | patches]
+        {:ok, source_val} ->
+          do_diff(val, source_val, ancestor_path, key, patches, opts)
+
+        :error ->
+          value = maybe_prepare_struct(val, opts)
+          [%{op: "add", path: "#{ancestor_path}/#{escape(key)}", value: value} | patches]
       end
 
     # Diff next value of same level
@@ -290,11 +295,12 @@ defmodule Jsonpatch do
     do_list_diff([], source_rest, ancestor_path, patches, idx + 1, opts)
   end
 
-  defp do_list_diff(items, [], ancestor_path, patches, idx, _opts) do
+  defp do_list_diff(items, [], ancestor_path, patches, idx, opts) do
     # we have to do it without recursion, because we have to keep the order of the items
     items
     |> Enum.map_reduce(idx, fn val, idx ->
-      {%{op: "add", path: "#{ancestor_path}/#{idx}", value: val}, idx + 1}
+      {%{op: "add", path: "#{ancestor_path}/#{idx}", value: maybe_prepare_struct(val, opts)},
+       idx + 1}
     end)
     |> elem(0)
     |> Kernel.++(patches)

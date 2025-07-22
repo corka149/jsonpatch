@@ -262,6 +262,51 @@ defmodule JsonpatchTest do
       assert_equal_patches(patches, expected_patches)
     end
 
+    test "add map patches are correctly processed by prepare_struct" do
+      source = %{}
+
+      destination = %{
+        a: %TestStruct{
+          field1: "hi",
+          field2: "world"
+        }
+      }
+
+      patches = Jsonpatch.diff(source, destination, prepare_struct: &%{field1: &1.field1})
+
+      assert patches == [
+               %{op: "add", path: "/a", value: %{field1: "hi"}}
+             ]
+    end
+
+    test "add list patches are correctly processed by prepare_struct" do
+      source = []
+
+      destination = [
+        %TestStruct{
+          field1: "hi",
+          field2: "world"
+        }
+      ]
+
+      patches = Jsonpatch.diff(source, destination, prepare_struct: &%{field1: &1.field1})
+
+      assert patches == [
+               %{op: "add", path: "/0", value: %{field1: "hi"}}
+             ]
+    end
+
+    test "replace map patches are correctly processed by prepare_struct" do
+      source = %{"a" => "test"}
+      destination = %{"a" => %TestStruct{field1: "old"}}
+
+      patches = Jsonpatch.diff(source, destination, prepare_struct: &%{field1: &1.field1})
+
+      assert patches == [
+               %{op: "replace", path: "/a", value: %{field1: "old"}}
+             ]
+    end
+
     defp assert_diff_apply(source, destination) do
       patches = Jsonpatch.diff(source, destination)
       assert Jsonpatch.apply_patch(patches, source) == {:ok, destination}
