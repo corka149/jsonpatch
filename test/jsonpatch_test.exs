@@ -140,6 +140,51 @@ defmodule JsonpatchTest do
       assert Jsonpatch.apply_patch(patches, source, keys: :atoms) == {:ok, destination}
     end
 
+    test "Create diff with ancestor_path option for nested maps" do
+      source = %{"a" => 1}
+      destination = %{"a" => 3}
+
+      patches = Jsonpatch.diff(source, destination, ancestor_path: "/nested/object")
+
+      assert patches == [
+               %{op: "replace", path: "/nested/object/a", value: 3}
+             ]
+    end
+
+    test "Create diff with ancestor_path option for nested lists" do
+      source = [1, 2, 3]
+      destination = [1, 2, 4]
+
+      patches = Jsonpatch.diff(source, destination, ancestor_path: "/items")
+
+      assert patches == [
+               %{op: "replace", path: "/items/2", value: 4}
+             ]
+    end
+
+    test "Create diff with empty ancestor_path (default behavior)" do
+      source = %{"a" => 1, "b" => 2}
+      destination = %{"a" => 3, "c" => 4}
+
+      patches_with_option = Jsonpatch.diff(source, destination, ancestor_path: "")
+      patches_without_option = Jsonpatch.diff(source, destination)
+
+      assert patches_with_option == patches_without_option
+    end
+
+    test "Create diff with ancestor_path containing escaped characters" do
+      source = %{"a" => 1}
+      destination = %{"a" => 2}
+
+      patches = Jsonpatch.diff(source, destination, ancestor_path: "/escape~1me~0now")
+
+      expected_patches = [
+        %{op: "replace", path: "/escape~1me~0now/a", value: 2}
+      ]
+
+      assert patches == expected_patches
+    end
+
     defp assert_diff_apply(source, destination) do
       patches = Jsonpatch.diff(source, destination)
       assert Jsonpatch.apply_patch(patches, source) == {:ok, destination}
