@@ -217,6 +217,11 @@ defmodule Jsonpatch do
       is_list(source) and is_list(destination) ->
         do_list_diff(destination, source, opts[:ancestor_path], [], 0, opts)
 
+      # type of value changed, eg set to nil
+      source != destination ->
+        destination = maybe_prepare_map(destination, opts)
+        [%{op: "replace", path: opts[:ancestor_path], value: destination}]
+
       true ->
         []
     end

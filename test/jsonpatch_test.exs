@@ -57,8 +57,8 @@ defmodule JsonpatchTest do
       assert [] = Jsonpatch.diff(source, destination)
     end
 
-    test "Create no diff on unexpected input" do
-      assert [] = Jsonpatch.diff("unexpected", 1)
+    test "Create full replace operation when type of root value changes" do
+      assert [%{op: "replace", path: "", value: 1}] = Jsonpatch.diff("unexpected", 1)
     end
 
     test "A.4. Removing an Array Element" do
@@ -322,6 +322,21 @@ defmodule JsonpatchTest do
       assert patches == [
                %{op: "replace", path: "/a", value: %{field1: "old"}}
              ]
+    end
+
+    test "Create diff with ancestor_path when changing type of base value (map to nil)" do
+      source = %{"key" => "value"}
+      destination = nil
+
+      patches = Jsonpatch.diff(source, destination, ancestor_path: "/nested")
+
+      # This should fail for now - the diff should not handle type changes with ancestor_path
+      # The expected behavior would be to generate a replace operation for the entire data object
+      expected_patches = [
+        %{op: "replace", path: "/nested", value: nil}
+      ]
+
+      assert patches == expected_patches
     end
 
     defp assert_diff_apply(source, destination) do
