@@ -187,7 +187,7 @@ defmodule JsonpatchTest do
              ]
     end
 
-    test "Create diff with prepare_struct option using subset of fields" do
+    test "Create diff with prepare_map option using subset of fields" do
       source = %TestStruct{
         field1: "value1",
         field2: "value2",
@@ -203,7 +203,12 @@ defmodule JsonpatchTest do
       }
 
       patches =
-        Jsonpatch.diff(source, destination, prepare_struct: &Map.take(&1, [:field1, :inner]))
+        Jsonpatch.diff(source, destination,
+          prepare_map: fn
+            %TestStruct{field1: field1, inner: inner} -> %{field1: field1, inner: inner}
+            map -> map
+          end
+        )
 
       expected_patches = [
         %{op: "replace", path: "/field1", value: "new_value"},
@@ -213,7 +218,7 @@ defmodule JsonpatchTest do
       assert_equal_patches(patches, expected_patches)
     end
 
-    test "Create diff with prepare_struct option using dynamic field creation" do
+    test "Create diff with prepare_map option using dynamic field creation" do
       source = %TestStruct{
         field1: "hello",
         field2: "world"
@@ -226,7 +231,7 @@ defmodule JsonpatchTest do
 
       patches =
         Jsonpatch.diff(source, destination,
-          prepare_struct: &%{field3: "#{&1.field1} - #{&1.field2}"}
+          prepare_map: &%{field3: "#{&1.field1} - #{&1.field2}"}
         )
 
       expected_patches = [
@@ -236,7 +241,7 @@ defmodule JsonpatchTest do
       assert_equal_patches(patches, expected_patches)
     end
 
-    test "Create diff with prepare_struct option using nested dynamic field creation" do
+    test "Create diff with prepare_map option using nested dynamic field creation" do
       source = %TestStruct{
         field1: "hello",
         field2: "world",
@@ -251,7 +256,7 @@ defmodule JsonpatchTest do
 
       patches =
         Jsonpatch.diff(source, destination,
-          prepare_struct: &%{inner: &1.inner, field3: "#{&1.field1} - #{&1.field2}"}
+          prepare_map: &%{inner: &1.inner, field3: "#{&1.field1} - #{&1.field2}"}
         )
 
       expected_patches = [
@@ -262,7 +267,7 @@ defmodule JsonpatchTest do
       assert_equal_patches(patches, expected_patches)
     end
 
-    test "add map patches are correctly processed by prepare_struct" do
+    test "add map patches are correctly processed by prepare_map" do
       source = %{}
 
       destination = %{
@@ -272,14 +277,20 @@ defmodule JsonpatchTest do
         }
       }
 
-      patches = Jsonpatch.diff(source, destination, prepare_struct: &%{field1: &1.field1})
+      patches =
+        Jsonpatch.diff(source, destination,
+          prepare_map: fn
+            %TestStruct{field1: field1} -> %{field1: field1}
+            map -> map
+          end
+        )
 
       assert patches == [
                %{op: "add", path: "/a", value: %{field1: "hi"}}
              ]
     end
 
-    test "add list patches are correctly processed by prepare_struct" do
+    test "add list patches are correctly processed by prepare_map" do
       source = []
 
       destination = [
@@ -289,18 +300,24 @@ defmodule JsonpatchTest do
         }
       ]
 
-      patches = Jsonpatch.diff(source, destination, prepare_struct: &%{field1: &1.field1})
+      patches = Jsonpatch.diff(source, destination, prepare_map: &%{field1: &1.field1})
 
       assert patches == [
                %{op: "add", path: "/0", value: %{field1: "hi"}}
              ]
     end
 
-    test "replace map patches are correctly processed by prepare_struct" do
+    test "replace map patches are correctly processed by prepare_map" do
       source = %{"a" => "test"}
       destination = %{"a" => %TestStruct{field1: "old"}}
 
-      patches = Jsonpatch.diff(source, destination, prepare_struct: &%{field1: &1.field1})
+      patches =
+        Jsonpatch.diff(source, destination,
+          prepare_map: fn
+            %TestStruct{field1: field1} -> %{field1: field1}
+            map -> map
+          end
+        )
 
       assert patches == [
                %{op: "replace", path: "/a", value: %{field1: "old"}}

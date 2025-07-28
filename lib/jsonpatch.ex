@@ -167,15 +167,15 @@ defmodule Jsonpatch do
 
     * `:ancestor_path` - Sets the initial ancestor path for the diff operation.
       Defaults to `""` (root). Useful when you need to diff starting from a nested path.
-    * `:prepare_struct` - A function that converts structs to maps before diffing.
-      Defaults to `fn struct -> struct end` (no-op). Useful when you need to customize
-      how structs are handled during the diff process. Example:
+    * `:prepare_map` - A function that lets to customize maps and structs before diffing.
+      Defaults to `fn map -> map end` (no-op). Useful when you need to customize
+      how maps and structs are handled during the diff process. Example:
 
       ```elixir
       fn
         %Struct{field1: value1, field2: value2} -> %{field1: "\#{value1} - \#{value2}"}
         %OtherStruct{} = struct -> Map.take(struct, [:field1])
-        struct -> struct
+        map -> map
       end
       ```
 
@@ -207,7 +207,7 @@ defmodule Jsonpatch do
       Keyword.validate!(opts,
         ancestor_path: "",
         # by default, a no-op
-        prepare_struct: fn struct -> struct end
+        prepare_map: fn map -> map end
       )
 
     cond do
@@ -237,7 +237,7 @@ defmodule Jsonpatch do
 
   defp do_diff(dest, source, path, key, patches, opts) when dest != source do
     # scalar values or change of type (map -> list etc), let's just make a replace patch
-    value = maybe_prepare_struct(dest, opts)
+    value = maybe_prepare_map(dest, opts)
     [%{op: "replace", path: "#{path}/#{escape(key)}", value: value} | patches]
   end
 
@@ -247,9 +247,9 @@ defmodule Jsonpatch do
   end
 
   defp do_map_diff(%{} = destination, %{} = source, ancestor_path, patches, opts) do
-    # Convert structs to maps if prepare_struct function is provided
-    destination = maybe_prepare_struct(destination, opts)
-    source = maybe_prepare_struct(source, opts)
+    # Convert structs to maps if prepare_map function is provided
+    destination = maybe_prepare_map(destination, opts)
+    source = maybe_prepare_map(source, opts)
 
     # entrypoint for map diff, let's convert the map to a list of {k, v} tuples
     destination
@@ -277,7 +277,7 @@ defmodule Jsonpatch do
           do_diff(val, source_val, ancestor_path, key, patches, opts)
 
         :error ->
-          value = maybe_prepare_struct(val, opts)
+          value = maybe_prepare_map(val, opts)
           [%{op: "add", path: "#{ancestor_path}/#{escape(key)}", value: value} | patches]
       end
 
@@ -299,7 +299,7 @@ defmodule Jsonpatch do
     # we have to do it without recursion, because we have to keep the order of the items
     items
     |> Enum.map_reduce(idx, fn val, idx ->
-      {%{op: "add", path: "#{ancestor_path}/#{idx}", value: maybe_prepare_struct(val, opts)},
+      {%{op: "add", path: "#{ancestor_path}/#{idx}", value: maybe_prepare_map(val, opts)},
        idx + 1}
     end)
     |> elem(0)
@@ -312,12 +312,12 @@ defmodule Jsonpatch do
     do_list_diff(rest, source_rest, ancestor_path, patches, idx + 1, opts)
   end
 
-  defp maybe_prepare_struct(value, opts) when is_struct(value) do
-    prepare_fn = Keyword.fetch!(opts, :prepare_struct)
+  defp maybe_prepare_map(value, opts) when is_map(value) do
+    prepare_fn = Keyword.fetch!(opts, :prepare_map)
     prepare_fn.(value)
   end
 
-  defp maybe_prepare_struct(value, _opts), do: value
+  defp maybe_prepare_map(value, _opts), do: value
 
   @compile {:inline, escape: 1}
 
