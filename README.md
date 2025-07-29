@@ -20,6 +20,7 @@ Features:
     - test
 - Escaping of "`/`" (by "`~1`") and "`~`" (by "`~0`")
 - Allow usage of `-` for appending things to list (Add and Copy operation)
+- Smart list diffing with `object_hash` for efficient patches on collections with unique identifiers
 
 ## Getting started
 
@@ -52,6 +53,36 @@ iex> Jsonpatch.diff(source, destination)
 ]
 ```
 
+### Smart List Diffing with `object_hash`
+
+Use `object_hash` to generate efficient patches for lists of objects with unique identifiers, producing minimal operations instead of cascading replacements.
+
+```elixir
+iex> original = [
+  %{id: 1, name: "Alice"},
+  %{id: 2, name: "Bob"}
+]
+iex> updated = [
+  %{id: 99, name: "New"},
+  %{id: 1, name: "Alice"},
+  %{id: 2, name: "Bob"}
+]
+
+# Traditional pairwise diff - multiple replace operations
+# >> Jsonpatch.diff(original, updated)
+[
+  %{op: "add", path: "/2", value: %{id: 2, name: "Bob"}}
+  %{op: "replace", path: "/0", value: %{id: 99, name: "New"}},
+  %{op: "replace", path: "/1", value: %{id: 1, name: "Alice"}},
+]
+
+# With object_hash - single add operation
+iex> Jsonpatch.diff(original, updated, object_hash: fn %{id: id} -> id end)
+[
+  %{op: "add", path: "/0", value: %{id: 99, name: "New"}}
+]
+```
+
 ### Apply patches
 
 ```elixir
@@ -69,4 +100,4 @@ iex> Jsonpatch.apply_patch(patch, target)
 
 ## Important sources
 - [Official RFC 6902](https://tools.ietf.org/html/rfc6902)
-- [Inspiration: python-json-patch](https://github.com/stefankoegl/python-json-patch) 
+- [Inspiration: python-json-patch](https://github.com/stefankoegl/python-json-patch)
