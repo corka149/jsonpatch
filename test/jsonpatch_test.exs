@@ -420,7 +420,6 @@ defmodule JsonpatchTest do
              ]
     end
 
-    @tag :wip
     test "Create diff with object_hash for list items - modification" do
       original = [
         %{id: 1, name: "test1"},
