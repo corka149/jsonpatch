@@ -27,12 +27,24 @@ defmodule Jsonpatch.Types do
           :strings | :atoms | {:custom, convert_fn()} | {:ignore_invalid_paths, :boolean}
 
   @typedoc """
-  Types options:
+  Apply patch options:
 
-  - `:keys` - controls how path fragments are decoded.
+  - `:keys` - controls how path fragments are decoded
   """
   @type opts :: [{:keys, opt_keys()}]
-  @type opts_diff :: [{:ancestor_path, String.t()} | {:prepare_map, (struct() | map() -> map())}]
+
+  @typedoc """
+  Diff options:
+
+  - `:ancestor_path` - path to the ancestor of the current node
+  - `:prepare_map` - function to prepare the map for diffing
+  - `:object_hash` - function to extract unique identifier from list items for optimized diffing.
+  """
+  @type opts_diff :: [
+          {:ancestor_path, String.t()}
+          | {:prepare_map, (struct() | map() -> map())}
+          | {:object_hash, (term() -> term())}
+        ]
 
   @type casted_array_index :: :- | non_neg_integer()
   @type casted_object_key :: atom() | String.t()
