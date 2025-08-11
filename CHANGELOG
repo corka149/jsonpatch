@@ -1,3 +1,9 @@
+# 2.3.0
+- Feature - Customize diffs for structs (prepare maps or structs before diffing)
+- Feature - Add an option to set initial path
+- Bugfix - Incorrect apply_patch for the move operation for the same list
+- Improvements - Dedicated functions for map and list diffs
+
 # 2.2.2
 - Bugfix - Resolves an issues preventing move working with keys: :atoms
 
