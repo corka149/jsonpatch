@@ -324,6 +324,23 @@ defmodule JsonpatchTest do
              ]
     end
 
+    test "replace_map changing type of value is also supported" do
+      source = %{"a" => ~D[2025-01-01]}
+      destination = %{"a" => ~D[2025-01-02]}
+
+      patches =
+        Jsonpatch.diff(source, destination,
+          prepare_map: fn
+            %Date{year: year, month: month, day: day} -> "#{year}-#{month}-#{day}"
+            map -> map
+          end
+        )
+
+      assert patches == [
+               %{op: "replace", path: "/a", value: "2025-1-2"}
+             ]
+    end
+
     test "Create diff with ancestor_path when changing type of base value (map to nil)" do
       source = %{"key" => "value"}
       destination = nil
