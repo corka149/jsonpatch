@@ -1,3 +1,6 @@
+# 2.3.1
+- Bugfix - Prepare_map returning non-map works now
+
 # 2.3.0
 - Feature - Customize diffs for structs (prepare maps or structs before diffing)
 - Feature - Add an option to set initial path
