@@ -12,18 +12,14 @@ jobs:
   # unit tests
   test:
     runs-on: ubuntu-latest
-    name: Test - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
-    strategy:
-      matrix:
-        otp: ["24.3", "25.2"]
-        elixir: ["1.13.4", "1.14.3"]
+    name: Test
     steps:
       - uses: actions/checkout@v2
       - name: Setup elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
+          otp-version: "25.2"
+          elixir-version: "1.15.8"
       - name: Install Dependencies
         run: mix deps.get
       - name: Run Tests
@@ -41,24 +37,20 @@ jobs:
         uses: erlef/setup-beam@v1
         with:
           otp-version: "25.2"
-          elixir-version: "1.14.3"
+          elixir-version: "1.15.8"
       - run: mix deps.get
 
   # Linit and type checking
   analyze:
     runs-on: ubuntu-latest
-    name: Analyze - OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
-    strategy:
-      matrix:
-        otp: ["24.3", "25.2"]
-        elixir: ["1.13.4", "1.14.3"]
+    name: Analyze
     steps:
       - uses: actions/checkout@v2
       - name: Setup elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
+          otp-version: "25.2"
+          elixir-version: "1.15.8"
       - run: mix deps.get
       - run: mix dialyzer
       - run: mix credo --strict
@@ -76,6 +68,6 @@ jobs:
         uses: erlef/setup-beam@v1
         with:
           otp-version: "25.2"
-          elixir-version: "1.14.3"
+          elixir-version: "1.15.8"
       - run: mix deps.get
       - run: mix coveralls.github
