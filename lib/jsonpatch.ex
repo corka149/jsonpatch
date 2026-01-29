@@ -10,8 +10,8 @@ defmodule Jsonpatch do
   by using `~1` for `/` and `~0` for `~`.
   """
 
-  alias Jsonpatch.Types
   alias Jsonpatch.Operation.{Add, Copy, Move, Remove, Replace, Test}
+  alias Jsonpatch.Types
 
   @typedoc """
   A valid Jsonpatch operation by RFC 6902

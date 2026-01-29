@@ -10,8 +10,8 @@ defmodule Jsonpatch.Operation.Copy do
     {:ok, %{"a" => %{"b" => %{"c" => "Bob"}, "e" => %{"c" => "Bob"}}, "d" => false}}
   """
 
-  alias Jsonpatch.Types
   alias Jsonpatch.Operation.{Add, Copy}
+  alias Jsonpatch.Types
   alias Jsonpatch.Utils
 
   @enforce_keys [:from, :path]

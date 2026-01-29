@@ -21,7 +21,16 @@ defmodule Jsonpatch.MixProject do
   end
 
   def cli do
-      [preferred_envs: [coveralls: :test, "coveralls.github": :test, "coveralls.detail": :test, "coveralls.post": :test, "coveralls.html": :test, docs: :dev]]
+    [
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.github": :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        docs: :dev
+      ]
+    ]
   end
 
   def application do

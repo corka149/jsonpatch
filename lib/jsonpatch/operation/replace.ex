@@ -10,8 +10,8 @@ defmodule Jsonpatch.Operation.Replace do
       {:ok, %{"a" => %{"b" => 1}}}
   """
 
-  alias Jsonpatch.Types
   alias Jsonpatch.Operation.{Add, Remove, Replace}
+  alias Jsonpatch.Types
 
   @enforce_keys [:path, :value]
   defstruct [:path, :value]
