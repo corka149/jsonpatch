@@ -1,3 +1,6 @@
+> No commit for a long time? No problem! This library received performance improvements.
+> Several API enhancements were made. And this library has zero prod dependencies. 😉
+
 # Jsonpatch
 
 ![Elixir CI](https://github.com/corka149/jsonpatch/workflows/Elixir%20CI/badge.svg)
