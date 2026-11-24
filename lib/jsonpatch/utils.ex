@@ -300,10 +300,17 @@ defmodule Jsonpatch.Utils do
   end
 
   defp find_destination(target, path, [fragment | tail], opts) when is_list(target) do
-    with {:ok, index} <- cast_fragment(fragment, path, target, opts) do
-      val = Enum.fetch!(target, index)
+    with {:ok, index} <- cast_fragment(fragment, path, target, opts),
+         {:ok, val} <- fetch(target, index) do
       find_destination(val, path ++ [fragment], tail, opts)
+    else
+      {:error, :invalid_path} -> {:error, {:invalid_path, path ++ [fragment]}}
+      {:error, _} = error -> error
     end
+  end
+
+  defp find_destination(_target, path, [fragment | _tail], _opts) do
+    {:error, {:invalid_path, path ++ [fragment]}}
   end
 
   defp do_update_destination(_target, value, _path, :root, _opts) do

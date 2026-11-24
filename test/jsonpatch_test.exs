@@ -839,6 +839,36 @@ defmodule JsonpatchTest do
                Jsonpatch.apply_patch(patch, target)
     end
 
+    test "Return an error when the path goes through a scalar or a missing list element" do
+      target = %{"name" => "Bob", "age" => nil, "hobbies" => [%{"x" => 1}]}
+
+      paths = [
+        {"/name/first", ["name", "first"]},
+        {"/age/years/min", ["age", "years"]},
+        {"/hobbies/0/x/y", ["hobbies", "0", "x", "y"]},
+        {"/hobbies/1/x", ["hobbies", "1"]},
+        {"/hobbies/-/x", ["hobbies", "-"]}
+      ]
+
+      for {path, fragments} <- paths,
+          patch <- [
+            %{"op" => "add", "path" => path, "value" => 1},
+            %{"op" => "test", "path" => path, "value" => 1},
+            %{"op" => "copy", "from" => path, "path" => "/new"},
+            %{"op" => "move", "from" => path, "path" => "/new"},
+            %{"op" => "copy", "from" => "/name", "path" => path}
+          ] do
+        assert {:error,
+                %Jsonpatch.Error{
+                  patch: ^patch,
+                  patch_index: 0,
+                  reason: {:invalid_path, ^fragments}
+                }} = Jsonpatch.apply_patch(patch, target)
+
+        assert {:ok, ^target} = Jsonpatch.apply_patch(patch, target, ignore_invalid_paths: true)
+      end
+    end
+
     test "Apply patch with multiple operations with binary keys" do
       patch = [
         %Jsonpatch.Operation.Remove{path: "/age"},
